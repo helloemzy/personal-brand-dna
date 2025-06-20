@@ -1,0 +1,16 @@
+{
+  "name": "personal-brand-dna-backend",
+  "version": "1.0.0",
+  "description": "Personal Brand DNA System - Backend Service",
+  "main": "backend/src/server.js",
+  "scripts": {
+    "start": "cd backend && npm start",
+    "build": "cd backend && npm install",
+    "dev": "cd backend && npm run dev"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "author": "Personal Brand DNA Team",
+  "license": "MIT"
+}

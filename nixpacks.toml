@@ -6,8 +6,8 @@ nixPkgs = ["nodejs-18_x", "python311"]
 [phases.install]
 dependsOn = ["setup"]
 cmds = [
-  "cd backend && npm ci",
-  "cd frontend && npm ci", 
+  "cd backend && npm install",
+  "cd frontend && npm install", 
   "cd ai-pipeline && pip install -r requirements.txt"
 ]
 
