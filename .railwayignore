@@ -1,0 +1,5 @@
+ai-pipeline/
+frontend/
+docs/
+*.md
+docker-compose.yml

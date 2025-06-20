@@ -5,8 +5,8 @@
   "main": "backend/src/server.js",
   "scripts": {
     "start": "cd backend && npm start",
-    "build": "cd backend && npm install",
-    "dev": "cd backend && npm run dev"
+    "build": "echo 'Build step completed'",
+    "install": "cd backend && npm install"
   },
   "engines": {
     "node": ">=18.0.0"
