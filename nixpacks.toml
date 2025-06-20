@@ -1,0 +1,22 @@
+# Nixpacks configuration for Railway deployment
+
+[phases.setup]
+nixPkgs = ["nodejs-18_x", "python311"]
+
+[phases.install]
+dependsOn = ["setup"]
+cmds = [
+  "cd backend && npm ci",
+  "cd frontend && npm ci", 
+  "cd ai-pipeline && pip install -r requirements.txt"
+]
+
+[phases.build]
+dependsOn = ["install"]
+cmds = [
+  "cd frontend && npm run build",
+  "cd backend && npm run migrate"
+]
+
+[start]
+cmd = "cd backend && npm start"
