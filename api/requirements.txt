@@ -1,0 +1,5 @@
+openai==0.28.1
+google-cloud-speech==2.21.0
+psycopg2-binary==2.9.7
+spacy==3.6.1
+https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.6.0/en_core_web_sm-3.6.0.tar.gz

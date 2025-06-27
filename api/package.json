@@ -1,0 +1,28 @@
+{
+  "name": "pbdna-api",
+  "version": "1.0.0",
+  "description": "Personal Brand DNA API - Vercel Serverless Functions",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vercel dev",
+    "build": "echo 'No build step required for serverless functions'"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "jsonwebtoken": "^9.0.2",
+    "joi": "^17.9.2",
+    "pg": "^8.11.3",
+    "redis": "^4.6.7",
+    "rate-limiter-flexible": "^2.4.2",
+    "openai": "^3.3.0",
+    "@sendgrid/mail": "^7.7.0",
+    "crypto": "^1.0.1",
+    "axios": "^1.5.0"
+  },
+  "devDependencies": {
+    "@vercel/node": "^3.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

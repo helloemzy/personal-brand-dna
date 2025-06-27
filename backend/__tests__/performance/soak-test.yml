@@ -1,0 +1,204 @@
+config:
+  target: "{{ $processEnvironment.PERFORMANCE_TEST_URL }}"
+  processor: "./artillery-processor.js"
+  phases:
+    # Ramp up
+    - duration: 60
+      arrivalRate: 10
+      rampTo: 50
+      name: "Ramp up to sustained load"
+    # Sustained load for extended period
+    - duration: 600
+      arrivalRate: 50
+      name: "Soak test - 50 users/sec for 10 minutes"
+    # Cool down
+    - duration: 60
+      arrivalRate: 50
+      rampTo: 10
+      name: "Cool down"
+  
+  plugins:
+    expect: {}
+    metrics-by-endpoint: {}
+  
+  defaults:
+    headers:
+      Content-Type: "application/json"
+      Accept: "application/json"
+  
+  variables:
+    testRunId: "soak-{{ $timestamp }}"
+  
+  # Standard timeout
+  http:
+    timeout: 20
+
+scenarios:
+  # Mix of operations to simulate real usage over time
+  
+  - name: "Authenticated User Journey"
+    weight: 25
+    flow:
+      - post:
+          url: "/api/auth/demo-login"
+          json: {}
+          capture:
+            - json: "$.token"
+              as: "authToken"
+            - json: "$.user.id"
+              as: "userId"
+          expect:
+            - statusCode: 200
+      - function: "setAuthHeader"
+      - think: 5
+      
+      # Workshop interaction
+      - function: "generateWorkshopData"
+      - post:
+          url: "/api/workshop/save"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          json: "{{ workshopData }}"
+          expect:
+            - statusCode: 200
+      - think: 3
+      
+      # Calendar check
+      - get:
+          url: "/api/calendar/events"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          expect:
+            - statusCode: 200
+      - think: 2
+      
+      # News browse
+      - get:
+          url: "/api/news/feed"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          expect:
+            - statusCode: 200
+      - think: 4
+      
+      # Content generation (occasionally)
+      - probability: 0.2
+        post:
+          url: "/api/content/generate"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          json:
+            topic: "Soak test content generation"
+            contentType: "post"
+          timeout: 30
+          expect:
+            - statusCode: 200
+  
+  - name: "Background Auto-Save"
+    weight: 20
+    flow:
+      - post:
+          url: "/api/auth/demo-login"
+          json: {}
+          capture:
+            - json: "$.token"
+              as: "authToken"
+      - function: "setAuthHeader"
+      - loop:
+        - function: "generateWorkshopData"
+        - post:
+            url: "/api/workshop/save"
+            headers:
+              Authorization: "Bearer {{ authToken }}"
+            json:
+              data: "{{ workshopData }}"
+              autoSave: true
+            expect:
+              - statusCode: 200
+              - responseTime: 2000
+        - think: 30 # Auto-save every 30 seconds
+        count: 20 # For the duration of the test
+  
+  - name: "News Monitoring"
+    weight: 15
+    flow:
+      - post:
+          url: "/api/auth/demo-login"
+          json: {}
+          capture:
+            - json: "$.token"
+              as: "authToken"
+      - function: "setAuthHeader"
+      - loop:
+        - get:
+            url: "/api/news/check-updates"
+            headers:
+              Authorization: "Bearer {{ authToken }}"
+            expect:
+              - statusCode: 200
+              - responseTime: 1500
+        - think: 60 # Check every minute
+        count: 10
+  
+  - name: "Calendar Sync"
+    weight: 15
+    flow:
+      - post:
+          url: "/api/auth/demo-login"
+          json: {}
+          capture:
+            - json: "$.token"
+              as: "authToken"
+      - function: "setAuthHeader"
+      - loop:
+        - get:
+            url: "/api/calendar/sync"
+            headers:
+              Authorization: "Bearer {{ authToken }}"
+            expect:
+              - statusCode: 200
+              - responseTime: 2500
+        - think: 120 # Sync every 2 minutes
+        count: 5
+  
+  - name: "Profile Activity"
+    weight: 10
+    flow:
+      - post:
+          url: "/api/auth/demo-login"
+          json: {}
+          capture:
+            - json: "$.token"
+              as: "authToken"
+            - json: "$.user.id"
+              as: "userId"
+      - function: "setAuthHeader"
+      - loop:
+        - get:
+            url: "/api/users/{{ userId }}/analytics"
+            headers:
+              Authorization: "Bearer {{ authToken }}"
+            expect:
+              - statusCode: 200
+              - responseTime: 2000
+        - think: 90
+        count: 7
+  
+  - name: "Health Monitor"
+    weight: 15
+    flow:
+      - loop:
+        - get:
+            url: "/api/hello"
+            expect:
+              - statusCode: 200
+              - responseTime: 500
+        - get:
+            url: "/api/health/detailed"
+            expect:
+              - statusCode: 200
+              - responseTime: 1000
+              - hasProperty: "database"
+              - hasProperty: "redis"
+        - think: 30
+        count: 20

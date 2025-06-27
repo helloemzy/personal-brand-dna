@@ -1,0 +1,155 @@
+config:
+  target: "{{ $processEnvironment.PERFORMANCE_TEST_URL }}"
+  processor: "./artillery-processor.js"
+  phases:
+    # Ramp up phase
+    - duration: 60
+      arrivalRate: 10
+      rampTo: 50
+      name: "Ramp up from 10 to 50 users/sec"
+    # Sustained load
+    - duration: 120
+      arrivalRate: 50
+      name: "Sustain 50 users/sec for 2 minutes"
+    # Continue ramping
+    - duration: 60
+      arrivalRate: 50
+      rampTo: 100
+      name: "Ramp up from 50 to 100 users/sec"
+    # Peak load
+    - duration: 60
+      arrivalRate: 100
+      name: "Peak load - 100 users/sec for 1 minute"
+    # Cool down
+    - duration: 60
+      arrivalRate: 100
+      rampTo: 10
+      name: "Cool down from 100 to 10 users/sec"
+  
+  plugins:
+    expect: {}
+    metrics-by-endpoint: {}
+  
+  defaults:
+    headers:
+      Content-Type: "application/json"
+      Accept: "application/json"
+  
+  variables:
+    testRunId: "stress-{{ $timestamp }}"
+  
+  # Timeout for serverless functions under stress
+  http:
+    timeout: 30
+
+scenarios:
+  # Focus on high-frequency operations for stress testing
+  
+  - name: "Demo Login Stress"
+    weight: 25
+    flow:
+      - post:
+          url: "/api/auth/demo-login"
+          json: {}
+          capture:
+            - json: "$.token"
+              as: "authToken"
+          expect:
+            - statusCode: 200
+            - responseTime: 2000 # Should respond within 2 seconds even under stress
+  
+  - name: "Workshop Save Stress"
+    weight: 20
+    flow:
+      - function: "generateWorkshopData"
+      - post:
+          url: "/api/auth/demo-login"
+          json: {}
+          capture:
+            - json: "$.token"
+              as: "authToken"
+      - loop:
+        - function: "setAuthHeader"
+        - function: "generateWorkshopData"
+        - post:
+            url: "/api/workshop/save"
+            headers:
+              Authorization: "Bearer {{ authToken }}"
+            json: "{{ workshopData }}"
+            expect:
+              - statusCode: 200
+              - responseTime: 3000
+        - think: 1
+        count: 5 # Simulate multiple saves per session
+  
+  - name: "News Feed Stress"
+    weight: 15
+    flow:
+      - post:
+          url: "/api/auth/demo-login"
+          json: {}
+          capture:
+            - json: "$.token"
+              as: "authToken"
+      - function: "setAuthHeader"
+      - loop:
+        - get:
+            url: "/api/news/feed?page={{ $loopCount }}"
+            headers:
+              Authorization: "Bearer {{ authToken }}"
+            expect:
+              - statusCode: 200
+              - responseTime: 1500
+        count: 3 # Paginate through feed
+  
+  - name: "Calendar Load Stress"
+    weight: 15
+    flow:
+      - post:
+          url: "/api/auth/demo-login"
+          json: {}
+          capture:
+            - json: "$.token"
+              as: "authToken"
+      - function: "setAuthHeader"
+      - get:
+          url: "/api/calendar/events?month={{ $randomNumber(1, 12) }}&year=2025"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          expect:
+            - statusCode: 200
+            - responseTime: 2000
+  
+  - name: "Concurrent User Profile Updates"
+    weight: 10
+    flow:
+      - function: "generateRandomEmail"
+      - function: "generateRandomUsername"
+      - post:
+          url: "/api/auth/demo-login"
+          json: {}
+          capture:
+            - json: "$.token"
+              as: "authToken"
+            - json: "$.user.id"
+              as: "userId"
+      - function: "setAuthHeader"
+      - patch:
+          url: "/api/users/{{ userId }}"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          json:
+            name: "{{ randomUsername }}"
+            bio: "Stress testing user bio update"
+          expect:
+            - statusCode: 200
+            - responseTime: 1500
+  
+  - name: "Health Check Under Load"
+    weight: 15
+    flow:
+      - get:
+          url: "/api/hello"
+          expect:
+            - statusCode: 200
+            - responseTime: 500 # Health checks should always be fast

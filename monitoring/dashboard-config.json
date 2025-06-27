@@ -1,0 +1,315 @@
+{
+  "name": "Personal Brand DNA - Production Dashboard",
+  "description": "Comprehensive monitoring dashboard for Personal Brand DNA application",
+  "version": "1.0.0",
+  "dashboards": {
+    "overview": {
+      "name": "System Overview",
+      "refresh": "30s",
+      "widgets": [
+        {
+          "type": "health_status",
+          "title": "Service Health",
+          "services": ["api", "database", "cache", "external_apis"],
+          "position": { "x": 0, "y": 0, "w": 4, "h": 2 }
+        },
+        {
+          "type": "metric_value",
+          "title": "Active Users (24h)",
+          "metric": "business.active_users",
+          "aggregation": "count_unique",
+          "position": { "x": 4, "y": 0, "w": 2, "h": 2 }
+        },
+        {
+          "type": "metric_value",
+          "title": "Content Generated (24h)",
+          "metric": "business.content_generated",
+          "aggregation": "sum",
+          "position": { "x": 6, "y": 0, "w": 2, "h": 2 }
+        },
+        {
+          "type": "metric_value",
+          "title": "API Error Rate",
+          "metric": "api.error_rate",
+          "format": "percentage",
+          "position": { "x": 8, "y": 0, "w": 2, "h": 2 }
+        },
+        {
+          "type": "timeseries",
+          "title": "API Response Time",
+          "metrics": [
+            { "name": "api.latency", "aggregation": "avg", "label": "Average" },
+            { "name": "api.latency", "aggregation": "p95", "label": "95th Percentile" },
+            { "name": "api.latency", "aggregation": "p99", "label": "99th Percentile" }
+          ],
+          "period": "1h",
+          "position": { "x": 0, "y": 2, "w": 6, "h": 3 }
+        },
+        {
+          "type": "timeseries",
+          "title": "Request Volume",
+          "metrics": [
+            { "name": "api.requests", "aggregation": "sum", "groupBy": "endpoint" }
+          ],
+          "period": "1h",
+          "position": { "x": 6, "y": 2, "w": 6, "h": 3 }
+        }
+      ]
+    },
+    "business_metrics": {
+      "name": "Business Metrics",
+      "refresh": "1m",
+      "widgets": [
+        {
+          "type": "counter",
+          "title": "Total Users",
+          "metric": "business.users.total",
+          "position": { "x": 0, "y": 0, "w": 3, "h": 2 }
+        },
+        {
+          "type": "counter",
+          "title": "Pro Subscriptions",
+          "metric": "business.subscriptions.pro",
+          "position": { "x": 3, "y": 0, "w": 3, "h": 2 }
+        },
+        {
+          "type": "metric_value",
+          "title": "Monthly Revenue",
+          "metric": "business.revenue.mrr",
+          "format": "currency",
+          "position": { "x": 6, "y": 0, "w": 3, "h": 2 }
+        },
+        {
+          "type": "metric_value",
+          "title": "Conversion Rate",
+          "metric": "business.conversion_rate",
+          "format": "percentage",
+          "position": { "x": 9, "y": 0, "w": 3, "h": 2 }
+        },
+        {
+          "type": "timeseries",
+          "title": "User Engagement",
+          "metrics": [
+            { "name": "business.content_generated", "label": "Content Created" },
+            { "name": "business.workshop_completed", "label": "Workshops Completed" },
+            { "name": "business.linkedin_posts", "label": "LinkedIn Posts" }
+          ],
+          "period": "7d",
+          "position": { "x": 0, "y": 2, "w": 12, "h": 4 }
+        },
+        {
+          "type": "heatmap",
+          "title": "Feature Usage Heatmap",
+          "metric": "business.feature_usage",
+          "dimensions": ["feature", "hour_of_day"],
+          "position": { "x": 0, "y": 6, "w": 6, "h": 4 }
+        },
+        {
+          "type": "table",
+          "title": "Top Content Templates",
+          "query": "SELECT template, COUNT(*) as usage FROM content_generation GROUP BY template ORDER BY usage DESC LIMIT 10",
+          "position": { "x": 6, "y": 6, "w": 6, "h": 4 }
+        }
+      ]
+    },
+    "performance": {
+      "name": "Performance Monitoring",
+      "refresh": "10s",
+      "widgets": [
+        {
+          "type": "timeseries",
+          "title": "Database Performance",
+          "metrics": [
+            { "name": "database.query.duration", "aggregation": "avg", "groupBy": "operation" }
+          ],
+          "period": "30m",
+          "position": { "x": 0, "y": 0, "w": 6, "h": 3 }
+        },
+        {
+          "type": "timeseries",
+          "title": "Cache Performance",
+          "metrics": [
+            { "name": "cache.hit_rate", "label": "Hit Rate" },
+            { "name": "cache.operation.duration", "aggregation": "avg", "label": "Latency" }
+          ],
+          "period": "30m",
+          "position": { "x": 6, "y": 0, "w": 6, "h": 3 }
+        },
+        {
+          "type": "timeseries",
+          "title": "Memory Usage",
+          "metrics": [
+            { "name": "system.memory.heap_used", "label": "Heap Used" },
+            { "name": "system.memory.heap_total", "label": "Heap Total" },
+            { "name": "system.memory.rss", "label": "RSS" }
+          ],
+          "period": "1h",
+          "position": { "x": 0, "y": 3, "w": 6, "h": 3 }
+        },
+        {
+          "type": "timeseries",
+          "title": "External API Latency",
+          "metrics": [
+            { "name": "external_api.latency", "aggregation": "avg", "groupBy": "service" }
+          ],
+          "period": "1h",
+          "position": { "x": 6, "y": 3, "w": 6, "h": 3 }
+        }
+      ]
+    },
+    "errors": {
+      "name": "Error Tracking",
+      "refresh": "30s",
+      "widgets": [
+        {
+          "type": "counter",
+          "title": "Total Errors (24h)",
+          "metric": "errors.total",
+          "period": "24h",
+          "position": { "x": 0, "y": 0, "w": 3, "h": 2 }
+        },
+        {
+          "type": "counter",
+          "title": "Unique Errors (24h)",
+          "metric": "errors.unique",
+          "period": "24h",
+          "position": { "x": 3, "y": 0, "w": 3, "h": 2 }
+        },
+        {
+          "type": "counter",
+          "title": "Affected Users (24h)",
+          "metric": "errors.affected_users",
+          "period": "24h",
+          "position": { "x": 6, "y": 0, "w": 3, "h": 2 }
+        },
+        {
+          "type": "metric_value",
+          "title": "Error Rate",
+          "metric": "errors.rate",
+          "format": "percentage",
+          "position": { "x": 9, "y": 0, "w": 3, "h": 2 }
+        },
+        {
+          "type": "timeseries",
+          "title": "Error Trends",
+          "metrics": [
+            { "name": "errors.count", "groupBy": "level" }
+          ],
+          "period": "6h",
+          "position": { "x": 0, "y": 2, "w": 12, "h": 3 }
+        },
+        {
+          "type": "table",
+          "title": "Recent Errors",
+          "datasource": "sentry",
+          "query": "errors:last_24h",
+          "columns": ["timestamp", "error", "user", "count"],
+          "position": { "x": 0, "y": 5, "w": 12, "h": 5 }
+        }
+      ]
+    },
+    "brandhack": {
+      "name": "BrandHack Features",
+      "refresh": "1m",
+      "widgets": [
+        {
+          "type": "funnel",
+          "title": "Workshop Completion Funnel",
+          "steps": [
+            { "name": "Started", "metric": "workshop.started" },
+            { "name": "Values Completed", "metric": "workshop.values_completed" },
+            { "name": "Tone Completed", "metric": "workshop.tone_completed" },
+            { "name": "Audience Completed", "metric": "workshop.audience_completed" },
+            { "name": "Writing Completed", "metric": "workshop.writing_completed" },
+            { "name": "Quiz Completed", "metric": "workshop.quiz_completed" },
+            { "name": "Workshop Finished", "metric": "workshop.completed" }
+          ],
+          "position": { "x": 0, "y": 0, "w": 6, "h": 4 }
+        },
+        {
+          "type": "timeseries",
+          "title": "News Relevance Scores",
+          "metrics": [
+            { "name": "news.relevance.score", "aggregation": "avg", "label": "Average Score" },
+            { "name": "news.relevance.score", "aggregation": "p90", "label": "90th Percentile" }
+          ],
+          "period": "24h",
+          "position": { "x": 6, "y": 0, "w": 6, "h": 4 }
+        },
+        {
+          "type": "calendar_heatmap",
+          "title": "Content Calendar Activity",
+          "metric": "calendar.events_scheduled",
+          "period": "30d",
+          "position": { "x": 0, "y": 4, "w": 6, "h": 4 }
+        },
+        {
+          "type": "gauge",
+          "title": "LinkedIn Queue Health",
+          "metrics": [
+            { "name": "linkedin.queue.size", "max": 100, "thresholds": [30, 70, 90] },
+            { "name": "linkedin.rate_limit.daily", "max": 10 },
+            { "name": "linkedin.rate_limit.hourly", "max": 3 }
+          ],
+          "position": { "x": 6, "y": 4, "w": 6, "h": 4 }
+        }
+      ]
+    }
+  },
+  "alerts": [
+    {
+      "name": "API Error Rate High",
+      "condition": "api.error_rate > 5",
+      "duration": "5m",
+      "severity": "warning",
+      "notify": ["slack", "pagerduty"]
+    },
+    {
+      "name": "Database Connection Failed",
+      "condition": "database.health == 'unhealthy'",
+      "duration": "1m",
+      "severity": "critical",
+      "notify": ["slack", "pagerduty", "email"]
+    },
+    {
+      "name": "High Memory Usage",
+      "condition": "system.memory.heap_used / system.memory.heap_total > 0.9",
+      "duration": "10m",
+      "severity": "warning",
+      "notify": ["slack"]
+    },
+    {
+      "name": "LinkedIn Rate Limit Approaching",
+      "condition": "linkedin.rate_limit.daily > 8",
+      "duration": "1m",
+      "severity": "info",
+      "notify": ["slack"]
+    },
+    {
+      "name": "Low Conversion Rate",
+      "condition": "business.conversion_rate < 2",
+      "duration": "1h",
+      "severity": "info",
+      "notify": ["slack"]
+    }
+  ],
+  "slo": {
+    "availability": {
+      "target": 99.9,
+      "window": "30d",
+      "metric": "uptime"
+    },
+    "latency": {
+      "target": {
+        "p50": 200,
+        "p95": 500,
+        "p99": 1000
+      },
+      "metric": "api.latency"
+    },
+    "error_rate": {
+      "target": 0.1,
+      "metric": "api.error_rate"
+    }
+  }
+}

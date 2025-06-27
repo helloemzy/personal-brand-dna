@@ -1,0 +1,10 @@
+backend/
+_frontend-disabled/
+_ai-pipeline-disabled/
+docs/
+*.md
+.env
+docker-compose.yml
+railway.json
+test-connections.js
+build-frontend.sh

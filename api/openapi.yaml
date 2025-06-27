@@ -1,0 +1,623 @@
+openapi: 3.0.3
+info:
+  title: Personal Brand DNA API
+  description: |
+    API for Personal Brand DNA - an AI-powered system that discovers, analyzes, and replicates 
+    an individual's authentic professional voice to generate high-impact personal brand content.
+    
+    ## Overview
+    This API provides endpoints for user authentication, voice analysis, and AI-powered content generation
+    for LinkedIn and other professional platforms.
+    
+    ## Authentication
+    Most endpoints require authentication via JWT tokens. Include the token in the Authorization header:
+    ```
+    Authorization: Bearer <your-jwt-token>
+    ```
+    
+    ## Rate Limiting
+    Content generation endpoints are rate-limited to prevent abuse. Default limits:
+    - 10 requests per minute for content generation
+    - 100 requests per minute for other endpoints
+    
+  version: 1.0.0
+  contact:
+    name: Personal Brand DNA Support
+    email: support@personalbranddna.com
+  license:
+    name: Proprietary
+    
+servers:
+  - url: https://personal-brand-9xbs1h6da-helloemilywho-gmailcoms-projects.vercel.app/api
+    description: Production server (Vercel)
+  - url: http://localhost:3001/api
+    description: Local development server
+
+tags:
+  - name: Health
+    description: Health check endpoints
+  - name: Authentication
+    description: User authentication and registration
+  - name: Content
+    description: AI-powered content generation
+  - name: Voice
+    description: Voice analysis and processing (currently disabled)
+
+paths:
+  /hello:
+    get:
+      tags:
+        - Health
+      summary: Health check endpoint
+      description: Simple endpoint to verify the API is running
+      operationId: healthCheck
+      responses:
+        '200':
+          description: API is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Hello from Personal Brand DNA API!"
+                  timestamp:
+                    type: string
+                    format: date-time
+                    example: "2024-12-18T12:00:00.000Z"
+                  success:
+                    type: boolean
+                    example: true
+
+  /auth/demo-login:
+    post:
+      tags:
+        - Authentication
+      summary: Instant demo login
+      description: |
+        Provides instant access to demo the application without registration.
+        Returns a 24-hour JWT token with professional-tier access.
+      operationId: demoLogin
+      responses:
+        '200':
+          description: Demo login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/register:
+    post:
+      tags:
+        - Authentication
+      summary: Register new user
+      description: |
+        Creates a new user account with email verification.
+        Password must contain at least one uppercase letter, one lowercase letter, 
+        one number, and one special character.
+      operationId: registerUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '201':
+          description: Registration successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Registration successful. Please check your email to verify your account."
+                  data:
+                    type: object
+                    properties:
+                      user:
+                        $ref: '#/components/schemas/UserProfile'
+                  code:
+                    type: string
+                    example: "REGISTRATION_SUCCESS"
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: User already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: Login with email and password
+      description: Traditional login with email and password
+      operationId: login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: "user@example.com"
+                password:
+                  type: string
+                  format: password
+                  minLength: 8
+                  example: "SecurePass123!"
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/send-otp:
+    post:
+      tags:
+        - Authentication
+      summary: Send OTP for passwordless login
+      description: |
+        Sends a one-time password (OTP) to the user's email for passwordless authentication.
+        In demo mode, the OTP is returned in the response for testing purposes.
+      operationId: sendOTP
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: "user@example.com"
+      responses:
+        '200':
+          description: OTP sent successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "OTP sent to your email"
+                  verificationToken:
+                    type: string
+                    description: Token to be used with OTP verification
+                    example: "eyJlbWFpbCI6InVzZXJAZXhhbXBsZS5jb20iLCJvdHAiOiI0NTY3ODkiLCJleHBpcmVzIjoxNzAzMTc2ODAwMDAwfQ=="
+                  debug:
+                    type: object
+                    description: Only included in demo/development mode
+                    properties:
+                      otp:
+                        type: string
+                        example: "456789"
+                      note:
+                        type: string
+                        example: "In production, this would be sent via email"
+        '400':
+          description: Invalid email
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/verify-otp:
+    post:
+      tags:
+        - Authentication
+      summary: Verify OTP and complete login
+      description: Verifies the OTP sent to the user's email and completes the passwordless login
+      operationId: verifyOTP
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - otp
+                - verificationToken
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: "user@example.com"
+                otp:
+                  type: string
+                  pattern: '^[0-9]{6}$'
+                  example: "456789"
+                verificationToken:
+                  type: string
+                  description: Token received from send-otp endpoint
+                  example: "eyJlbWFpbCI6InVzZXJAZXhhbXBsZS5jb20iLCJvdHAiOiI0NTY3ODkiLCJleHBpcmVzIjoxNzAzMTc2ODAwMDAwfQ=="
+                firstName:
+                  type: string
+                  example: "John"
+                lastName:
+                  type: string
+                  example: "Doe"
+      responses:
+        '200':
+          description: OTP verified successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '400':
+          description: Invalid OTP or expired
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/verify-email:
+    post:
+      tags:
+        - Authentication
+      summary: Verify email address
+      description: Verifies the user's email address using the token sent during registration
+      operationId: verifyEmail
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - token
+              properties:
+                token:
+                  type: string
+                  description: Email verification token
+                  example: "a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6"
+      responses:
+        '200':
+          description: Email verified successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Email verified successfully"
+        '400':
+          description: Invalid or expired token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /content/generate:
+    post:
+      tags:
+        - Content
+      summary: Generate AI-powered content
+      description: |
+        Generates LinkedIn content based on the user's voice profile and specified parameters.
+        Requires authentication and a completed voice profile.
+        
+        ## Content Types
+        - Post: Standard LinkedIn post (150-300 words)
+        - Article: Long-form LinkedIn article
+        - Story: Personal narrative format
+        - Poll: Engagement-focused poll post
+        - Carousel: Multi-slide visual post
+        
+        ## Templates Available
+        - career-milestone: Career achievements and milestones
+        - industry-trend: Industry analysis and insights
+        - learning-story: Personal learning experiences
+        - company-news: Company announcements
+        - networking: Building professional connections
+        - thought-leadership: Opinion pieces
+        - quick-tip: Professional tips and advice
+        - achievement: Celebrating accomplishments
+        - learning-development: Professional development
+        - problem-solution: Case studies
+      operationId: generateContent
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ContentGenerationRequest'
+      responses:
+        '200':
+          description: Content generated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContentGenerationResponse'
+        '400':
+          description: Validation error or missing voice profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized - invalid or missing token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          description: Rate limit exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token obtained from login endpoints
+
+  schemas:
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        message:
+          type: string
+          example: "An error occurred"
+        code:
+          type: string
+          example: "ERROR_CODE"
+          
+    LoginResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Login successful"
+        user:
+          $ref: '#/components/schemas/UserProfile'
+        accessToken:
+          type: string
+          description: JWT token for authentication
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        expiresIn:
+          type: string
+          example: "24h"
+          
+    UserProfile:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "user_1703088000000"
+        email:
+          type: string
+          format: email
+          example: "user@example.com"
+        firstName:
+          type: string
+          example: "John"
+        lastName:
+          type: string
+          example: "Doe"
+        industry:
+          type: string
+          example: "Technology"
+        role:
+          type: string
+          example: "Software Engineer"
+        company:
+          type: string
+          example: "Tech Corp"
+        linkedinUrl:
+          type: string
+          format: uri
+          example: "https://linkedin.com/in/johndoe"
+        emailVerified:
+          type: boolean
+          example: true
+        verified:
+          type: boolean
+          example: true
+        subscriptionTier:
+          type: string
+          enum: [free, professional, executive, enterprise]
+          example: "professional"
+        createdAt:
+          type: string
+          format: date-time
+          example: "2024-12-18T12:00:00.000Z"
+          
+    RegisterRequest:
+      type: object
+      required:
+        - email
+        - password
+        - firstName
+        - lastName
+      properties:
+        email:
+          type: string
+          format: email
+          example: "user@example.com"
+        password:
+          type: string
+          format: password
+          minLength: 8
+          pattern: '^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]'
+          example: "SecurePass123!"
+          description: Must contain uppercase, lowercase, number, and special character
+        firstName:
+          type: string
+          minLength: 2
+          maxLength: 50
+          example: "John"
+        lastName:
+          type: string
+          minLength: 2
+          maxLength: 50
+          example: "Doe"
+        industry:
+          type: string
+          maxLength: 100
+          example: "Technology"
+        role:
+          type: string
+          maxLength: 100
+          example: "Software Engineer"
+        company:
+          type: string
+          maxLength: 200
+          example: "Tech Corp"
+        linkedinUrl:
+          type: string
+          format: uri
+          example: "https://linkedin.com/in/johndoe"
+          
+    ContentGenerationRequest:
+      type: object
+      required:
+        - topic
+      properties:
+        topic:
+          type: string
+          description: The topic or subject for the content
+          example: "Announcing my promotion to Senior Software Engineer"
+        contentType:
+          type: string
+          enum: [Post, Article, Story, Poll, Carousel]
+          default: Post
+          description: Type of content to generate
+          example: "Post"
+        template:
+          type: string
+          enum: [career-milestone, industry-trend, learning-story, company-news, networking, thought-leadership, quick-tip, achievement, learning-development, problem-solution]
+          default: career-milestone
+          description: Content template to use
+          example: "career-milestone"
+        variations:
+          type: integer
+          minimum: 1
+          maximum: 3
+          default: 1
+          description: Number of content variations to generate
+          example: 2
+          
+    ContentGenerationResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Content generated successfully"
+        data:
+          type: object
+          properties:
+            topic:
+              type: string
+              example: "Announcing my promotion to Senior Software Engineer"
+            contentType:
+              type: string
+              example: "Post"
+            template:
+              type: string
+              example: "career-milestone"
+            templateInfo:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: "Career Milestone Achievement"
+                structure:
+                  type: string
+                  example: "Hook → Achievement → Impact → Lesson → CTA"
+                prompt:
+                  type: string
+                  example: "Create a LinkedIn post about a career milestone that shows professional growth and inspires others."
+            variations:
+              type: array
+              items:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    example: 1
+                  content:
+                    type: string
+                    example: "🎯 Thrilled to announce my promotion to Senior Software Engineer at Tech Corp!\n\nThree years ago, I joined as a junior developer..."
+                  contentType:
+                    type: string
+                    example: "Post"
+                  template:
+                    type: string
+                    example: "career-milestone"
+                  createdAt:
+                    type: string
+                    format: date-time
+                    example: "2024-12-18T12:00:00.000Z"
+            voiceProfile:
+              type: object
+              properties:
+                summary:
+                  type: string
+                  example: "Professional yet approachable communication style with emphasis on storytelling"
+                lastAnalysis:
+                  type: string
+                  format: date-time
+                  example: "2024-12-17T10:00:00.000Z"
+        code:
+          type: string
+          example: "GENERATION_SUCCESS"

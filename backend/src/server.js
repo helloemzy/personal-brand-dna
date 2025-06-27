@@ -19,6 +19,10 @@ const voiceRoutes = require('./api/voice');
 const contentRoutes = require('./api/content');
 const analyticsRoutes = require('./api/analytics');
 const paymentRoutes = require('./api/payments');
+const workshopRoutes = require('./api/workshop');
+const newsRoutes = require('./api/news');
+const calendarRoutes = require('./api/calendar');
+const linkedinRoutes = require('./api/linkedin');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -87,6 +91,10 @@ app.use('/api/voice', voiceRoutes);
 app.use('/api/content', contentRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/payments', paymentRoutes);
+app.use('/api/workshop', workshopRoutes);
+app.use('/api/news', newsRoutes);
+app.use('/api/calendar', calendarRoutes);
+app.use('/api/linkedin', linkedinRoutes);
 
 // Root endpoint
 app.get('/', (req, res) => {

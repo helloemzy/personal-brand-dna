@@ -1,0 +1,187 @@
+config:
+  target: "{{ $processEnvironment.PERFORMANCE_TEST_URL }}"
+  processor: "./artillery-processor.js"
+  phases:
+    - duration: 60
+      arrivalRate: 10
+      name: "Baseline Test - 10 users/sec for 1 minute"
+  
+  plugins:
+    expect: {}
+    metrics-by-endpoint: {}
+  
+  defaults:
+    headers:
+      Content-Type: "application/json"
+      Accept: "application/json"
+  
+  variables:
+    testRunId: "baseline-{{ $timestamp }}"
+
+scenarios:
+  # Authentication Flow Tests
+  - name: "Demo Login Flow"
+    weight: 20
+    flow:
+      - function: "markColdStart"
+      - post:
+          url: "/api/auth/demo-login"
+          json: {}
+          capture:
+            - json: "$.token"
+              as: "authToken"
+          expect:
+            - statusCode: 200
+            - hasProperty: "token"
+            - hasProperty: "user"
+      - function: "measureColdStart"
+      - function: "saveAuthToken"
+  
+  - name: "OTP Authentication Flow"
+    weight: 15
+    flow:
+      - function: "generateRandomEmail"
+      - function: "markColdStart"
+      - post:
+          url: "/api/auth/send-otp"
+          json:
+            email: "{{ randomEmail }}"
+          expect:
+            - statusCode: 200
+            - hasProperty: "message"
+      - function: "measureColdStart"
+      - think: 2 # Simulate user reading OTP
+      - function: "generateOTP"
+      - post:
+          url: "/api/auth/verify-otp"
+          json:
+            email: "{{ randomEmail }}"
+            otp: "{{ otp }}"
+          capture:
+            - json: "$.token"
+              as: "authToken"
+          expect:
+            - statusCode:
+                - 200
+                - 400 # OTP might be invalid in test
+      - function: "logError"
+  
+  - name: "User Registration Flow"
+    weight: 10
+    flow:
+      - function: "generateRandomEmail"
+      - function: "generateRandomUsername"
+      - post:
+          url: "/api/auth/register"
+          json:
+            email: "{{ randomEmail }}"
+            password: "TestPassword123!"
+            name: "{{ randomUsername }}"
+          capture:
+            - json: "$.token"
+              as: "authToken"
+          expect:
+            - statusCode:
+                - 201
+                - 409 # User might already exist
+      - function: "logError"
+  
+  # Workshop Endpoints
+  - name: "Workshop Save Flow"
+    weight: 15
+    flow:
+      - function: "generateWorkshopData"
+      - post:
+          url: "/api/auth/demo-login"
+          json: {}
+          capture:
+            - json: "$.token"
+              as: "authToken"
+      - function: "setAuthHeader"
+      - post:
+          url: "/api/workshop/save"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          json: "{{ workshopData }}"
+          expect:
+            - statusCode: 200
+      - function: "logError"
+  
+  # News Endpoints
+  - name: "News Article Analysis"
+    weight: 10
+    flow:
+      - function: "generateNewsData"
+      - post:
+          url: "/api/auth/demo-login"
+          json: {}
+          capture:
+            - json: "$.token"
+              as: "authToken"
+      - function: "setAuthHeader"
+      - post:
+          url: "/api/news/analyze"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          json: "{{ newsArticle }}"
+          expect:
+            - statusCode: 200
+            - hasProperty: "relevanceScore"
+      - function: "logError"
+  
+  # Calendar Endpoints
+  - name: "Calendar Event Creation"
+    weight: 10
+    flow:
+      - function: "generateCalendarEvent"
+      - post:
+          url: "/api/auth/demo-login"
+          json: {}
+          capture:
+            - json: "$.token"
+              as: "authToken"
+      - function: "setAuthHeader"
+      - post:
+          url: "/api/calendar/events"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          json: "{{ calendarEvent }}"
+          expect:
+            - statusCode: 201
+            - hasProperty: "id"
+      - function: "logError"
+  
+  # Content Generation (Heavy Load)
+  - name: "Content Generation Flow"
+    weight: 5
+    flow:
+      - post:
+          url: "/api/auth/demo-login"
+          json: {}
+          capture:
+            - json: "$.token"
+              as: "authToken"
+      - function: "setAuthHeader"
+      - post:
+          url: "/api/content/generate"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          json:
+            topic: "Performance testing best practices"
+            contentType: "post"
+            tone: "professional"
+          timeout: 30 # Allow up to 30 seconds for AI generation
+          expect:
+            - statusCode: 200
+            - hasProperty: "content"
+      - function: "logError"
+  
+  # Health Check (Lightweight)
+  - name: "Health Check"
+    weight: 15
+    flow:
+      - get:
+          url: "/api/hello"
+          expect:
+            - statusCode: 200
+            - contentType: "application/json"

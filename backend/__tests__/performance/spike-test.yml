@@ -1,0 +1,138 @@
+config:
+  target: "{{ $processEnvironment.PERFORMANCE_TEST_URL }}"
+  processor: "./artillery-processor.js"
+  phases:
+    # Normal load
+    - duration: 60
+      arrivalRate: 10
+      name: "Normal load - 10 users/sec"
+    # Sudden spike
+    - duration: 30
+      arrivalRate: 200
+      name: "Traffic spike - 200 users/sec"
+    # Return to normal
+    - duration: 60
+      arrivalRate: 10
+      name: "Recovery - back to 10 users/sec"
+  
+  plugins:
+    expect: {}
+    metrics-by-endpoint: {}
+  
+  defaults:
+    headers:
+      Content-Type: "application/json"
+      Accept: "application/json"
+  
+  variables:
+    testRunId: "spike-{{ $timestamp }}"
+  
+  # Extended timeout for spike conditions
+  http:
+    timeout: 45
+
+scenarios:
+  # Focus on critical paths that must handle spikes
+  
+  - name: "Authentication Spike"
+    weight: 30
+    flow:
+      - post:
+          url: "/api/auth/demo-login"
+          json: {}
+          capture:
+            - json: "$.token"
+              as: "authToken"
+          expect:
+            - statusCode: 200
+            - responseTime: 5000 # Allow up to 5 seconds during spike
+      - function: "logError"
+  
+  - name: "Content Generation Spike"
+    weight: 10
+    flow:
+      - post:
+          url: "/api/auth/demo-login"
+          json: {}
+          capture:
+            - json: "$.token"
+              as: "authToken"
+      - function: "setAuthHeader"
+      - post:
+          url: "/api/content/generate"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          json:
+            topic: "Quick spike test content"
+            contentType: "post"
+            useCache: true # Enable caching during spike
+          timeout: 45
+          expect:
+            - statusCode: 200
+      - function: "logError"
+  
+  - name: "Workshop Auto-Save Spike"
+    weight: 20
+    flow:
+      - function: "generateWorkshopData"
+      - post:
+          url: "/api/auth/demo-login"
+          json: {}
+          capture:
+            - json: "$.token"
+              as: "authToken"
+      - function: "setAuthHeader"
+      - post:
+          url: "/api/workshop/save"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          json: "{{ workshopData }}"
+          expect:
+            - statusCode: 200
+            - responseTime: 4000
+      - function: "logError"
+  
+  - name: "Calendar View Spike"
+    weight: 15
+    flow:
+      - post:
+          url: "/api/auth/demo-login"
+          json: {}
+          capture:
+            - json: "$.token"
+              as: "authToken"
+      - function: "setAuthHeader"
+      - get:
+          url: "/api/calendar/events?view=week"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          expect:
+            - statusCode: 200
+            - responseTime: 3000
+  
+  - name: "News Feed Spike"
+    weight: 15
+    flow:
+      - post:
+          url: "/api/auth/demo-login"
+          json: {}
+          capture:
+            - json: "$.token"
+              as: "authToken"
+      - function: "setAuthHeader"
+      - get:
+          url: "/api/news/trending"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          expect:
+            - statusCode: 200
+            - responseTime: 3000
+  
+  - name: "Health Check During Spike"
+    weight: 10
+    flow:
+      - get:
+          url: "/api/hello"
+          expect:
+            - statusCode: 200
+            - responseTime: 1000 # Health check should still be responsive

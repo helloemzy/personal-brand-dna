@@ -1,0 +1,23 @@
+# Performance test results
+results/
+*.json
+*.html
+
+# Temporary files
+.quick-test.yml
+*.tmp
+
+# Artillery logs
+artillery-report-*.json
+
+# Environment files (except example)
+.env
+!.env.example
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.idea/
+.vscode/
