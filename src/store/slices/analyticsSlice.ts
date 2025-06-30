@@ -148,7 +148,7 @@ const analyticsSlice = createSlice({
       }
     },
     
-    clearAnalytics: (state) => {
+    clearAnalytics: () => {
       return initialState;
     },
   },

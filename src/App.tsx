@@ -1,42 +1,42 @@
-import React, { useEffect, lazy, Suspense } from 'react';
+import { useEffect, lazy, Suspense } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
-import { useAppDispatch, useAppSelector } from './hooks/redux.ts';
-import { checkAuthStatus } from './store/slices/authSlice.ts';
+import { useAppDispatch, useAppSelector } from './hooks/redux';
+import { checkAuthStatus } from './store/slices/authSlice';
 
 // Layout Components
-import Layout from './components/Layout.tsx';
-import PublicLayout from './components/PublicLayout.tsx';
+import Layout from './components/Layout';
+import PublicLayout from './components/PublicLayout';
 
 // Eagerly loaded components (needed immediately)
-import LandingPage from './pages/LandingPage.tsx';
-import LoginPage from './pages/auth/LoginPage.tsx';
-
-// Lazy loaded components
-const RegisterPage = lazy(() => import('./pages/auth/RegisterPage.tsx'));
-const ForgotPasswordPage = lazy(() => import('./pages/auth/ForgotPasswordPage.tsx'));
-const ResetPasswordPage = lazy(() => import('./pages/auth/ResetPasswordPage.tsx'));
-
-// Protected Pages (all lazy loaded)
-const DashboardPage = lazy(() => import('./pages/DashboardPage.tsx'));
-const VoiceDiscoveryPage = lazy(() => import('./pages/VoiceDiscoveryPage.tsx'));
-const ContentGenerationPage = lazy(() => import('./pages/ContentGenerationPage.tsx'));
-const ContentHistoryPage = lazy(() => import('./pages/ContentHistoryPage.tsx'));
-const AnalyticsPage = lazy(() => import('./pages/AnalyticsPage.tsx'));
-const ProfilePage = lazy(() => import('./pages/ProfilePage.tsx'));
-const SubscriptionPage = lazy(() => import('./pages/SubscriptionPage.tsx'));
-
-// Route Guards
-import ProtectedRoute from './components/ProtectedRoute.tsx';
-import PublicRoute from './components/PublicRoute.tsx';
+import LandingPage from './pages/LandingPage';
+import LoginPage from './pages/auth/LoginPage';
 
 // Utility Components
-import ErrorBoundary from './components/ErrorBoundary.tsx';
-import Toast from './components/Toast.tsx';
-import LoadingSpinner from './components/LoadingSpinner.tsx';
+import ErrorBoundary from './components/ErrorBoundary';
+import Toast from './components/Toast';
+import LoadingSpinner from './components/LoadingSpinner';
+
+// Route Guards
+import ProtectedRoute from './components/ProtectedRoute';
+import PublicRoute from './components/PublicRoute';
+
+// Lazy loaded components
+const RegisterPage = lazy(() => import('./pages/auth/RegisterPage'));
+const ForgotPasswordPage = lazy(() => import('./pages/auth/ForgotPasswordPage'));
+const ResetPasswordPage = lazy(() => import('./pages/auth/ResetPasswordPage'));
+
+// Protected Pages (all lazy loaded)
+const DashboardPage = lazy(() => import('./pages/DashboardPage'));
+const VoiceDiscoveryPage = lazy(() => import('./pages/VoiceDiscoveryPage'));
+const ContentGenerationPage = lazy(() => import('./pages/ContentGenerationPage'));
+const ContentHistoryPage = lazy(() => import('./pages/ContentHistoryPage'));
+const AnalyticsPage = lazy(() => import('./pages/AnalyticsPage'));
+const ProfilePage = lazy(() => import('./pages/ProfilePage'));
+const SubscriptionPage = lazy(() => import('./pages/SubscriptionPage'));
 
 function App() {
   const dispatch = useAppDispatch();
-  const { isAuthenticated, isLoading, user } = useAppSelector((state) => state.auth);
+  const { isAuthenticated, isLoading } = useAppSelector((state) => state.auth);
 
   useEffect(() => {
     // Check authentication status on app load

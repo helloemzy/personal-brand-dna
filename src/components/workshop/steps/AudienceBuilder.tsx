@@ -442,7 +442,7 @@ const AudienceBuilder: React.FC = () => {
             {editingPersona ? 'Edit Persona' : 'Create New Persona'}
           </h3>
           <PersonaForm
-            persona={editingPersona || undefined}
+            persona={editingPersona ?? undefined}
             onSave={editingPersona ? handleUpdatePersona : handleCreatePersona}
             onCancel={() => {
               setShowForm(false);

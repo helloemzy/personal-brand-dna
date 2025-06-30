@@ -5,17 +5,18 @@
 
 import storage from 'redux-persist/lib/storage';
 import { createTransform } from 'redux-persist';
+import type { PersistConfig } from 'redux-persist';
 import { REDUX_PERSIST_CONFIG } from '../config/performance';
 
 // Transform to compress large objects before persisting
 const compressTransform = createTransform(
   // Transform state on the way to being serialized and persisted
-  (inboundState: any, key: string) => {
+  (inboundState: any) => {
     // You can add compression logic here if needed
     return inboundState;
   },
   // Transform state being rehydrated
-  (outboundState: any, key: string) => {
+  (outboundState: any) => {
     // You can add decompression logic here if needed
     return outboundState;
   }
@@ -23,7 +24,7 @@ const compressTransform = createTransform(
 
 // Transform to limit the size of persisted data
 const sizeLimitTransform = createTransform(
-  (inboundState: any, key: string) => {
+  (inboundState: any, key: string | number) => {
     // Check size and potentially trim data if too large
     const stateSize = JSON.stringify(inboundState).length;
     if (stateSize > REDUX_PERSIST_CONFIG.maxSize * 1024) {
@@ -38,7 +39,7 @@ const sizeLimitTransform = createTransform(
 const dateTransform = createTransform(
   // Serialize dates to ISO strings
   (inboundState: any) => {
-    const serialized = JSON.parse(JSON.stringify(inboundState, (key, value) => {
+    const serialized = JSON.parse(JSON.stringify(inboundState, (_key, value) => {
       if (value instanceof Date) {
         return value.toISOString();
       }
@@ -49,7 +50,7 @@ const dateTransform = createTransform(
   // Deserialize ISO strings back to dates
   (outboundState: any) => {
     const dateRegex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z$/;
-    const deserialized = JSON.parse(JSON.stringify(outboundState, (key, value) => {
+    const deserialized = JSON.parse(JSON.stringify(outboundState, (_key, value) => {
       if (typeof value === 'string' && dateRegex.test(value)) {
         return new Date(value);
       }
@@ -60,13 +61,13 @@ const dateTransform = createTransform(
 );
 
 // Main persist configuration
-export const persistConfig = {
+export const persistConfig: PersistConfig<any> = {
   key: 'root',
   storage,
-  whitelist: REDUX_PERSIST_CONFIG.persistKeys,
-  blacklist: REDUX_PERSIST_CONFIG.blacklist,
+  whitelist: [...REDUX_PERSIST_CONFIG.persistKeys],
+  blacklist: [...REDUX_PERSIST_CONFIG.blacklist],
   transforms: [compressTransform, sizeLimitTransform, dateTransform],
-  debug: process.env.NODE_ENV === 'development',
+  debug: process.env['NODE_ENV'] === 'development',
   throttle: REDUX_PERSIST_CONFIG.debounce,
 };
 

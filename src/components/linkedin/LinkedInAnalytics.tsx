@@ -4,21 +4,26 @@ import {
   FaChartLine,
   FaEye,
   FaThumbsUp,
-  FaComment,
   FaShare,
-  FaCalendarAlt,
   FaTrophy,
   FaClock,
   FaHashtag
 } from 'react-icons/fa';
+
+// Type assertion to fix React Icons issue
+const FaLinkedinIcon = FaLinkedin as any;
+const FaChartLineIcon = FaChartLine as any;
+const FaEyeIcon = FaEye as any;
+const FaThumbsUpIcon = FaThumbsUp as any;
+const FaShareIcon = FaShare as any;
+const FaTrophyIcon = FaTrophy as any;
+const FaClockIcon = FaClock as any;
+const FaHashtagIcon = FaHashtag as any;
 import {
   LineChart,
   Line,
   BarChart,
   Bar,
-  PieChart,
-  Pie,
-  Cell,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -130,7 +135,7 @@ const LinkedInAnalytics: React.FC = () => {
     
     return insights.byContentType.map(item => ({
       name: item.post_type.charAt(0).toUpperCase() + item.post_type.slice(1),
-      engagement: parseFloat(item.avg_engagement_rate),
+      engagement: parseFloat(item.avg_engagement_rate.toString()),
       posts: item.post_count
     }));
   };
@@ -153,13 +158,12 @@ const LinkedInAnalytics: React.FC = () => {
     }));
   };
 
-  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
 
   return (
     <div className="bg-white rounded-lg shadow-md p-6">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-bold text-gray-900 flex items-center">
-          <FaLinkedin className="mr-2 text-blue-600" />
+          <FaLinkedinIcon className="mr-2 text-blue-600" />
           LinkedIn Analytics
         </h2>
         
@@ -222,7 +226,7 @@ const LinkedInAnalytics: React.FC = () => {
                         {summary.summary.totalPosts}
                       </p>
                     </div>
-                    <FaChartLine className="text-blue-600 text-2xl" />
+                    <FaChartLineIcon className="text-blue-600 text-2xl" />
                   </div>
                 </div>
                 
@@ -234,7 +238,7 @@ const LinkedInAnalytics: React.FC = () => {
                         {summary.summary.totalImpressions.toLocaleString()}
                       </p>
                     </div>
-                    <FaEye className="text-green-600 text-2xl" />
+                    <FaEyeIcon className="text-green-600 text-2xl" />
                   </div>
                 </div>
                 
@@ -246,7 +250,7 @@ const LinkedInAnalytics: React.FC = () => {
                         {summary.summary.totalEngagements.toLocaleString()}
                       </p>
                     </div>
-                    <FaThumbsUp className="text-purple-600 text-2xl" />
+                    <FaThumbsUpIcon className="text-purple-600 text-2xl" />
                   </div>
                 </div>
                 
@@ -258,7 +262,7 @@ const LinkedInAnalytics: React.FC = () => {
                         {formatEngagementRate(summary.summary.avgEngagementRate)}
                       </p>
                     </div>
-                    <FaShare className="text-orange-600 text-2xl" />
+                    <FaShareIcon className="text-orange-600 text-2xl" />
                   </div>
                 </div>
               </div>
@@ -267,7 +271,7 @@ const LinkedInAnalytics: React.FC = () => {
               {summary.bestPerformingPost && (
                 <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-6">
                   <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
-                    <FaTrophy className="mr-2 text-yellow-500" />
+                    <FaTrophyIcon className="mr-2 text-yellow-500" />
                     Best Performing Post
                   </h3>
                   <p className="text-gray-700 mb-3 line-clamp-3">
@@ -337,7 +341,7 @@ const LinkedInAnalytics: React.FC = () => {
               {insights.hashtagPerformance && insights.hashtagPerformance.length > 0 && (
                 <div className="bg-gray-50 rounded-lg p-6">
                   <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                    <FaHashtag className="mr-2" />
+                    <FaHashtagIcon className="mr-2" />
                     Top Performing Hashtags
                   </h3>
                   <div className="space-y-2">
@@ -388,7 +392,7 @@ const LinkedInAnalytics: React.FC = () => {
               {insights.bestTimes && insights.bestTimes.length > 0 && (
                 <div className="bg-gray-50 rounded-lg p-6">
                   <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                    <FaClock className="mr-2" />
+                    <FaClockIcon className="mr-2" />
                     Best Times to Post
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -460,7 +464,7 @@ const LinkedInAnalytics: React.FC = () => {
                     <li className="flex items-start">
                       <span className="text-blue-600 mr-2">•</span>
                       <span className="text-gray-700">
-                        Your top performing hashtag is {insights.hashtagPerformance[0].hashtag}. 
+                        Your top performing hashtag is {insights.hashtagPerformance[0]?.hashtag}. 
                         Use it more frequently in relevant posts.
                       </span>
                     </li>

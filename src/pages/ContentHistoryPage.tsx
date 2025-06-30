@@ -8,7 +8,6 @@ const ContentHistoryPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [contentTypeFilter, setContentTypeFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
-  const [dateFilter, setDateFilter] = useState('');
   const [editingContent, setEditingContent] = useState<string | null>(null);
   const [editedText, setEditedText] = useState('');
   const [pagination, setPagination] = useState({
@@ -26,13 +25,14 @@ const ContentHistoryPage: React.FC = () => {
   const loadContent = async () => {
     setIsLoading(true);
     try {
-      const response = await contentAPI.getContent({
+      const params: any = {
         page: pagination.page,
-        limit: pagination.limit,
-        search: searchQuery || undefined,
-        contentType: contentTypeFilter || undefined,
-        status: statusFilter || undefined
-      });
+        limit: pagination.limit
+      };
+      if (searchQuery) params.search = searchQuery;
+      if (contentTypeFilter) params.contentType = contentTypeFilter;
+      if (statusFilter) params.status = statusFilter;
+      const response = await contentAPI.getContent(params);
       
       setContent(response.data.content);
       setPagination(prev => ({
@@ -64,7 +64,7 @@ const ContentHistoryPage: React.FC = () => {
         setStatusFilter(value);
         break;
       case 'date':
-        setDateFilter(value);
+        // Date filter removed
         break;
     }
     setPagination(prev => ({ ...prev, page: 1 }));
@@ -207,7 +207,6 @@ const ContentHistoryPage: React.FC = () => {
                 setSearchQuery('');
                 setContentTypeFilter('');
                 setStatusFilter('');
-                setDateFilter('');
               }}
               className="px-3 py-2 text-gray-600 hover:text-gray-800 border border-gray-300 rounded-md transition-colors"
             >

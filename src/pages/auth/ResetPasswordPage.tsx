@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
-import { useAppDispatch, useAppSelector } from '../../hooks/redux.ts';
+import { useAppDispatch, useAppSelector } from '../../hooks/redux';
 import { resetPassword, clearError } from '../../store/slices/authSlice';
 import { toast } from '../../components/Toast';
 

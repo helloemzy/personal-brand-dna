@@ -1,5 +1,4 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { RootState } from '../store';
 
 // Types
 export interface WorkshopValue {
@@ -175,11 +174,8 @@ const workshopSlice = createSlice({
     
     updatePersona: (state, action: PayloadAction<{ id: string; updates: Partial<AudiencePersona> }>) => {
       const index = state.audiencePersonas.findIndex(p => p.id === action.payload.id);
-      if (index !== -1) {
-        state.audiencePersonas[index] = {
-          ...state.audiencePersonas[index],
-          ...action.payload.updates
-        };
+      if (index !== -1 && state.audiencePersonas[index]) {
+        Object.assign(state.audiencePersonas[index], action.payload.updates);
       }
     },
     
@@ -193,7 +189,7 @@ const workshopSlice = createSlice({
     },
     
     updateAnalysisResults: (state, action: PayloadAction<WritingSample['analysisResults']>) => {
-      if (state.writingSample) {
+      if (state.writingSample && action.payload) {
         state.writingSample.analysisResults = action.payload;
       }
     },
@@ -251,12 +247,13 @@ export const {
 } = workshopSlice.actions;
 
 // Selectors
-export const selectWorkshopState = (state: RootState) => state.workshop;
-export const selectCurrentStep = (state: RootState) => state.workshop.currentStep;
-export const selectCompletedSteps = (state: RootState) => state.workshop.completedSteps;
-export const selectIsStepCompleted = (step: number) => (state: RootState) => 
+type StateWithWorkshop = { workshop: WorkshopState };
+export const selectWorkshopState = (state: StateWithWorkshop) => state.workshop;
+export const selectCurrentStep = (state: StateWithWorkshop) => state.workshop.currentStep;
+export const selectCompletedSteps = (state: StateWithWorkshop) => state.workshop.completedSteps;
+export const selectIsStepCompleted = (step: number) => (state: StateWithWorkshop) => 
   state.workshop.completedSteps.includes(step);
-export const selectWorkshopProgress = (state: RootState) => 
+export const selectWorkshopProgress = (state: StateWithWorkshop) => 
   (state.workshop.completedSteps.length / 5) * 100;
 
 // Reducer

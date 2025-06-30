@@ -107,19 +107,19 @@ export function throttle<T extends (...args: any[]) => any>(
  * Pre-configured debounce functions for common use cases
  */
 export const debouncedFunctions = {
-  workshopAutoSave: (func: Function) => 
+  workshopAutoSave: (func: (...args: any[]) => any) => 
     debounce(func, DEBOUNCE_DELAYS.workshopAutoSave),
     
-  searchInput: (func: Function) => 
+  searchInput: (func: (...args: any[]) => any) => 
     debounce(func, DEBOUNCE_DELAYS.searchInput),
     
-  formValidation: (func: Function) => 
+  formValidation: (func: (...args: any[]) => any) => 
     debounce(func, DEBOUNCE_DELAYS.formValidation),
     
-  textEditor: (func: Function) => 
+  textEditor: (func: (...args: any[]) => any) => 
     debounce(func, DEBOUNCE_DELAYS.textEditor),
     
-  analyticsEvent: (func: Function) => 
+  analyticsEvent: (func: (...args: any[]) => any) => 
     debounce(func, DEBOUNCE_DELAYS.analyticsEvent),
 };
 
@@ -127,16 +127,16 @@ export const debouncedFunctions = {
  * Pre-configured throttle functions for common use cases
  */
 export const throttledFunctions = {
-  scrollEvent: (func: Function) => 
+  scrollEvent: (func: (...args: any[]) => any) => 
     throttle(func, THROTTLE_DELAYS.scrollEvent),
     
-  windowResize: (func: Function) => 
+  windowResize: (func: (...args: any[]) => any) => 
     throttle(func, THROTTLE_DELAYS.windowResize),
     
-  mouseMove: (func: Function) => 
+  mouseMove: (func: (...args: any[]) => any) => 
     throttle(func, THROTTLE_DELAYS.mouseMove),
     
-  apiCall: (func: Function) => 
+  apiCall: (func: (...args: any[]) => any) => 
     throttle(func, THROTTLE_DELAYS.apiCall),
 };
 

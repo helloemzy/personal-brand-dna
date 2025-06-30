@@ -1,5 +1,5 @@
-import axios, { AxiosResponse } from 'axios';
-import apiClient from './authAPI';
+import { AxiosResponse } from 'axios';
+import apiClient from './authAPI-consolidated';
 
 // Voice API response types
 export interface ConversationQuestion {
@@ -87,7 +87,7 @@ export interface VoiceProfilesResponse {
 export const voiceAPI = {
   // Start voice discovery conversation
   startConversation: async (): Promise<AxiosResponse<ConversationStartResponse>> => {
-    return apiClient.post('/voice/conversation/start');
+    return apiClient.post('/workshop?action=start');
   },
 
   // Upload audio response for transcription and analysis
@@ -99,8 +99,10 @@ export const voiceAPI = {
     const formData = new FormData();
     formData.append('audio', audioBlob, 'response.webm');
     formData.append('questionId', questionId);
+    formData.append('conversationId', conversationId);
+    formData.append('action', 'audio');
 
-    return apiClient.post(`/voice/conversation/${conversationId}/audio`, formData, {
+    return apiClient.post('/workshop', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
@@ -115,7 +117,8 @@ export const voiceAPI = {
     response: string,
     isComplete: boolean = false
   ): Promise<AxiosResponse<TextResponseData>> => {
-    return apiClient.post(`/voice/conversation/${conversationId}/text`, {
+    return apiClient.post('/workshop?action=save', {
+      conversationId,
       questionId,
       response,
       isComplete,
@@ -126,24 +129,24 @@ export const voiceAPI = {
   completeConversation: async (
     conversationId: string
   ): Promise<AxiosResponse<VoiceAnalysisCompleteResponse>> => {
-    return apiClient.post(`/voice/conversation/${conversationId}/complete`, {}, {
+    return apiClient.post('/workshop?action=complete', { conversationId }, {
       timeout: 120000, // 2 minute timeout for analysis
     });
   },
 
   // Get user's voice profiles
   getVoiceProfiles: async (): Promise<AxiosResponse<VoiceProfilesResponse>> => {
-    return apiClient.get('/voice/profiles');
+    return apiClient.get('/workshop?action=sessions');
   },
 
   // Get specific voice profile with full details
   getVoiceProfile: async (profileId: string): Promise<AxiosResponse<{ profile: VoiceProfile }>> => {
-    return apiClient.get(`/voice/profiles/${profileId}`);
+    return apiClient.get(`/workshop?action=detail&id=${profileId}`);
   },
 
   // Delete voice profile
   deleteVoiceProfile: async (profileId: string): Promise<AxiosResponse<{ message: string }>> => {
-    return apiClient.delete(`/voice/profiles/${profileId}`);
+    return apiClient.delete(`/workshop?action=delete&id=${profileId}`);
   },
 };
 

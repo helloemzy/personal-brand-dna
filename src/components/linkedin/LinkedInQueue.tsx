@@ -12,7 +12,7 @@ import {
   FaShieldAlt,
   FaFilter
 } from 'react-icons/fa';
-import Toast from '../Toast';
+import Toast, { toast } from '../Toast';
 
 interface QueueItem {
   id: string;
@@ -49,11 +49,6 @@ const LinkedInQueue: React.FC = () => {
   const [rejectionReason, setRejectionReason] = useState('');
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   
-  const [toast, setToast] = useState<{
-    show: boolean;
-    message: string;
-    type: 'success' | 'error' | 'info';
-  }>({ show: false, message: '', type: 'info' });
 
   useEffect(() => {
     fetchQueue();
@@ -79,11 +74,7 @@ const LinkedInQueue: React.FC = () => {
       }
     } catch (error) {
       console.error('Failed to fetch queue:', error);
-      setToast({
-        show: true,
-        message: 'Failed to load publishing queue',
-        type: 'error'
-      });
+      toast.error('Failed to load publishing queue');
     } finally {
       setIsLoading(false);
     }
@@ -101,21 +92,13 @@ const LinkedInQueue: React.FC = () => {
       
       const data = await response.json();
       if (data.success) {
-        setToast({
-          show: true,
-          message: 'Content approved for publishing',
-          type: 'success'
-        });
+        toast.success('Content approved for publishing');
         fetchQueue();
       } else {
         throw new Error(data.error);
       }
     } catch (error: any) {
-      setToast({
-        show: true,
-        message: error.message || 'Failed to approve content',
-        type: 'error'
-      });
+      toast.error('Failed to approve content', error.message);
     } finally {
       setActionLoading(null);
     }
@@ -137,11 +120,7 @@ const LinkedInQueue: React.FC = () => {
       
       const data = await response.json();
       if (data.success) {
-        setToast({
-          show: true,
-          message: 'Content rejected',
-          type: 'success'
-        });
+        toast.success('Content rejected');
         setShowRejectModal(false);
         setRejectionReason('');
         setSelectedItem(null);
@@ -150,11 +129,7 @@ const LinkedInQueue: React.FC = () => {
         throw new Error(data.error);
       }
     } catch (error: any) {
-      setToast({
-        show: true,
-        message: error.message || 'Failed to reject content',
-        type: 'error'
-      });
+      toast.error('Failed to reject content', error.message);
     } finally {
       setActionLoading(null);
     }
@@ -172,21 +147,13 @@ const LinkedInQueue: React.FC = () => {
       
       const data = await response.json();
       if (data.success) {
-        setToast({
-          show: true,
-          message: 'Content published successfully to LinkedIn!',
-          type: 'success'
-        });
+        toast.success('Content published successfully to LinkedIn!');
         fetchQueue();
       } else {
         throw new Error(data.error);
       }
     } catch (error: any) {
-      setToast({
-        show: true,
-        message: error.message || 'Failed to publish content',
-        type: 'error'
-      });
+      toast.error('Failed to publish content', error.message);
     } finally {
       setActionLoading(null);
     }
@@ -206,21 +173,13 @@ const LinkedInQueue: React.FC = () => {
       
       const data = await response.json();
       if (data.success) {
-        setToast({
-          show: true,
-          message: 'Content removed from queue',
-          type: 'success'
-        });
+        toast.success('Content removed from queue');
         fetchQueue();
       } else {
         throw new Error(data.error);
       }
     } catch (error: any) {
-      setToast({
-        show: true,
-        message: error.message || 'Failed to delete content',
-        type: 'error'
-      });
+      toast.error('Failed to delete content', error.message);
     } finally {
       setActionLoading(null);
     }
@@ -237,20 +196,20 @@ const LinkedInQueue: React.FC = () => {
     };
 
     const statusIcons = {
-      pending: <FaClock className="mr-1" />,
-      approved: <FaCheckCircle className="mr-1" />,
-      published: <FaLinkedin className="mr-1" />,
-      rejected: <FaTimesCircle className="mr-1" />,
-      scheduled: <FaCalendarAlt className="mr-1" />,
-      failed: <FaExclamationTriangle className="mr-1" />
+      pending: () => React.createElement(FaClock, { className: "mr-1" }),
+      approved: () => React.createElement(FaCheckCircle, { className: "mr-1" }),
+      published: () => React.createElement(FaLinkedin, { className: "mr-1" }),
+      rejected: () => React.createElement(FaTimesCircle, { className: "mr-1" }),
+      scheduled: () => React.createElement(FaCalendarAlt, { className: "mr-1" }),
+      failed: () => React.createElement(FaExclamationTriangle, { className: "mr-1" })
     };
 
     const color = statusColors[item.status as keyof typeof statusColors] || 'bg-gray-100 text-gray-800';
-    const icon = statusIcons[item.status as keyof typeof statusIcons];
+    const iconFn = statusIcons[item.status as keyof typeof statusIcons];
 
     return (
       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${color}`}>
-        {icon}
+        {iconFn && iconFn()}
         {item.status.charAt(0).toUpperCase() + item.status.slice(1)}
       </span>
     );
@@ -271,13 +230,13 @@ const LinkedInQueue: React.FC = () => {
     <div className="bg-white rounded-lg shadow-md p-6">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-bold text-gray-900 flex items-center">
-          <FaLinkedin className="mr-2 text-blue-600" />
+          {React.createElement(FaLinkedin, { className: "mr-2 text-blue-600" })}
           Publishing Queue
         </h2>
         
         <div className="flex items-center space-x-4">
           <div className="flex items-center">
-            <FaFilter className="mr-2 text-gray-500" />
+            {React.createElement(FaFilter, { className: "mr-2 text-gray-500" })}
             <select
               value={filter}
               onChange={(e) => setFilter(e.target.value as any)}
@@ -322,7 +281,7 @@ const LinkedInQueue: React.FC = () => {
                     </span>
                     {item.scheduled_for && (
                       <span className="text-sm text-purple-600 flex items-center">
-                        <FaCalendarAlt className="mr-1" />
+                        {React.createElement(FaCalendarAlt, { className: "mr-1" })}
                         Scheduled: {formatDate(item.scheduled_for)}
                       </span>
                     )}
@@ -364,7 +323,7 @@ const LinkedInQueue: React.FC = () => {
                     className="p-2 text-gray-600 hover:text-gray-800"
                     title="View details"
                   >
-                    <FaEye />
+                    {React.createElement(FaEye, {})}
                   </button>
                   
                   {item.status === 'pending' && item.approval_status === 'pending_review' && (
@@ -375,7 +334,7 @@ const LinkedInQueue: React.FC = () => {
                         className="p-2 text-green-600 hover:text-green-800 disabled:opacity-50"
                         title="Approve"
                       >
-                        <FaCheckCircle />
+                        {React.createElement(FaCheckCircle, {})}
                       </button>
                       <button
                         onClick={() => {
@@ -386,7 +345,7 @@ const LinkedInQueue: React.FC = () => {
                         className="p-2 text-red-600 hover:text-red-800 disabled:opacity-50"
                         title="Reject"
                       >
-                        <FaTimesCircle />
+                        {React.createElement(FaTimesCircle, {})}
                       </button>
                     </>
                   )}
@@ -398,7 +357,7 @@ const LinkedInQueue: React.FC = () => {
                       className="p-2 text-blue-600 hover:text-blue-800 disabled:opacity-50"
                       title="Publish now"
                     >
-                      <FaPaperPlane />
+                      {React.createElement(FaPaperPlane, {})}
                     </button>
                   )}
                   
@@ -409,7 +368,7 @@ const LinkedInQueue: React.FC = () => {
                       className="p-2 text-red-600 hover:text-red-800 disabled:opacity-50"
                       title="Delete"
                     >
-                      <FaTrash />
+                      {React.createElement(FaTrash, {})}
                     </button>
                   )}
                 </div>
@@ -419,7 +378,7 @@ const LinkedInQueue: React.FC = () => {
               {item.safetyChecks && item.safetyChecks.length > 0 && (
                 <div className="mt-3 pt-3 border-t border-gray-200">
                   <div className="flex items-center text-sm">
-                    <FaShieldAlt className="mr-2 text-gray-500" />
+                    {React.createElement(FaShieldAlt, { className: "mr-2 text-gray-500" })}
                     <span className="text-gray-600 mr-3">Safety Checks:</span>
                     {item.safetyChecks.map((check, index) => (
                       <span
@@ -502,9 +461,9 @@ const LinkedInQueue: React.FC = () => {
                       >
                         <div className="flex items-center">
                           {check.passed ? (
-                            <FaCheckCircle className="text-green-600 mr-2" />
+                            React.createElement(FaCheckCircle, { className: "text-green-600 mr-2" })
                           ) : (
-                            <FaTimesCircle className="text-red-600 mr-2" />
+                            React.createElement(FaTimesCircle, { className: "text-red-600 mr-2" })
                           )}
                           <span className="font-medium capitalize">
                             {check.check_type.replace('_', ' ')}
@@ -599,13 +558,7 @@ const LinkedInQueue: React.FC = () => {
       )}
 
       {/* Toast Notification */}
-      {toast.show && (
-        <Toast
-          message={toast.message}
-          type={toast.type}
-          onClose={() => setToast({ ...toast, show: false })}
-        />
-      )}
+      <Toast />
     </div>
   );
 };

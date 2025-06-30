@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from '../components/Toast';
-import { contentAPI, GenerateContentRequest, ContentTemplate } from '../services/contentAPI';\nimport TemplateSelector from '../components/TemplateSelector';\nimport { sampleTemplates } from '../data/sampleTemplates';
+import { contentAPI, GenerateContentRequest, ContentTemplate } from '../services/contentAPI';
+import TemplateSelector from '../components/TemplateSelector';
+import { sampleTemplates } from '../data/sampleTemplates';
 import { voiceAPI, VoiceProfile } from '../services/voiceAPI';
 
 const ContentGenerationPage: React.FC = () => {
@@ -47,7 +49,9 @@ const ContentGenerationPage: React.FC = () => {
         );
         setVoiceProfiles(profileDetails.map(p => p.data.profile));
         // Auto-select the most recent voice profile
-        setSelectedVoiceProfile(profileDetails[0].data.profile.id);
+        if (profileDetails[0]) {
+          setSelectedVoiceProfile(profileDetails[0].data.profile.id);
+        }
       }
     } catch (error) {
       console.error('Failed to load voice profiles:', error);
@@ -76,8 +80,8 @@ const ContentGenerationPage: React.FC = () => {
     try {
       const request: GenerateContentRequest = {
         ...formData,
-        templateId: selectedTemplate || undefined,
-        voiceProfileId: selectedVoiceProfile || undefined
+        templateId: selectedTemplate || '',
+        voiceProfileId: selectedVoiceProfile || ''
       };
 
       const response = await contentAPI.generateContent(request);
@@ -159,7 +163,7 @@ const ContentGenerationPage: React.FC = () => {
               templates={templates}
               selectedTemplateId={selectedTemplate}
               onTemplateSelect={setSelectedTemplate}
-              contentType={formData.contentType}
+              contentType={formData.contentType || 'post'}
               className="w-full"
             />
           </div>

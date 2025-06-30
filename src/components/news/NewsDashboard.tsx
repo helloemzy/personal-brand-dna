@@ -14,7 +14,6 @@ import {
   Settings,
   Loader
 } from 'lucide-react';
-import { RootState } from '../../store';
 import { formatDistanceToNow } from 'date-fns';
 import { FixedSizeList as List } from 'react-window';
 import { useComponentPerformance } from '../../utils/performance';

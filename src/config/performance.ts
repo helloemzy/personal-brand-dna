@@ -196,7 +196,7 @@ export const PREFETCH_CONFIG = {
 // Service Worker configuration
 export const SERVICE_WORKER_CONFIG = {
   // Enable service worker
-  enabled: process.env.NODE_ENV === 'production',
+  enabled: process.env['NODE_ENV'] === 'production',
   
   // Cache strategies
   cacheStrategies: {

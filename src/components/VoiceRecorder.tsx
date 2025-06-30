@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { Mic, MicOff, Play, Pause, Square, RotateCcw, Send } from 'lucide-react';
+import { Mic, Play, Pause, Square, RotateCcw, Send } from 'lucide-react';
 
 interface VoiceRecorderProps {
   onAudioRecorded: (audioBlob: Blob, duration: number) => void;

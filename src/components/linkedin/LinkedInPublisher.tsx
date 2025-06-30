@@ -1,17 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
 import { 
   FaLinkedin, 
-  FaClock, 
   FaCheckCircle, 
   FaTimesCircle,
   FaExclamationTriangle,
-  FaCalendarAlt,
   FaChartLine,
   FaShieldAlt
 } from 'react-icons/fa';
-import { RootState } from '../../store';
-import Toast from '../Toast';
+
+// Type assertion to fix React Icons issue
+const FaLinkedinIcon = FaLinkedin as any;
+const FaCheckCircleIcon = FaCheckCircle as any;
+const FaTimesCircleIcon = FaTimesCircle as any;
+const FaExclamationTriangleIcon = FaExclamationTriangle as any;
+const FaChartLineIcon = FaChartLine as any;
+const FaShieldAltIcon = FaShieldAlt as any;
 
 interface LinkedInPublisherProps {
   contentId?: string;
@@ -35,8 +38,6 @@ const LinkedInPublisher: React.FC<LinkedInPublisherProps> = ({
   contentId, 
   initialContent = '' 
 }) => {
-  const dispatch = useDispatch();
-  const { user } = useSelector((state: RootState) => state.auth);
   
   const [postText, setPostText] = useState(initialContent);
   const [postType, setPostType] = useState<'text' | 'article' | 'image'>('text');
@@ -62,15 +63,7 @@ const LinkedInPublisher: React.FC<LinkedInPublisherProps> = ({
     fetchRateLimits();
   }, []);
 
-  // Real-time safety checks as user types
-  useEffect(() => {
-    if (postText) {
-      const timer = setTimeout(() => {
-        performSafetyChecks();
-      }, 500);
-      return () => clearTimeout(timer);
-    }
-  }, [postText]);
+  // Real-time safety checks as user types will be handled after performSafetyChecks is defined
 
   const checkLinkedInStatus = async () => {
     try {
@@ -156,6 +149,17 @@ const LinkedInPublisher: React.FC<LinkedInPublisherProps> = ({
     ];
     return patterns.some(pattern => pattern.test(text));
   };
+
+  // Real-time safety checks as user types
+  useEffect(() => {
+    if (postText) {
+      const timer = setTimeout(() => {
+        performSafetyChecks();
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+    return undefined;
+  }, [postText]);
 
   const connectLinkedIn = () => {
     window.location.href = '/api/linkedin/auth';
@@ -245,7 +249,7 @@ const LinkedInPublisher: React.FC<LinkedInPublisherProps> = ({
     <div className="bg-white rounded-lg shadow-md p-6">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-bold text-gray-900 flex items-center">
-          <FaLinkedin className="mr-2 text-blue-600" />
+          <FaLinkedinIcon className="mr-2 text-blue-600" />
           LinkedIn Publisher
         </h2>
         
@@ -254,12 +258,12 @@ const LinkedInPublisher: React.FC<LinkedInPublisherProps> = ({
             onClick={connectLinkedIn}
             className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center"
           >
-            <FaLinkedin className="mr-2" />
+            <FaLinkedinIcon className="mr-2" />
             Connect LinkedIn
           </button>
         ) : (
           <div className="flex items-center text-green-600">
-            <FaCheckCircle className="mr-2" />
+            <FaCheckCircleIcon className="mr-2" />
             LinkedIn Connected
           </div>
         )}
@@ -269,7 +273,7 @@ const LinkedInPublisher: React.FC<LinkedInPublisherProps> = ({
       {rateLimits && (
         <div className="mb-6 p-4 bg-gray-50 rounded-lg">
           <h3 className="text-sm font-semibold text-gray-700 mb-2 flex items-center">
-            <FaChartLine className="mr-2" />
+            <FaChartLineIcon className="mr-2" />
             Posting Limits
           </h3>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
@@ -379,16 +383,16 @@ const LinkedInPublisher: React.FC<LinkedInPublisherProps> = ({
         {safetyChecks.length > 0 && (
           <div className="p-4 bg-gray-50 rounded-lg">
             <h3 className="text-sm font-semibold text-gray-700 mb-2 flex items-center">
-              <FaShieldAlt className="mr-2" />
+              <FaShieldAltIcon className="mr-2" />
               Safety Checks
             </h3>
             <div className="space-y-1">
               {safetyChecks.map((check, index) => (
                 <div key={index} className="flex items-center text-sm">
                   {check.passed ? (
-                    <FaCheckCircle className="text-green-500 mr-2" />
+                    <FaCheckCircleIcon className="text-green-500 mr-2" />
                   ) : (
-                    <FaTimesCircle className="text-red-500 mr-2" />
+                    <FaTimesCircleIcon className="text-red-500 mr-2" />
                   )}
                   <span className={check.passed ? 'text-gray-700' : 'text-red-700'}>
                     {check.message}
@@ -403,7 +407,7 @@ const LinkedInPublisher: React.FC<LinkedInPublisherProps> = ({
         <div className="flex justify-end space-x-4">
           {showSafetyWarning && (
             <div className="flex items-center text-amber-600 mr-auto">
-              <FaExclamationTriangle className="mr-2" />
+              <FaExclamationTriangleIcon className="mr-2" />
               <span className="text-sm">Please review safety warnings</span>
             </div>
           )}
@@ -489,11 +493,21 @@ const LinkedInPublisher: React.FC<LinkedInPublisherProps> = ({
 
       {/* Toast Notification */}
       {toast.show && (
-        <Toast
-          message={toast.message}
-          type={toast.type}
-          onClose={() => setToast({ ...toast, show: false })}
-        />
+        <div className={`fixed bottom-4 right-4 p-4 rounded-md shadow-lg ${
+          toast.type === 'success' ? 'bg-green-100 text-green-800' :
+          toast.type === 'error' ? 'bg-red-100 text-red-800' :
+          'bg-blue-100 text-blue-800'
+        }`}>
+          <div className="flex items-center justify-between">
+            <span>{toast.message}</span>
+            <button
+              onClick={() => setToast({ ...toast, show: false })}
+              className="ml-4 text-gray-600 hover:text-gray-800"
+            >
+              ×
+            </button>
+          </div>
+        </div>
       )}
     </div>
   );

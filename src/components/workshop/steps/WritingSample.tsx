@@ -82,15 +82,15 @@ const AnalysisResults: React.FC<{
           <div className="space-y-1">
             <div className="flex justify-between text-sm">
               <span className="text-gray-600">Avg Sentence:</span>
-              <span className="font-medium">{results.styleMetrics.avgSentenceLength} words</span>
+              <span className="font-medium">{results.styleMetrics['avgSentenceLength']} words</span>
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-gray-600">Complexity:</span>
-              <span className="font-medium">{results.styleMetrics.complexity}</span>
+              <span className="font-medium">{results.styleMetrics['complexity']}</span>
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-gray-600">Voice:</span>
-              <span className="font-medium">{results.styleMetrics.voice}</span>
+              <span className="font-medium">{results.styleMetrics['voice']}</span>
             </div>
           </div>
         </div>
@@ -99,7 +99,7 @@ const AnalysisResults: React.FC<{
       <div className="mt-4 p-3 bg-white rounded-md">
         <p className="text-sm text-gray-700">
           <strong>Key Insights:</strong> Your writing style is {readability.label.toLowerCase()} to read, 
-          with a {results.styleMetrics.voice} voice and {results.styleMetrics.complexity} complexity. 
+          with a {results.styleMetrics['voice']} voice and {results.styleMetrics['complexity']} complexity. 
           This analysis helps us match your natural communication style.
         </p>
       </div>
@@ -146,8 +146,7 @@ const WritingSample: React.FC = () => {
     dispatch(setWritingSample({
       text,
       wordCount,
-      uploadedAt: new Date(),
-      analysisResults: undefined
+      uploadedAt: new Date()
     }));
 
     // Simulate analysis (in production, this would call an API)
@@ -176,7 +175,9 @@ const WritingSample: React.FC = () => {
     setSelectedPrompt(index);
     // Optionally pre-fill with prompt text
     if (!text) {
-      setText(`[${writingPrompts[index].title}]\n\n`);
+      if (writingPrompts[index]) {
+        setText(`[${writingPrompts[index].title}]\n\n`);
+      }
     }
   };
 

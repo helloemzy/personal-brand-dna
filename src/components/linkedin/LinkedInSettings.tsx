@@ -9,7 +9,7 @@ import {
   FaDownload,
   FaTrash
 } from 'react-icons/fa';
-import Toast from '../Toast';
+import Toast, { toast } from '../Toast';
 
 interface LinkedInStatus {
   connected: boolean;
@@ -40,11 +40,6 @@ const LinkedInSettings: React.FC = () => {
     weekendPosting: false
   });
   
-  const [toast, setToast] = useState<{
-    show: boolean;
-    message: string;
-    type: 'success' | 'error' | 'info';
-  }>({ show: false, message: '', type: 'info' });
 
   useEffect(() => {
     checkLinkedInStatus();
@@ -107,18 +102,10 @@ const LinkedInSettings: React.FC = () => {
       if (data.success) {
         setStatus({ connected: false });
         setShowDisconnectModal(false);
-        setToast({
-          show: true,
-          message: 'LinkedIn account disconnected successfully',
-          type: 'success'
-        });
+        toast.success('LinkedIn account disconnected successfully');
       }
     } catch (error) {
-      setToast({
-        show: true,
-        message: 'Failed to disconnect LinkedIn account',
-        type: 'error'
-      });
+      toast.error('Failed to disconnect LinkedIn account');
     }
   };
 
@@ -138,18 +125,10 @@ const LinkedInSettings: React.FC = () => {
         a.download = `linkedin-data-${new Date().toISOString().split('T')[0]}.json`;
         a.click();
         
-        setToast({
-          show: true,
-          message: 'Data exported successfully',
-          type: 'success'
-        });
+        toast.success('Data exported successfully');
       }
     } catch (error) {
-      setToast({
-        show: true,
-        message: 'Failed to export data',
-        type: 'error'
-      });
+      toast.error('Failed to export data');
     }
   };
 
@@ -165,20 +144,12 @@ const LinkedInSettings: React.FC = () => {
       const data = await response.json();
       if (data.success) {
         setShowDataModal(false);
-        setToast({
-          show: true,
-          message: 'LinkedIn data deleted successfully',
-          type: 'success'
-        });
+        toast.success('LinkedIn data deleted successfully');
         // Refresh status
         checkLinkedInStatus();
       }
     } catch (error) {
-      setToast({
-        show: true,
-        message: 'Failed to delete data',
-        type: 'error'
-      });
+      toast.error('Failed to delete data');
     }
   };
 
@@ -195,18 +166,10 @@ const LinkedInSettings: React.FC = () => {
       
       const data = await response.json();
       if (data.success) {
-        setToast({
-          show: true,
-          message: 'Preferences saved successfully',
-          type: 'success'
-        });
+        toast.success('Preferences saved successfully');
       }
     } catch (error) {
-      setToast({
-        show: true,
-        message: 'Failed to save preferences',
-        type: 'error'
-      });
+      toast.error('Failed to save preferences');
     }
   };
 
@@ -239,7 +202,7 @@ const LinkedInSettings: React.FC = () => {
     <div className="bg-white rounded-lg shadow-md p-6">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-bold text-gray-900 flex items-center">
-          <FaLinkedin className="mr-2 text-blue-600" />
+          {React.createElement(FaLinkedin, { className: "mr-2 text-blue-600" })}
           LinkedIn Settings
         </h2>
       </div>
@@ -261,7 +224,7 @@ const LinkedInSettings: React.FC = () => {
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center">
-                    <FaCheckCircle className="text-green-600 text-xl mr-3" />
+                    {React.createElement(FaCheckCircle, { className: "text-green-600 text-xl mr-3" })}
                     <div>
                       <p className="font-medium text-gray-900">Connected as {status.linkedinUserName}</p>
                       <p className="text-sm text-gray-600">
@@ -279,7 +242,7 @@ const LinkedInSettings: React.FC = () => {
                 
                 {status.expiresAt && new Date(status.expiresAt).getTime() - Date.now() < 7 * 24 * 60 * 60 * 1000 && (
                   <div className="flex items-center p-3 bg-amber-50 rounded-lg">
-                    <FaExclamationTriangle className="text-amber-600 mr-2" />
+                    {React.createElement(FaExclamationTriangle, { className: "text-amber-600 mr-2" })}
                     <span className="text-sm text-amber-800">
                       Your LinkedIn connection will expire soon. You'll need to reconnect to continue publishing.
                     </span>
@@ -288,13 +251,13 @@ const LinkedInSettings: React.FC = () => {
               </div>
             ) : (
               <div className="text-center py-8">
-                <FaTimesCircle className="text-gray-400 text-4xl mx-auto mb-4" />
+                {React.createElement(FaTimesCircle, { className: "text-gray-400 text-4xl mx-auto mb-4" })}
                 <p className="text-gray-600 mb-4">No LinkedIn account connected</p>
                 <button
                   onClick={connectLinkedIn}
                   className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 inline-flex items-center"
                 >
-                  <FaLinkedin className="mr-2" />
+                  {React.createElement(FaLinkedin, { className: "mr-2" })}
                   Connect LinkedIn Account
                 </button>
               </div>
@@ -304,7 +267,7 @@ const LinkedInSettings: React.FC = () => {
           {/* Publishing Preferences */}
           <div className="bg-gray-50 rounded-lg p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-              <FaCog className="mr-2" />
+              {React.createElement(FaCog, { className: "mr-2" })}
               Publishing Preferences
             </h3>
             
@@ -393,7 +356,7 @@ const LinkedInSettings: React.FC = () => {
           {/* Privacy & Data */}
           <div className="bg-gray-50 rounded-lg p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-              <FaShieldAlt className="mr-2" />
+              {React.createElement(FaShieldAlt, { className: "mr-2" })}
               Privacy & Data Management
             </h3>
             
@@ -431,7 +394,7 @@ const LinkedInSettings: React.FC = () => {
                 onClick={exportData}
                 className="w-full flex items-center justify-center px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
               >
-                <FaDownload className="mr-2" />
+                {React.createElement(FaDownload, { className: "mr-2" })}
                 Export My LinkedIn Data
               </button>
               
@@ -439,7 +402,7 @@ const LinkedInSettings: React.FC = () => {
                 onClick={() => setShowDataModal(true)}
                 className="w-full flex items-center justify-center px-4 py-2 text-red-600 border border-red-600 rounded-lg hover:bg-red-50"
               >
-                <FaTrash className="mr-2" />
+                {React.createElement(FaTrash, { className: "mr-2" })}
                 Delete All LinkedIn Data
               </button>
               
@@ -545,13 +508,7 @@ const LinkedInSettings: React.FC = () => {
       )}
 
       {/* Toast Notification */}
-      {toast.show && (
-        <Toast
-          message={toast.message}
-          type={toast.type}
-          onClose={() => setToast({ ...toast, show: false })}
-        />
-      )}
+      <Toast />
     </div>
   );
 };

@@ -1,16 +1,15 @@
 import { configureStore } from '@reduxjs/toolkit';
 import { persistStore, persistReducer, FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER } from 'redux-persist';
-import storage from 'redux-persist/lib/storage';
 import { combineReducers } from '@reduxjs/toolkit';
 import { persistConfig } from './persistConfig';
 
 // Import slices
-import authSlice from './slices/authSlice.ts';
-import voiceSlice from './slices/voiceSlice.ts';
-import contentSlice from './slices/contentSlice.ts';
-import analyticsSlice from './slices/analyticsSlice.ts';
-import subscriptionSlice from './slices/subscriptionSlice.ts';
-import uiSlice from './slices/uiSlice.ts';
+import authSlice from './slices/authSlice';
+import voiceSlice from './slices/voiceSlice';
+import contentSlice from './slices/contentSlice';
+import analyticsSlice from './slices/analyticsSlice';
+import subscriptionSlice from './slices/subscriptionSlice';
+import uiSlice from './slices/uiSlice';
 import workshopSlice from './slices/workshopSlice';
 import newsSlice from './slices/newsSlice';
 
@@ -40,7 +39,7 @@ export const store = configureStore({
         ignoredPaths: ['_persist', 'register', 'rehydrate'],
       },
     }),
-  devTools: process.env.NODE_ENV !== 'production',
+  devTools: process.env['NODE_ENV'] !== 'production',
 });
 
 // Create persistor

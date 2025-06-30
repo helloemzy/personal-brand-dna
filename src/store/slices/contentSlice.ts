@@ -128,8 +128,8 @@ const contentSlice = createSlice({
     
     updateContentItem: (state, action: PayloadAction<{ id: string; updates: Partial<ContentItem> }>) => {
       const index = state.items.findIndex(item => item.id === action.payload.id);
-      if (index !== -1) {
-        state.items[index] = { ...state.items[index], ...action.payload.updates };
+      if (index !== -1 && state.items[index]) {
+        Object.assign(state.items[index], action.payload.updates);
       }
     },
     
@@ -182,7 +182,7 @@ const contentSlice = createSlice({
     updateContentStats: (state, action: PayloadAction<{
       id: string;
       platform: 'linkedin';
-      stats: ContentItem['platforms']['linkedin']['stats'];
+      stats: any;
     }>) => {
       const item = state.items.find(item => item.id === action.payload.id);
       if (item && item.platforms[action.payload.platform]) {

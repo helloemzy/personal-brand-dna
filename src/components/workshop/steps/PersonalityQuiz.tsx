@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { Brain, ChevronLeft, ChevronRight, CheckCircle } from 'lucide-react';
+import { Brain, CheckCircle } from 'lucide-react';
 import { 
   selectWorkshopState,
   answerQuizQuestion,
@@ -258,11 +258,6 @@ const PersonalityQuiz: React.FC = () => {
     if (currentQuestionIndex === quizQuestions.length - 1) {
       setTimeout(() => setShowResults(true), 500);
     }
-  };
-  
-  const handleBack = () => {
-    // This would need to be implemented in the slice to go back
-    console.log('Go back functionality needed');
   };
   
   if (isComplete || showResults) {

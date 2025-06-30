@@ -108,8 +108,8 @@ const subscriptionSlice = createSlice({
     
     updateInvoice: (state, action: PayloadAction<{ id: string; updates: Partial<Invoice> }>) => {
       const index = state.invoices.findIndex(invoice => invoice.id === action.payload.id);
-      if (index !== -1) {
-        state.invoices[index] = { ...state.invoices[index], ...action.payload.updates };
+      if (index !== -1 && state.invoices[index]) {
+        Object.assign(state.invoices[index], action.payload.updates);
       }
     },
     
@@ -165,7 +165,7 @@ const subscriptionSlice = createSlice({
       }
     },
     
-    clearSubscriptionData: (state) => {
+    clearSubscriptionData: () => {
       return initialState;
     },
   },

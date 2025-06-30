@@ -281,7 +281,7 @@ export const getTemplatesByUseCase = () => {
     if (!acc[useCase]) {
       acc[useCase] = [];
     }
-    acc[useCase].push(template);
+    acc[useCase]!.push(template);
     return acc;
   }, {} as Record<string, ContentTemplate[]>);
 };

@@ -50,7 +50,7 @@ export const trackWebVitals = (onPerfEntry?: (metric: Metric) => void) => {
 
 // Component render tracking
 class ComponentPerformanceTracker {
-  private renderTimes: Map<string, number[]> = new Map();
+  renderTimes: Map<string, number[]> = new Map();
 
   startTracking(componentName: string): () => void {
     if (!PERFORMANCE_CONFIG.enableComponentTracking) {
@@ -104,7 +104,7 @@ class ComponentPerformanceTracker {
 
   logAllStats() {
     console.group('Component Performance Stats');
-    this.renderTimes.forEach((times, componentName) => {
+    this.renderTimes.forEach((_times, componentName) => {
       const stats = this.getStats(componentName);
       if (stats) {
         console.log(`${componentName}:`, stats);
@@ -122,7 +122,7 @@ export const componentTracker = new ComponentPerformanceTracker();
 
 // API call performance tracking
 class APIPerformanceTracker {
-  private apiCalls: Map<string, number[]> = new Map();
+  apiCalls: Map<string, number[]> = new Map();
 
   async trackAPICall<T>(
     endpoint: string,
@@ -264,7 +264,7 @@ export const trackPageLoad = () => {
     if (navTiming) {
       const pageLoadTime = navTiming.loadEventEnd - navTiming.fetchStart;
       const domContentLoaded = navTiming.domContentLoadedEventEnd - navTiming.fetchStart;
-      const domProcessing = navTiming.domComplete - navTiming.domLoading;
+      const domProcessing = navTiming.domComplete - (navTiming as any).domLoading;
 
       if (pageLoadTime > PERFORMANCE_CONFIG.slowThreshold.pageLoad) {
         console.warn(`Slow page load detected: ${pageLoadTime.toFixed(2)}ms`);
@@ -360,7 +360,7 @@ export const initPerformanceMonitoring = () => {
   });
 
   // Log performance report periodically (every 5 minutes)
-  if (process.env.NODE_ENV === 'development') {
+  if (process.env['NODE_ENV'] === 'development') {
     setInterval(() => {
       console.log('Performance Report:', generatePerformanceReport());
     }, 5 * 60 * 1000);

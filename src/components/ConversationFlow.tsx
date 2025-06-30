@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { MessageCircle, CheckCircle, AlertCircle, Clock, User, Bot } from 'lucide-react';
+import { CheckCircle, AlertCircle, Clock, User, Bot } from 'lucide-react';
 import VoiceRecorder from './VoiceRecorder';
 import { 
   startVoiceDiscovery, 
@@ -17,7 +17,7 @@ import {
   selectVoiceError,
   selectVoiceProfile
 } from '../store/slices/voiceSlice';
-import { voiceAPI, ConversationQuestion, createAudioBlob } from '../services/voiceAPI';
+import { voiceAPI, ConversationQuestion } from '../services/voiceAPI';
 import { handleAPIError } from '../services/authAPI';
 
 interface ConversationFlowProps {
@@ -95,7 +95,7 @@ const ConversationFlow: React.FC<ConversationFlowProps> = ({
   };
 
   // Handle audio response
-  const handleAudioResponse = async (audioBlob: Blob, duration: number) => {
+  const handleAudioResponse = async (audioBlob: Blob) => {
     if (!conversationId || !currentQuestion) return;
 
     try {
@@ -232,12 +232,6 @@ const ConversationFlow: React.FC<ConversationFlowProps> = ({
     }
   };
 
-  // Skip current question (for testing purposes)
-  const skipQuestion = () => {
-    if (currentQuestion) {
-      handleTextResponse();
-    }
-  };
 
   if (isLoading && !conversationId) {
     return (

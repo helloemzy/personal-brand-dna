@@ -1,5 +1,5 @@
 import { AxiosResponse } from 'axios';
-import apiClient from './authAPI';
+import apiClient from './authAPI-consolidated';
 
 // Content API response types
 export interface ContentTemplate {
@@ -114,20 +114,19 @@ export const contentAPI = {
     contentType?: string;
     useCase?: string;
   }): Promise<AxiosResponse<TemplatesResponse>> => {
-    const queryParams = new URLSearchParams();
+    const queryParams = new URLSearchParams({ action: 'templates' });
     if (params?.industry) queryParams.append('industry', params.industry);
     if (params?.contentType) queryParams.append('contentType', params.contentType);
     if (params?.useCase) queryParams.append('useCase', params.useCase);
 
-    const url = `/content/templates${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
-    return apiClient.get(url);
+    return apiClient.get(`/content?${queryParams.toString()}`);
   },
 
   // Generate content
   generateContent: async (
     request: GenerateContentRequest
   ): Promise<AxiosResponse<ContentGenerationResponse>> => {
-    return apiClient.post('/content/generate', request, {
+    return apiClient.post('/content?action=generation', request, {
       timeout: 60000, // 1 minute timeout for content generation
     });
   },
@@ -140,20 +139,19 @@ export const contentAPI = {
     contentType?: string;
     search?: string;
   }): Promise<AxiosResponse<ContentListResponse>> => {
-    const queryParams = new URLSearchParams();
+    const queryParams = new URLSearchParams({ action: 'history' });
     if (params?.page) queryParams.append('page', params.page.toString());
     if (params?.limit) queryParams.append('limit', params.limit.toString());
     if (params?.status) queryParams.append('status', params.status);
     if (params?.contentType) queryParams.append('contentType', params.contentType);
     if (params?.search) queryParams.append('search', params.search);
 
-    const url = `/content${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
-    return apiClient.get(url);
+    return apiClient.get(`/content?${queryParams.toString()}`);
   },
 
   // Get specific content item
   getContentById: async (contentId: string): Promise<AxiosResponse<ContentDetailResponse>> => {
-    return apiClient.get(`/content/${contentId}`);
+    return apiClient.get(`/content?action=detail&id=${contentId}`);
   },
 
   // Update content
@@ -164,12 +162,12 @@ export const contentAPI = {
       status?: 'generated' | 'edited' | 'used' | 'archived';
     }
   ): Promise<AxiosResponse<{ content: GeneratedContent }>> => {
-    return apiClient.put(`/content/${contentId}`, updates);
+    return apiClient.put(`/content?action=update&id=${contentId}`, updates);
   },
 
   // Delete content
   deleteContent: async (contentId: string): Promise<AxiosResponse<{ message: string }>> => {
-    return apiClient.delete(`/content/${contentId}`);
+    return apiClient.delete(`/content?action=delete&id=${contentId}`);
   },
 
   // Submit feedback on generated content
@@ -177,18 +175,17 @@ export const contentAPI = {
     contentId: string,
     feedback: ContentFeedbackRequest
   ): Promise<AxiosResponse<{ message: string }>> => {
-    return apiClient.post(`/content/${contentId}/feedback`, feedback);
+    return apiClient.post(`/content?action=feedback&id=${contentId}`, feedback);
   },
 
   // Get content statistics
   getStats: async (params?: {
     timeframe?: number;
   }): Promise<AxiosResponse<ContentStatsResponse>> => {
-    const queryParams = new URLSearchParams();
+    const queryParams = new URLSearchParams({ action: 'stats' });
     if (params?.timeframe) queryParams.append('timeframe', params.timeframe.toString());
 
-    const url = `/content/stats/overview${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
-    return apiClient.get(url);
+    return apiClient.get(`/content?${queryParams.toString()}`);
   },
 };
 

@@ -1,5 +1,5 @@
 import React, { useEffect, useCallback, useMemo } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useAppDispatch, useAppSelector } from '../../hooks/redux';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, Check } from 'lucide-react';
 import { 
@@ -11,7 +11,6 @@ import {
   completeStep,
   startWorkshop
 } from '../../store/slices/workshopSlice';
-import { AppDispatch } from '../../store';
 import { debouncedFunctions } from '../../utils/debounce';
 import { useComponentPerformance } from '../../utils/performance';
 
@@ -24,9 +23,9 @@ import PersonalityQuiz from './steps/PersonalityQuiz';
 
 // Progress Indicator Component
 const ProgressIndicator: React.FC = () => {
-  const currentStep = useSelector(selectCurrentStep);
-  const completedSteps = useSelector(selectCompletedSteps);
-  const progress = useSelector(selectWorkshopProgress);
+  const currentStep = useAppSelector(selectCurrentStep);
+  const completedSteps = useAppSelector(selectCompletedSteps);
+  const progress = useAppSelector(selectWorkshopProgress);
 
   const steps = [
     { number: 1, title: 'Values', description: 'Core professional values' },
@@ -82,11 +81,11 @@ const ProgressIndicator: React.FC = () => {
 
 // Main Workshop Container
 const WorkshopContainer: React.FC = () => {
-  const dispatch = useDispatch<AppDispatch>();
+  const dispatch = useAppDispatch();
   const navigate = useNavigate();
-  const workshopState = useSelector(selectWorkshopState);
-  const currentStep = useSelector(selectCurrentStep);
-  const completedSteps = useSelector(selectCompletedSteps);
+  const workshopState = useAppSelector(selectWorkshopState);
+  const currentStep = useAppSelector(selectCurrentStep);
+  const completedSteps = useAppSelector(selectCompletedSteps);
   
   // Track component performance
   useComponentPerformance('WorkshopContainer');
@@ -141,12 +140,6 @@ const WorkshopContainer: React.FC = () => {
     }
   }, [currentStep, dispatch]);
 
-  const handleStepClick = useCallback((step: 1 | 2 | 3 | 4 | 5) => {
-    // Allow navigation to completed steps or current step
-    if (step <= currentStep || completedSteps.includes(step - 1)) {
-      dispatch(goToStep(step));
-    }
-  }, [currentStep, completedSteps, dispatch]);
 
   // Render current step component
   const renderStep = useMemo(() => {

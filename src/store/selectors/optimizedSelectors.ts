@@ -55,8 +55,8 @@ export const selectTopValues = createSelector(
   (values) => {
     const { selected, rankings } = values;
     return selected
-      .filter((id) => rankings[id] && rankings[id] <= 5)
-      .sort((a, b) => (rankings[a] || 999) - (rankings[b] || 999))
+      .filter((id: string) => rankings[id] && rankings[id] <= 5)
+      .sort((a: string, b: string) => (rankings[a] || 999) - (rankings[b] || 999))
       .slice(0, 5);
   }
 );
@@ -76,9 +76,9 @@ export const selectContentStats = createSelector(
   [selectContentHistory],
   (history) => {
     const total = history.length;
-    const published = history.filter((item) => item.status === 'published').length;
-    const draft = history.filter((item) => item.status === 'draft').length;
-    const scheduled = history.filter((item) => item.status === 'scheduled').length;
+    const published = history.filter((item: any) => item.status === 'published').length;
+    const draft = history.filter((item: any) => item.status === 'draft').length;
+    const scheduled = history.filter((item: any) => item.status === 'scheduled').length;
 
     return {
       total,
@@ -98,23 +98,23 @@ export const selectNewsArticles = createSelector(
 
 export const selectFeaturedArticles = createSelector(
   [selectNewsArticles],
-  (articles) => articles.filter((article) => article.isFeatured)
+  (articles) => articles.filter((article: any) => article.isFeatured)
 );
 
 export const selectSavedArticles = createSelector(
   [selectNewsArticles],
-  (articles) => articles.filter((article) => article.userInteraction === 'save')
+  (articles) => articles.filter((article: any) => article.userInteraction === 'save')
 );
 
 export const selectNewsStats = createSelector(
   [selectNewsArticles],
   (articles) => ({
     total: articles.length,
-    featured: articles.filter((a) => a.isFeatured).length,
-    saved: articles.filter((a) => a.userInteraction === 'save').length,
-    dismissed: articles.filter((a) => a.userInteraction === 'dismiss').length,
+    featured: articles.filter((a: any) => a.isFeatured).length,
+    saved: articles.filter((a: any) => a.userInteraction === 'save').length,
+    dismissed: articles.filter((a: any) => a.userInteraction === 'dismiss').length,
     avgRelevance: articles.length > 0
-      ? articles.reduce((sum, a) => sum + (a.relevanceScore || 0), 0) / articles.length
+      ? articles.reduce((sum: number, a: any) => sum + (a.relevanceScore || 0), 0) / articles.length
       : 0,
   })
 );
@@ -168,7 +168,7 @@ export const selectTopVoiceDimensions = createSelector(
     if (!signature) return [];
 
     return Object.entries(signature)
-      .map(([key, value]) => ({ dimension: key, value }))
+      .map(([key, value]) => ({ dimension: key, value: value as number }))
       .sort((a, b) => b.value - a.value)
       .slice(0, 5);
   }
@@ -198,7 +198,7 @@ export const selectWorkshopReadiness = createSelector(
 
 // Performance-optimized list selectors
 export const selectPaginatedContentHistory = createSelector(
-  [selectContentHistory, (state: RootState, page: number) => page, (state: RootState, pageSize: number) => pageSize],
+  [selectContentHistory, (_state: RootState, page: number) => page, (_state: RootState, pageSize: number) => pageSize],
   (history, page, pageSize) => {
     const start = (page - 1) * pageSize;
     const end = start + pageSize;
@@ -212,23 +212,23 @@ export const selectPaginatedContentHistory = createSelector(
 );
 
 export const selectFilteredNewsArticles = createSelector(
-  [selectNewsArticles, (state: RootState, filter: string) => filter, (state: RootState, minRelevance: number) => minRelevance],
+  [selectNewsArticles, (_state: RootState, filter: string) => filter, (_state: RootState, minRelevance: number) => minRelevance],
   (articles, filter, minRelevance) => {
     let filtered = articles;
 
     // Apply relevance filter
     if (minRelevance > 0) {
-      filtered = filtered.filter((article) => (article.relevanceScore || 0) >= minRelevance);
+      filtered = filtered.filter((article: any) => (article.relevanceScore || 0) >= minRelevance);
     }
 
     // Apply category filter
     if (filter && filter !== 'all') {
       switch (filter) {
         case 'featured':
-          filtered = filtered.filter((article) => article.isFeatured);
+          filtered = filtered.filter((article: any) => article.isFeatured);
           break;
         case 'saved':
-          filtered = filtered.filter((article) => article.userInteraction === 'save');
+          filtered = filtered.filter((article: any) => article.userInteraction === 'save');
           break;
         default:
           break;

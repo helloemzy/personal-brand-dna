@@ -64,7 +64,6 @@ const ValuesAudit: React.FC = () => {
   
   const [showCustomForm, setShowCustomForm] = useState(false);
   const [customValueName, setCustomValueName] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
   const handleValueToggle = useCallback((valueId: string) => {
     if (selectedValues.includes(valueId)) {
@@ -199,7 +198,7 @@ const ValuesAudit: React.FC = () => {
           <div className="space-y-3">
             <h3 className="font-semibold text-gray-900">Your Custom Values</h3>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-              {customValues.map((value) => {
+              {customValues.map((value: any) => {
                 const isSelected = selectedValues.includes(value.id);
                 return (
                   <div
@@ -229,8 +228,8 @@ const ValuesAudit: React.FC = () => {
           <h3 className="font-semibold text-gray-900 mb-3">Your Selected Values</h3>
           <div className="flex flex-wrap gap-2">
             {selectedValues
-              .sort((a, b) => (rankings[a] || 999) - (rankings[b] || 999))
-              .map((valueId) => {
+              .sort((a: any, b: any) => (rankings[a] || 999) - (rankings[b] || 999))
+              .map((valueId: any) => {
                 const value = getValueById(valueId);
                 const rank = rankings[valueId];
                 return value ? (

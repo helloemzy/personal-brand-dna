@@ -206,7 +206,7 @@ const ProfilePage: React.FC = () => {
   const handleDeleteAccount = async () => {
     const confirmText = 'DELETE MY ACCOUNT';
     const userInput = window.prompt(
-      `This action is permanent and cannot be undone. All your data will be lost.\\n\\nType \"${confirmText}\" to confirm:`
+      `This action is permanent and cannot be undone. All your data will be lost.\\n\\nType "${confirmText}" to confirm:`
     );
 
     if (userInput !== confirmText) {
@@ -253,10 +253,10 @@ const ProfilePage: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className=\"max-w-4xl mx-auto space-y-8\">
-        <div className=\"bg-white rounded-lg shadow p-8 text-center\">
-          <div className=\"animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4\"></div>
-          <p className=\"text-gray-600\">Loading your profile...</p>
+      <div className="max-w-4xl mx-auto space-y-8">
+        <div className="bg-white rounded-lg shadow p-8 text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading your profile...</p>
         </div>
       </div>
     );
@@ -264,48 +264,48 @@ const ProfilePage: React.FC = () => {
 
   if (!userProfile) {
     return (
-      <div className=\"max-w-4xl mx-auto space-y-8\">
-        <div className=\"bg-white rounded-lg shadow p-8 text-center\">
-          <div className=\"text-red-600 text-6xl mb-4\">⚠️</div>
-          <h3 className=\"text-xl font-semibold text-gray-900 mb-4\">Profile Not Found</h3>
-          <p className=\"text-gray-600\">We couldn't load your profile information.</p>
+      <div className="max-w-4xl mx-auto space-y-8">
+        <div className="bg-white rounded-lg shadow p-8 text-center">
+          <div className="text-red-600 text-6xl mb-4">⚠️</div>
+          <h3 className="text-xl font-semibold text-gray-900 mb-4">Profile Not Found</h3>
+          <p className="text-gray-600">We couldn't load your profile information.</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className=\"max-w-4xl mx-auto space-y-6\">
+    <div className="max-w-4xl mx-auto space-y-6">
       {/* Page Header */}
       <div>
-        <h1 className=\"text-3xl font-bold text-gray-900 mb-4\">
+        <h1 className="text-3xl font-bold text-gray-900 mb-4">
           Profile Settings
         </h1>
-        <p className=\"text-lg text-gray-600\">
+        <p className="text-lg text-gray-600">
           Manage your account settings, professional information, and preferences.
         </p>
       </div>
 
       {/* Profile Summary Card */}
-      <div className=\"bg-white rounded-lg shadow p-6\">
-        <div className=\"flex items-start justify-between\">
-          <div className=\"flex items-center space-x-4\">
-            <div className=\"w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center text-white text-xl font-semibold\">
+      <div className="bg-white rounded-lg shadow p-6">
+        <div className="flex items-start justify-between">
+          <div className="flex items-center space-x-4">
+            <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center text-white text-xl font-semibold">
               {userProfile.firstName.charAt(0)}{userProfile.lastName.charAt(0)}
             </div>
             <div>
-              <h2 className=\"text-xl font-semibold text-gray-900\">
+              <h2 className="text-xl font-semibold text-gray-900">
                 {userProfile.firstName} {userProfile.lastName}
               </h2>
-              <p className=\"text-gray-600\">{userProfile.role} at {userProfile.company}</p>
-              <p className=\"text-sm text-gray-500\">{userProfile.email}</p>
+              <p className="text-gray-600">{userProfile.role} at {userProfile.company}</p>
+              <p className="text-sm text-gray-500">{userProfile.email}</p>
             </div>
           </div>
-          <div className=\"text-right\">
+          <div className="text-right">
             <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getSubscriptionBadgeColor(userProfile.subscriptionTier)}`}>
               {userProfile.subscriptionTier.charAt(0).toUpperCase() + userProfile.subscriptionTier.slice(1)}
             </span>
-            <p className=\"text-sm text-gray-500 mt-2\">
+            <p className="text-sm text-gray-500 mt-2">
               Member since {formatDate(userProfile.createdAt)}
             </p>
           </div>
@@ -314,30 +314,30 @@ const ProfilePage: React.FC = () => {
 
       {/* Statistics */}
       {userStats && (
-        <div className=\"grid grid-cols-1 md:grid-cols-4 gap-4\">
-          <div className=\"bg-white rounded-lg shadow p-4\">
-            <div className=\"text-2xl font-bold text-blue-600\">{userStats.voiceProfiles}</div>
-            <div className=\"text-sm text-gray-600\">Voice Profiles</div>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="bg-white rounded-lg shadow p-4">
+            <div className="text-2xl font-bold text-blue-600">{userStats.voiceProfiles}</div>
+            <div className="text-sm text-gray-600">Voice Profiles</div>
           </div>
-          <div className=\"bg-white rounded-lg shadow p-4\">
-            <div className=\"text-2xl font-bold text-green-600\">{userStats.totalContent}</div>
-            <div className=\"text-sm text-gray-600\">Total Content</div>
+          <div className="bg-white rounded-lg shadow p-4">
+            <div className="text-2xl font-bold text-green-600">{userStats.totalContent}</div>
+            <div className="text-sm text-gray-600">Total Content</div>
           </div>
-          <div className=\"bg-white rounded-lg shadow p-4\">
-            <div className=\"text-2xl font-bold text-purple-600\">{userStats.contentThisMonth}</div>
-            <div className=\"text-sm text-gray-600\">This Month</div>
+          <div className="bg-white rounded-lg shadow p-4">
+            <div className="text-2xl font-bold text-purple-600">{userStats.contentThisMonth}</div>
+            <div className="text-sm text-gray-600">This Month</div>
           </div>
-          <div className=\"bg-white rounded-lg shadow p-4\">
-            <div className=\"text-2xl font-bold text-orange-600\">{userStats.contentUsed}</div>
-            <div className=\"text-sm text-gray-600\">Content Used</div>
+          <div className="bg-white rounded-lg shadow p-4">
+            <div className="text-2xl font-bold text-orange-600">{userStats.contentUsed}</div>
+            <div className="text-sm text-gray-600">Content Used</div>
           </div>
         </div>
       )}
 
       {/* Tabs */}
-      <div className=\"bg-white rounded-lg shadow\">
-        <div className=\"border-b border-gray-200\">
-          <nav className=\"-mb-px flex space-x-8 px-6\">
+      <div className="bg-white rounded-lg shadow">
+        <div className="border-b border-gray-200">
+          <nav className="-mb-px flex space-x-8 px-6">
             {[
               { id: 'profile', name: 'Profile Information', icon: '👤' },
               { id: 'security', name: 'Security', icon: '🔒' },
@@ -359,112 +359,112 @@ const ProfilePage: React.FC = () => {
           </nav>
         </div>
 
-        <div className=\"p-6\">
+        <div className="p-6">
           {/* Profile Information Tab */}
           {activeTab === 'profile' && (
-            <form onSubmit={handleSubmitProfile(handleProfileUpdate)} className=\"space-y-6\">
-              <div className=\"grid grid-cols-1 md:grid-cols-2 gap-6\">
+            <form onSubmit={handleSubmitProfile(handleProfileUpdate)} className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className=\"block text-sm font-medium text-gray-700 mb-1\">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
                     First Name
                   </label>
                   <input
-                    type=\"text\"
+                    type="text"
                     {...registerProfile('firstName', { required: 'First name is required' })}
-                    className=\"w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent\"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     disabled={isUpdating}
                   />
                   {profileErrors.firstName && (
-                    <p className=\"text-red-600 text-sm mt-1\">{profileErrors.firstName.message}</p>
+                    <p className="text-red-600 text-sm mt-1">{profileErrors.firstName.message}</p>
                   )}
                 </div>
 
                 <div>
-                  <label className=\"block text-sm font-medium text-gray-700 mb-1\">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
                     Last Name
                   </label>
                   <input
-                    type=\"text\"
+                    type="text"
                     {...registerProfile('lastName', { required: 'Last name is required' })}
-                    className=\"w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent\"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     disabled={isUpdating}
                   />
                   {profileErrors.lastName && (
-                    <p className=\"text-red-600 text-sm mt-1\">{profileErrors.lastName.message}</p>
+                    <p className="text-red-600 text-sm mt-1">{profileErrors.lastName.message}</p>
                   )}
                 </div>
 
                 <div>
-                  <label className=\"block text-sm font-medium text-gray-700 mb-1\">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
                     Industry
                   </label>
                   <select
                     {...registerProfile('industry')}
-                    className=\"w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent\"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     disabled={isUpdating}
                   >
-                    <option value=\"\">Select Industry</option>
-                    <option value=\"technology\">Technology</option>
-                    <option value=\"finance\">Finance</option>
-                    <option value=\"healthcare\">Healthcare</option>
-                    <option value=\"education\">Education</option>
-                    <option value=\"marketing\">Marketing</option>
-                    <option value=\"consulting\">Consulting</option>
-                    <option value=\"manufacturing\">Manufacturing</option>
-                    <option value=\"retail\">Retail</option>
-                    <option value=\"other\">Other</option>
+                    <option value="">Select Industry</option>
+                    <option value="technology">Technology</option>
+                    <option value="finance">Finance</option>
+                    <option value="healthcare">Healthcare</option>
+                    <option value="education">Education</option>
+                    <option value="marketing">Marketing</option>
+                    <option value="consulting">Consulting</option>
+                    <option value="manufacturing">Manufacturing</option>
+                    <option value="retail">Retail</option>
+                    <option value="other">Other</option>
                   </select>
                 </div>
 
                 <div>
-                  <label className=\"block text-sm font-medium text-gray-700 mb-1\">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
                     Role/Title
                   </label>
                   <input
-                    type=\"text\"
+                    type="text"
                     {...registerProfile('role')}
-                    placeholder=\"e.g., Software Engineer, Marketing Manager\"
-                    className=\"w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent\"
+                    placeholder="e.g., Software Engineer, Marketing Manager"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     disabled={isUpdating}
                   />
                 </div>
 
-                <div className=\"md:col-span-2\">
-                  <label className=\"block text-sm font-medium text-gray-700 mb-1\">
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
                     Company
                   </label>
                   <input
-                    type=\"text\"
+                    type="text"
                     {...registerProfile('company')}
-                    placeholder=\"e.g., Acme Corp\"
-                    className=\"w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent\"
+                    placeholder="e.g., Acme Corp"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     disabled={isUpdating}
                   />
                 </div>
 
-                <div className=\"md:col-span-2\">
-                  <label className=\"block text-sm font-medium text-gray-700 mb-1\">
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
                     LinkedIn Profile URL
                   </label>
                   <input
-                    type=\"url\"
+                    type="url"
                     {...registerProfile('linkedinUrl')}
-                    placeholder=\"https://linkedin.com/in/yourprofile\"
-                    className=\"w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent\"
+                    placeholder="https://linkedin.com/in/yourprofile"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     disabled={isUpdating}
                   />
                 </div>
               </div>
 
               {profileIsDirty && (
-                <div className=\"flex items-center justify-between bg-blue-50 border border-blue-200 rounded-lg p-4\">
-                  <div className=\"flex items-center space-x-2\">
-                    <div className=\"text-blue-600\">ℹ️</div>
-                    <p className=\"text-sm text-blue-800\">You have unsaved changes</p>
+                <div className="flex items-center justify-between bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <div className="flex items-center space-x-2">
+                    <div className="text-blue-600">ℹ️</div>
+                    <p className="text-sm text-blue-800">You have unsaved changes</p>
                   </div>
-                  <div className=\"flex space-x-3\">
+                  <div className="flex space-x-3">
                     <button
-                      type=\"button\"
+                      type="button"
                       onClick={() => {
                         resetProfile({
                           firstName: userProfile.firstName,
@@ -475,14 +475,14 @@ const ProfilePage: React.FC = () => {
                           linkedinUrl: userProfile.linkedinUrl
                         });
                       }}
-                      className=\"text-sm text-blue-600 hover:text-blue-700 font-medium\"
+                      className="text-sm text-blue-600 hover:text-blue-700 font-medium"
                     >
                       Discard Changes
                     </button>
                     <button
-                      type=\"submit\"
+                      type="submit"
                       disabled={isUpdating}
-                      className=\"bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700 transition-colors disabled:opacity-50\"
+                      className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700 transition-colors disabled:opacity-50"
                     >
                       {isUpdating ? 'Saving...' : 'Save Changes'}
                     </button>
@@ -494,32 +494,32 @@ const ProfilePage: React.FC = () => {
 
           {/* Security Tab */}
           {activeTab === 'security' && (
-            <div className=\"space-y-6\">
+            <div className="space-y-6">
               {/* Change Password */}
-              <div className=\"bg-gray-50 rounded-lg p-6\">
-                <h3 className=\"text-lg font-medium text-gray-900 mb-4\">Change Password</h3>
-                <form onSubmit={handleSubmitPassword(handlePasswordChange)} className=\"space-y-4\">
+              <div className="bg-gray-50 rounded-lg p-6">
+                <h3 className="text-lg font-medium text-gray-900 mb-4">Change Password</h3>
+                <form onSubmit={handleSubmitPassword(handlePasswordChange)} className="space-y-4">
                   <div>
-                    <label className=\"block text-sm font-medium text-gray-700 mb-1\">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
                       Current Password
                     </label>
                     <input
-                      type=\"password\"
+                      type="password"
                       {...registerPassword('currentPassword', { required: 'Current password is required' })}
-                      className=\"w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent\"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       disabled={isUpdating}
                     />
                     {passwordErrors.currentPassword && (
-                      <p className=\"text-red-600 text-sm mt-1\">{passwordErrors.currentPassword.message}</p>
+                      <p className="text-red-600 text-sm mt-1">{passwordErrors.currentPassword.message}</p>
                     )}
                   </div>
 
                   <div>
-                    <label className=\"block text-sm font-medium text-gray-700 mb-1\">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
                       New Password
                     </label>
                     <input
-                      type=\"password\"
+                      type="password"
                       {...registerPassword('newPassword', {
                         required: 'New password is required',
                         minLength: { value: 8, message: 'Password must be at least 8 characters' },
@@ -528,36 +528,36 @@ const ProfilePage: React.FC = () => {
                           message: 'Password must contain uppercase, lowercase, number, and special character'
                         }
                       })}
-                      className=\"w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent\"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       disabled={isUpdating}
                     />
                     {passwordErrors.newPassword && (
-                      <p className=\"text-red-600 text-sm mt-1\">{passwordErrors.newPassword.message}</p>
+                      <p className="text-red-600 text-sm mt-1">{passwordErrors.newPassword.message}</p>
                     )}
                   </div>
 
                   <div>
-                    <label className=\"block text-sm font-medium text-gray-700 mb-1\">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
                       Confirm New Password
                     </label>
                     <input
-                      type=\"password\"
+                      type="password"
                       {...registerPassword('confirmPassword', {
                         required: 'Please confirm your new password',
                         validate: value => value === newPassword || 'Passwords do not match'
                       })}
-                      className=\"w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent\"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       disabled={isUpdating}
                     />
                     {passwordErrors.confirmPassword && (
-                      <p className=\"text-red-600 text-sm mt-1\">{passwordErrors.confirmPassword.message}</p>
+                      <p className="text-red-600 text-sm mt-1">{passwordErrors.confirmPassword.message}</p>
                     )}
                   </div>
 
                   <button
-                    type=\"submit\"
+                    type="submit"
                     disabled={isUpdating}
-                    className=\"bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700 transition-colors disabled:opacity-50\"
+                    className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700 transition-colors disabled:opacity-50"
                   >
                     {isUpdating ? 'Changing Password...' : 'Change Password'}
                   </button>
@@ -565,11 +565,11 @@ const ProfilePage: React.FC = () => {
               </div>
 
               {/* Account Status */}
-              <div className=\"bg-gray-50 rounded-lg p-6\">
-                <h3 className=\"text-lg font-medium text-gray-900 mb-4\">Account Status</h3>
-                <div className=\"space-y-3\">
-                  <div className=\"flex items-center justify-between\">
-                    <span className=\"text-sm text-gray-700\">Email Verification</span>
+              <div className="bg-gray-50 rounded-lg p-6">
+                <h3 className="text-lg font-medium text-gray-900 mb-4">Account Status</h3>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-700">Email Verification</span>
                     <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
                       userProfile.isVerified 
                         ? 'bg-green-100 text-green-800' 
@@ -578,8 +578,8 @@ const ProfilePage: React.FC = () => {
                       {userProfile.isVerified ? 'Verified' : 'Unverified'}
                     </span>
                   </div>
-                  <div className=\"flex items-center justify-between\">
-                    <span className=\"text-sm text-gray-700\">Subscription Status</span>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-700">Subscription Status</span>
                     <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
                       userProfile.subscriptionStatus === 'active'
                         ? 'bg-green-100 text-green-800'
@@ -595,25 +595,25 @@ const ProfilePage: React.FC = () => {
 
           {/* Preferences Tab */}
           {activeTab === 'preferences' && (
-            <div className=\"space-y-6\">
+            <div className="space-y-6">
               {/* Voice Profile Management */}
-              <div className=\"bg-gray-50 rounded-lg p-6\">
-                <h3 className=\"text-lg font-medium text-gray-900 mb-4\">Voice Profile</h3>
+              <div className="bg-gray-50 rounded-lg p-6">
+                <h3 className="text-lg font-medium text-gray-900 mb-4">Voice Profile</h3>
                 {userStats && userStats.voiceProfiles > 0 ? (
-                  <div className=\"bg-green-50 border border-green-200 rounded-lg p-4 mb-4\">
-                    <div className=\"flex items-center space-x-3\">
-                      <div className=\"text-green-600\">✅</div>
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
+                    <div className="flex items-center space-x-3">
+                      <div className="text-green-600">✅</div>
                       <div>
-                        <h4 className=\"text-sm font-medium text-green-900\">
+                        <h4 className="text-sm font-medium text-green-900">
                           Voice profile completed
                         </h4>
-                        <p className=\"text-sm text-green-700\">
+                        <p className="text-sm text-green-700">
                           You have {userStats.voiceProfiles} voice profile{userStats.voiceProfiles !== 1 ? 's' : ''} configured.
                         </p>
                       </div>
-                      <div className=\"ml-auto\">
+                      <div className="ml-auto">
                         <button
-                          className=\"bg-green-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-green-700 transition-colors\"
+                          className="bg-green-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-green-700 transition-colors"
                           onClick={() => window.location.href = '/voice-discovery'}
                         >
                           Update Profile
@@ -622,20 +622,20 @@ const ProfilePage: React.FC = () => {
                     </div>
                   </div>
                 ) : (
-                  <div className=\"bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4\">
-                    <div className=\"flex items-center space-x-3\">
-                      <div className=\"text-yellow-600\">⚠️</div>
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
+                    <div className="flex items-center space-x-3">
+                      <div className="text-yellow-600">⚠️</div>
                       <div>
-                        <h4 className=\"text-sm font-medium text-yellow-900\">
+                        <h4 className="text-sm font-medium text-yellow-900">
                           Voice profile not completed
                         </h4>
-                        <p className=\"text-sm text-yellow-700\">
+                        <p className="text-sm text-yellow-700">
                           Complete your voice discovery to unlock personalized content generation.
                         </p>
                       </div>
-                      <div className=\"ml-auto\">
+                      <div className="ml-auto">
                         <button
-                          className=\"bg-yellow-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-yellow-700 transition-colors\"
+                          className="bg-yellow-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-yellow-700 transition-colors"
                           onClick={() => window.location.href = '/voice-discovery'}
                         >
                           Complete Now
@@ -648,7 +648,7 @@ const ProfilePage: React.FC = () => {
                 {userStats && userStats.voiceProfiles > 0 && (
                   <button
                     onClick={handleDeleteVoiceProfile}
-                    className=\"bg-red-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-red-700 transition-colors\"
+                    className="bg-red-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-red-700 transition-colors"
                   >
                     Delete Voice Profile
                   </button>
@@ -656,20 +656,20 @@ const ProfilePage: React.FC = () => {
               </div>
 
               {/* Data & Privacy */}
-              <div className=\"bg-gray-50 rounded-lg p-6\">
-                <h3 className=\"text-lg font-medium text-gray-900 mb-4\">Data & Privacy</h3>
-                <div className=\"space-y-4 text-sm text-gray-600\">
-                  <div className=\"flex items-center justify-between\">
+              <div className="bg-gray-50 rounded-lg p-6">
+                <h3 className="text-lg font-medium text-gray-900 mb-4">Data & Privacy</h3>
+                <div className="space-y-4 text-sm text-gray-600">
+                  <div className="flex items-center justify-between">
                     <span>Data retention period</span>
-                    <span className=\"font-medium\">30 days after deletion</span>
+                    <span className="font-medium">30 days after deletion</span>
                   </div>
-                  <div className=\"flex items-center justify-between\">
+                  <div className="flex items-center justify-between">
                     <span>Voice data storage</span>
-                    <span className=\"font-medium\">Encrypted at rest</span>
+                    <span className="font-medium">Encrypted at rest</span>
                   </div>
-                  <div className=\"flex items-center justify-between\">
+                  <div className="flex items-center justify-between">
                     <span>Content ownership</span>
-                    <span className=\"font-medium\">You own all generated content</span>
+                    <span className="font-medium">You own all generated content</span>
                   </div>
                 </div>
               </div>
@@ -679,20 +679,20 @@ const ProfilePage: React.FC = () => {
       </div>
 
       {/* Danger Zone */}
-      <div className=\"bg-white rounded-lg shadow border-l-4 border-red-400\">
-        <div className=\"p-6\">
-          <h3 className=\"text-lg font-semibold text-red-900 mb-4\">Danger Zone</h3>
-          <p className=\"text-sm text-gray-600 mb-6\">
+      <div className="bg-white rounded-lg shadow border-l-4 border-red-400">
+        <div className="p-6">
+          <h3 className="text-lg font-semibold text-red-900 mb-4">Danger Zone</h3>
+          <p className="text-sm text-gray-600 mb-6">
             These actions are permanent and cannot be undone. Please proceed with caution.
           </p>
-          <div className=\"space-y-3\">
+          <div className="space-y-3">
             <button
               onClick={handleDeleteAccount}
-              className=\"bg-red-600 text-white px-6 py-3 rounded-md text-sm font-medium hover:bg-red-700 transition-colors\"
+              className="bg-red-600 text-white px-6 py-3 rounded-md text-sm font-medium hover:bg-red-700 transition-colors"
             >
               Delete Account Permanently
             </button>
-            <p className=\"text-xs text-gray-500\">
+            <p className="text-xs text-gray-500">
               This will delete all your data including voice profiles, generated content, and account information.
             </p>
           </div>

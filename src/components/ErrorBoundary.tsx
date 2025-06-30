@@ -1,4 +1,4 @@
-import React, { Component, ErrorInfo, ReactNode } from 'react';
+import { Component, ErrorInfo, ReactNode } from 'react';
 
 interface Props {
   children: ReactNode;
@@ -20,7 +20,7 @@ class ErrorBoundary extends Component<Props, State> {
     return { hasError: true, error };
   }
 
-  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+  override componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error('ErrorBoundary caught an error:', error, errorInfo);
     this.setState({
       error,
@@ -31,7 +31,7 @@ class ErrorBoundary extends Component<Props, State> {
     // logErrorToService(error, errorInfo);
   }
 
-  render() {
+  override render() {
     if (this.state.hasError) {
       return (
         <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -64,7 +64,7 @@ class ErrorBoundary extends Component<Props, State> {
               </div>
               
               {/* Show error details in development */}
-              {process.env.NODE_ENV === 'development' && this.state.error && (
+              {process.env['NODE_ENV'] === 'development' && this.state.error && (
                 <details className="mt-6 text-left">
                   <summary className="text-sm font-medium text-gray-700 cursor-pointer mb-2">
                     Error Details (Development)

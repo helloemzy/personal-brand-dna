@@ -46,7 +46,7 @@ class MonitoringService {
     });
 
     // Send to monitoring service in production
-    if (process.env.NODE_ENV === 'production') {
+    if (process.env['NODE_ENV'] === 'production') {
       this.sendToMonitoringService(error, context);
     }
   }
@@ -54,7 +54,7 @@ class MonitoringService {
   captureMessage(message: string, level: 'info' | 'warning' | 'error' = 'info') {
     console.log(`[${level.toUpperCase()}]`, message);
 
-    if (process.env.NODE_ENV === 'production') {
+    if (process.env['NODE_ENV'] === 'production') {
       this.sendToMonitoringService(message, { level });
     }
   }
@@ -73,7 +73,7 @@ class MonitoringService {
     // Track performance metrics
     console.log('Performance metric:', { name, duration });
 
-    if (process.env.NODE_ENV === 'production' && window.performance) {
+    if (process.env['NODE_ENV'] === 'production' && window.performance) {
       // Send to monitoring service
       this.sendPerformanceMetric(name, duration);
     }
@@ -134,7 +134,7 @@ export const monitoring = MonitoringService.getInstance();
 export function useErrorHandler() {
   return (error: Error, errorInfo?: { componentStack?: string }) => {
     monitoring.captureError(error, {
-      component: errorInfo?.componentStack,
+      component: errorInfo?.componentStack || '',
       action: 'React Error Boundary'
     });
   };

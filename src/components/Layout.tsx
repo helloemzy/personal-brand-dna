@@ -1,7 +1,7 @@
 import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { useAppDispatch, useAppSelector } from '../hooks/redux.ts';
-import { logoutUser } from '../store/slices/authSlice.ts';
+import { useAppDispatch, useAppSelector } from '../hooks/redux';
+import { logoutUser } from '../store/slices/authSlice';
 
 interface LayoutProps {
   children: React.ReactNode;

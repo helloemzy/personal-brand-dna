@@ -1,15 +1,10 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import React, { useState, useCallback } from 'react';
 import { 
   Calendar as CalendarIcon,
   Plus,
   ChevronLeft,
   ChevronRight,
-  Grid,
-  List,
   Filter,
-  Download,
-  Upload,
   Clock,
   CheckCircle,
   AlertCircle,
@@ -20,9 +15,8 @@ import {
 } from 'lucide-react';
 import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, 
          eachDayOfInterval, isSameMonth, isSameDay, addMonths, 
-         subMonths, addWeeks, subWeeks, isToday, isPast } from 'date-fns';
+         subMonths, addWeeks, isToday, isPast } from 'date-fns';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
-import { RootState } from '../../store';
 
 // Types
 interface CalendarEvent {
@@ -173,7 +167,7 @@ const DayCell: React.FC<{
   isSelected: boolean;
   onSelectDate: (date: Date) => void;
   onDropEvent: (eventId: string, date: Date) => void;
-}> = ({ date, events, isCurrentMonth, isSelected, onSelectDate, onDropEvent }) => {
+}> = ({ date, events, isCurrentMonth, isSelected, onSelectDate }) => {
   const isToday_ = isToday(date);
   const isPast_ = isPast(date) && !isToday_;
   
@@ -245,7 +239,6 @@ const DayCell: React.FC<{
 
 // Main Calendar Component
 const ContentCalendar: React.FC = () => {
-  const dispatch = useDispatch();
   const [viewState, setViewState] = useState<CalendarViewState>({
     currentDate: new Date(),
     viewType: 'month',
@@ -285,8 +278,6 @@ const ContentCalendar: React.FC = () => {
     }
   ]);
   
-  const [showEventModal, setShowEventModal] = useState(false);
-  const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
   
   // Get calendar days
   const getCalendarDays = useCallback(() => {
@@ -324,32 +315,6 @@ const ContentCalendar: React.FC = () => {
   };
   
   // Handle event actions
-  const handleCreateEvent = (date?: Date) => {
-    setSelectedEvent(null);
-    setShowEventModal(true);
-  };
-  
-  const handleEditEvent = (event: CalendarEvent) => {
-    setSelectedEvent(event);
-    setShowEventModal(true);
-  };
-  
-  const handleDeleteEvent = (eventId: string) => {
-    if (window.confirm('Are you sure you want to delete this event?')) {
-      setEvents(events.filter(e => e.id !== eventId));
-    }
-  };
-  
-  const handleDuplicateEvent = (event: CalendarEvent) => {
-    const newEvent: CalendarEvent = {
-      ...event,
-      id: `${Date.now()}`,
-      title: `${event.title} (Copy)`,
-      status: 'draft',
-      scheduledFor: undefined
-    };
-    setEvents([...events, newEvent]);
-  };
   
   const calendarDays = getCalendarDays();
   
@@ -438,7 +403,7 @@ const ContentCalendar: React.FC = () => {
             </button>
             
             <button
-              onClick={() => handleCreateEvent()}
+              onClick={() => console.log('Create event')}
               className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
             >
               <Plus className="w-5 h-5 mr-1" />

@@ -11,7 +11,7 @@ const VoiceDiscoveryPage: React.FC = () => {
     setHasStarted(true);
   };
 
-  const handleComplete = (voiceProfileId: string) => {
+  const handleComplete = () => {
     setIsCompleted(true);
     // Optionally navigate to dashboard or content generation
     setTimeout(() => {

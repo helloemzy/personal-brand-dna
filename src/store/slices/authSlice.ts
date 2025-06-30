@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { authAPI } from '../../services/authAPI.ts';
+import { authAPI } from '../../services/authAPI';
 
 // Types
 export interface User {
@@ -234,10 +234,10 @@ const authSlice = createSlice({
       .addCase(logoutUser.pending, (state) => {
         state.isLoading = true;
       })
-      .addCase(logoutUser.fulfilled, (state) => {
+      .addCase(logoutUser.fulfilled, () => {
         return initialState; // Reset to initial state
       })
-      .addCase(logoutUser.rejected, (state) => {
+      .addCase(logoutUser.rejected, () => {
         // Force logout even if API call fails
         return initialState;
       });
@@ -273,7 +273,7 @@ const authSlice = createSlice({
         state.token = action.payload.accessToken;
         state.refreshToken = action.payload.refreshToken;
       })
-      .addCase(refreshAuthToken.rejected, (state) => {
+      .addCase(refreshAuthToken.rejected, () => {
         // Token refresh failed, log out user
         return initialState;
       });

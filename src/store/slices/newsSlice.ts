@@ -1,6 +1,5 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import { RootState } from '../store';
-import api from '../../services/api';
+import { apiClient } from '../../services';
 
 // Types
 export interface NewsArticle {
@@ -153,7 +152,7 @@ export const fetchArticles = createAsyncThunk(
   'news/fetchArticles',
   async (params: { page?: number; filters?: NewsState['filters'] }) => {
     const { page = 1, filters = {} } = params;
-    const response = await api.get('/news/articles', {
+    const response = await apiClient.get('/news/articles', {
       params: { page, limit: 20, ...filters }
     });
     return response.data;
@@ -163,7 +162,7 @@ export const fetchArticles = createAsyncThunk(
 export const fetchSources = createAsyncThunk(
   'news/fetchSources',
   async () => {
-    const response = await api.get('/news/sources');
+    const response = await apiClient.get('/news/sources');
     return response.data;
   }
 );
@@ -171,7 +170,7 @@ export const fetchSources = createAsyncThunk(
 export const addSource = createAsyncThunk(
   'news/addSource',
   async (source: { name: string; feedUrl: string; feedType?: string; category?: string }) => {
-    const response = await api.post('/news/sources', source);
+    const response = await apiClient.post('/news/sources', source);
     return response.data;
   }
 );
@@ -179,7 +178,7 @@ export const addSource = createAsyncThunk(
 export const deleteSource = createAsyncThunk(
   'news/deleteSource',
   async (sourceId: string) => {
-    await api.delete(`/news/sources/${sourceId}`);
+    await apiClient.delete(`/news/sources/${sourceId}`);
     return sourceId;
   }
 );
@@ -191,7 +190,7 @@ export const saveArticleInteraction = createAsyncThunk(
     interactionType: 'view' | 'save' | 'dismiss' | 'use_idea' | 'share';
     interactionData?: any;
   }) => {
-    const response = await api.post(`/news/articles/${articleId}/interact`, {
+    await apiClient.post(`/news/articles/${articleId}/interact`, {
       interactionType,
       interactionData
     });
@@ -202,7 +201,7 @@ export const saveArticleInteraction = createAsyncThunk(
 export const generateIdeas = createAsyncThunk(
   'news/generateIdeas',
   async (articleId: string) => {
-    const response = await api.post(`/news/articles/${articleId}/generate-ideas`);
+    const response = await apiClient.post(`/news/articles/${articleId}/generate-ideas`);
     return response.data;
   }
 );
@@ -211,7 +210,7 @@ export const fetchIdeas = createAsyncThunk(
   'news/fetchIdeas',
   async (params: { page?: number; status?: string }) => {
     const { page = 1, status = 'suggested' } = params;
-    const response = await api.get('/news/ideas', {
+    const response = await apiClient.get('/news/ideas', {
       params: { page, limit: 20, status }
     });
     return response.data;
@@ -221,7 +220,7 @@ export const fetchIdeas = createAsyncThunk(
 export const updateIdeaStatus = createAsyncThunk(
   'news/updateIdeaStatus',
   async ({ ideaId, status }: { ideaId: string; status: ContentIdea['status'] }) => {
-    const response = await api.patch(`/news/ideas/${ideaId}`, { status });
+    const response = await apiClient.patch(`/news/ideas/${ideaId}`, { status });
     return response.data;
   }
 );
@@ -229,7 +228,7 @@ export const updateIdeaStatus = createAsyncThunk(
 export const fetchPreferences = createAsyncThunk(
   'news/fetchPreferences',
   async () => {
-    const response = await api.get('/news/preferences');
+    const response = await apiClient.get('/news/preferences');
     return response.data;
   }
 );
@@ -237,7 +236,7 @@ export const fetchPreferences = createAsyncThunk(
 export const updatePreferences = createAsyncThunk(
   'news/updatePreferences',
   async (preferences: Partial<NewsPreferences>) => {
-    const response = await api.put('/news/preferences', preferences);
+    const response = await apiClient.put('/news/preferences', preferences);
     return response.data;
   }
 );
@@ -245,7 +244,7 @@ export const updatePreferences = createAsyncThunk(
 export const discoverFeeds = createAsyncThunk(
   'news/discoverFeeds',
   async (websiteUrl: string) => {
-    const response = await api.post('/news/discover', { websiteUrl });
+    const response = await apiClient.post('/news/discover', { websiteUrl });
     return response.data;
   }
 );
@@ -384,12 +383,13 @@ const newsSlice = createSlice({
 export const { setFilters, clearArticles, clearIdeas } = newsSlice.actions;
 
 // Selectors
-export const selectNewsState = (state: RootState) => state.news;
-export const selectArticles = (state: RootState) => state.news.articles;
-export const selectSources = (state: RootState) => state.news.sources;
-export const selectIdeas = (state: RootState) => state.news.ideas;
-export const selectPreferences = (state: RootState) => state.news.preferences;
-export const selectFilters = (state: RootState) => state.news.filters;
+type StateWithNews = { news: NewsState };
+export const selectNewsState = (state: StateWithNews) => state.news;
+export const selectArticles = (state: StateWithNews) => state.news.articles;
+export const selectSources = (state: StateWithNews) => state.news.sources;
+export const selectIdeas = (state: StateWithNews) => state.news.ideas;
+export const selectPreferences = (state: StateWithNews) => state.news.preferences;
+export const selectFilters = (state: StateWithNews) => state.news.filters;
 
 // Reducer
 export default newsSlice.reducer;
