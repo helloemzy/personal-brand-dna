@@ -314,7 +314,7 @@ const ValuesAudit: React.FC = () => {
         <div className="bg-gray-50 rounded-lg p-4">
           <h3 className="font-semibold text-gray-900 mb-3">Your Selected Values</h3>
           <div className="flex flex-wrap gap-2">
-            {(Array.isArray(selectedValues) ? selectedValues : [])
+            {[...(Array.isArray(selectedValues) ? selectedValues : [])]
               .sort((a, b) => {
                 const rankA = rankings?.[a] || 999;
                 const rankB = rankings?.[b] || 999;
