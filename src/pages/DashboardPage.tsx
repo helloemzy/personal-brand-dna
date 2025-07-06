@@ -1,39 +1,43 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAppSelector } from '../hooks/redux';
+import TrialBanner from '../components/TrialBanner';
 
 const DashboardPage: React.FC = () => {
   const { user } = useAppSelector((state) => state.auth);
 
   const quickActions = [
     {
-      title: 'Voice Discovery',
-      description: 'Analyze your professional communication style',
-      icon: '🎙️',
-      href: '/voice-discovery',
+      title: 'Brand House',
+      description: 'Complete your 15-minute brand assessment',
+      icon: '🏛️',
+      href: '/brand-house',
       color: 'bg-blue-50 border-blue-200 hover:bg-blue-100',
+      cta: 'Start Assessment',
     },
     {
-      title: 'Generate Content',
-      description: 'Create authentic LinkedIn posts',
-      icon: '✍️',
-      href: '/content',
+      title: 'Content Queue',
+      description: 'Review and approve AI-generated posts',
+      icon: '📋',
+      href: '/content-approval',
       color: 'bg-green-50 border-green-200 hover:bg-green-100',
+      cta: 'View Queue',
     },
     {
-      title: 'Content History',
-      description: 'View and manage your generated content',
-      icon: '📝',
-      href: '/content/history',
+      title: 'News Sources',
+      description: 'Add RSS feeds to monitor industry news',
+      icon: '📰',
+      href: '/news-setup',
       color: 'bg-purple-50 border-purple-200 hover:bg-purple-100',
+      cta: 'Manage Sources',
     },
     {
-      title: 'Analytics',
-      description: 'Track your content performance',
-      icon: '📈',
-      href: '/analytics',
+      title: 'Upgrade Plan',
+      description: 'Unlock more posts and features',
+      icon: '🚀',
+      href: '/tier-selection',
       color: 'bg-orange-50 border-orange-200 hover:bg-orange-100',
-      subscription: 'professional',
+      cta: 'View Plans',
     },
   ];
 
@@ -45,21 +49,31 @@ const DashboardPage: React.FC = () => {
   });
 
   const stats = [
-    { label: 'Content Generated', value: '0', icon: '📄' },
-    { label: 'This Month', value: '0', icon: '📅' },
-    { label: 'Voice Profiles', value: '0', icon: '🎯' },
+    { label: 'Posts This Week', value: '0', icon: '📄' },
+    { label: 'Approval Rate', value: '0%', icon: '✅' },
+    { label: 'News Sources', value: '0', icon: '📰' },
     { label: 'Engagement Rate', value: '0%', icon: '💫' },
   ];
 
+  // Mock trial data - in production this would come from the backend
+  const isTrialActive = true;
+  const trialDaysLeft = 5;
+  const currentTier = 'Professional';
+
   return (
     <div className="space-y-8">
+      {/* Trial Banner */}
+      {isTrialActive && (
+        <TrialBanner daysLeft={trialDaysLeft} tier={currentTier} />
+      )}
+
       {/* Page Header */}
       <div>
         <h1 className="text-2xl font-bold text-gray-900">
-          Welcome back, {user?.firstName}!
+          Welcome to BrandPillar AI!
         </h1>
         <p className="text-gray-600 mt-1">
-          Ready to create authentic content that sounds like you?
+          Build your personal brand on autopilot with AI-powered content.
         </p>
       </div>
 

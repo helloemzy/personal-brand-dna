@@ -1,5 +1,39 @@
-import axios, { AxiosResponse } from 'axios';
+import axios, { AxiosResponse, AxiosError } from 'axios';
 import { User } from '../store/slices/authSlice';
+
+// API Error type
+interface APIErrorResponse {
+  message?: string;
+  error?: string;
+  statusCode?: number;
+}
+
+export type APIError = AxiosError<APIErrorResponse>;
+
+// Response types
+interface SubscriptionResponse {
+  id: string;
+  tier: 'free' | 'starter' | 'professional' | 'executive';
+  status: 'active' | 'inactive' | 'cancelled';
+  currentPeriodEnd?: string;
+  features: string[];
+}
+
+interface ActivityResponse {
+  activities: Array<{
+    id: string;
+    type: string;
+    timestamp: string;
+    description: string;
+    metadata?: Record<string, unknown>;
+  }>;
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+}
 
 // Create axios instance - for Vercel deployment
 const API_BASE_URL = process.env['REACT_APP_API_URL'] || '';
@@ -99,6 +133,10 @@ export const authAPI = {
     return apiClient.post('/auth?action=login', credentials);
   },
 
+  demoLogin: async (): Promise<AxiosResponse<LoginResponse>> => {
+    return apiClient.post('/auth?action=demo-login');
+  },
+
   register: async (userData: {
     email: string;
     password: string;
@@ -165,18 +203,18 @@ export const authAPI = {
   },
 
   // User stats and activity
-  getSubscription: async (): Promise<AxiosResponse<any>> => {
-    return apiClient.get('/auth?action=subscription');
+  getSubscription: async (): Promise<AxiosResponse<SubscriptionResponse>> => {
+    return apiClient.get<SubscriptionResponse>('/auth?action=subscription');
   },
 
   getActivity: async (params?: {
     page?: number;
     limit?: number;
-  }): Promise<AxiosResponse<any>> => {
+  }): Promise<AxiosResponse<ActivityResponse>> => {
     const queryParams = new URLSearchParams({ action: 'activity' });
     if (params?.page) queryParams.append('page', params.page.toString());
     if (params?.limit) queryParams.append('limit', params.limit.toString());
-    return apiClient.get(`/auth?${queryParams.toString()}`);
+    return apiClient.get<ActivityResponse>(`/auth?${queryParams.toString()}`);
   },
 
   // Auth status
@@ -195,19 +233,114 @@ export const authAPI = {
   }>> => {
     return apiClient.get('/auth?action=status');
   },
+
+  // Phone authentication
+  sendPhoneOTP: async (phoneNumber: string): Promise<{
+    success: boolean;
+    message?: string;
+    verificationToken?: string;
+    expiresAt?: string;
+    otpCode?: string; // Only in development
+  }> => {
+    try {
+      const response = await apiClient.post('/phone-auth/send-otp', { phoneNumber });
+      return {
+        success: true,
+        ...response.data
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: handleAPIError(error)
+      };
+    }
+  },
+
+  verifyPhoneOTP: async (
+    phoneNumber: string,
+    otpCode: string,
+    verificationToken: string,
+    userData?: {
+      name: string;
+      occupation: string;
+      country: string;
+    }
+  ): Promise<{
+    success: boolean;
+    message?: string;
+    token?: string;
+    refreshToken?: string;
+    user?: User;
+  }> => {
+    try {
+      const response = await apiClient.post('/phone-auth/verify-otp', {
+        phoneNumber,
+        otpCode,
+        verificationToken,
+        userData
+      });
+      return {
+        success: true,
+        token: response.data.accessToken,
+        refreshToken: response.data.refreshToken,
+        user: response.data.user
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: handleAPIError(error)
+      };
+    }
+  },
+
+  // Voice discovery
+  initiateVoiceCall: async (phoneNumber: string): Promise<{
+    success: boolean;
+    message?: string;
+    callId?: string;
+  }> => {
+    try {
+      const response = await apiClient.post('/voice-discovery/initiate-call', { phoneNumber });
+      return {
+        success: true,
+        callId: response.data.callId,
+        message: response.data.message
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: handleAPIError(error)
+      };
+    }
+  },
+
+  checkCallStatus: async (callId: string): Promise<{
+    callStatus: string;
+    duration?: number;
+    transcriptReady?: boolean;
+  }> => {
+    const response = await apiClient.get(`/voice-discovery/call-status/${callId}`);
+    return response.data;
+  },
 };
 
 export default authAPI;
 
 // Error handler utility
-export const handleAPIError = (error: any): string => {
-  if (error.response?.data?.message) {
-    return error.response.data.message;
-  } else if (error.message) {
+export const handleAPIError = (error: unknown): string => {
+  if (axios.isAxiosError(error)) {
+    const axiosError = error as APIError;
+    if (axiosError.response?.data?.message) {
+      return axiosError.response.data.message;
+    } else if (axiosError.response?.data?.error) {
+      return axiosError.response.data.error;
+    } else if (axiosError.message) {
+      return axiosError.message;
+    }
+  } else if (error instanceof Error) {
     return error.message;
-  } else {
-    return 'An unexpected error occurred';
   }
+  return 'An unexpected error occurred';
 };
 
 // Export axios instance for use in other services

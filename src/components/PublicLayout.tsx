@@ -15,7 +15,7 @@ const PublicLayout: React.FC<PublicLayoutProps> = ({ children }) => {
             {/* Logo */}
             <div className="flex items-center">
               <Link to="/" className="flex items-center">
-                <span className="text-2xl font-bold text-blue-600">Brand DNA</span>
+                <span className="text-2xl font-bold text-blue-600">BrandPillar AI</span>
               </Link>
             </div>
 
@@ -34,7 +34,7 @@ const PublicLayout: React.FC<PublicLayoutProps> = ({ children }) => {
                 Sign In
               </Link>
               <Link 
-                to="/register" 
+                to="/get-started" 
                 className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700 transition-colors"
               >
                 Get Started
@@ -64,7 +64,7 @@ const PublicLayout: React.FC<PublicLayoutProps> = ({ children }) => {
           <div className="flex justify-between items-center">
             <div>
               <p className="text-sm text-gray-600">
-                © 2024 Personal Brand DNA System. All rights reserved.
+                © 2024 BrandPillar AI. All rights reserved.
               </p>
             </div>
             <div className="flex space-x-6">

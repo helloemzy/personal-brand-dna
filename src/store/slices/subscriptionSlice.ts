@@ -60,6 +60,10 @@ export interface SubscriptionState {
   isLoading: boolean;
   error: string | null;
   billingPortalUrl: string | null;
+  // BrandPillar AI trial fields
+  isTrialActive: boolean;
+  trialEndsAt: string | null;
+  trialTier: 'starter' | 'professional' | 'executive' | null;
 }
 
 const initialState: SubscriptionState = {
@@ -72,6 +76,10 @@ const initialState: SubscriptionState = {
   isLoading: false,
   error: null,
   billingPortalUrl: null,
+  // BrandPillar AI trial fields
+  isTrialActive: false,
+  trialEndsAt: null,
+  trialTier: null,
 };
 
 const subscriptionSlice = createSlice({
@@ -147,6 +155,23 @@ const subscriptionSlice = createSlice({
       state.billingPortalUrl = action.payload;
     },
     
+    // BrandPillar AI trial actions
+    startTrial: (state, action: PayloadAction<{ tier: 'starter' | 'professional' | 'executive' }>) => {
+      const now = new Date();
+      const trialEnd = new Date(now);
+      trialEnd.setDate(trialEnd.getDate() + 7); // 7-day trial
+      
+      state.isTrialActive = true;
+      state.trialEndsAt = trialEnd.toISOString();
+      state.trialTier = action.payload.tier;
+    },
+    
+    endTrial: (state) => {
+      state.isTrialActive = false;
+      state.trialEndsAt = null;
+      state.trialTier = null;
+    },
+    
     updateSubscriptionStatus: (state, action: PayloadAction<Subscription['status']>) => {
       if (state.currentSubscription) {
         state.currentSubscription.status = action.payload;
@@ -191,6 +216,8 @@ export const {
   scheduleCancellation,
   reactivateSubscription,
   clearSubscriptionData,
+  startTrial,
+  endTrial,
 } = subscriptionSlice.actions;
 
 // Selectors
@@ -212,5 +239,19 @@ export const selectSubscriptionError = (state: { subscription: SubscriptionState
   state.subscription.error;
 export const selectBillingPortalUrl = (state: { subscription: SubscriptionState }) => 
   state.subscription.billingPortalUrl;
+
+// BrandPillar AI trial selectors
+export const selectIsTrialActive = (state: { subscription: SubscriptionState }) => 
+  state.subscription.isTrialActive;
+export const selectTrialTier = (state: { subscription: SubscriptionState }) => 
+  state.subscription.trialTier;
+export const selectTrialDaysLeft = (state: { subscription: SubscriptionState }) => {
+  if (!state.subscription.trialEndsAt) return 0;
+  const now = new Date();
+  const end = new Date(state.subscription.trialEndsAt);
+  const diffTime = end.getTime() - now.getTime();
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  return Math.max(0, diffDays);
+};
 
 export default subscriptionSlice.reducer;

@@ -82,8 +82,8 @@ export const authPersistConfig = {
 export const workshopPersistConfig = {
   key: 'workshop',
   storage,
-  whitelist: ['values', 'tonePreferences', 'audiencePersonas', 'writingSample', 'personalityQuiz'],
-  blacklist: ['currentStep', 'isLoading'],
+  whitelist: ['values', 'tonePreferences', 'audiencePersonas', 'writingSample', 'personalityQuiz', 'completedSteps', 'sessionId'],
+  blacklist: ['isSaving', 'lastError'],
   throttle: 2000, // Debounce workshop saves
 };
 

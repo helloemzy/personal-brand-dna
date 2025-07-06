@@ -2,6 +2,8 @@
  * Performance monitoring utilities for tracking web vitals and component performance
  */
 
+import * as React from 'react';
+
 // Types for Web Vitals
 interface Metric {
   name: string;
@@ -228,29 +230,47 @@ export const apiTracker = new APIPerformanceTracker();
 
 // React hook for component performance tracking
 export const useComponentPerformance = (componentName: string) => {
-  if (!PERFORMANCE_CONFIG.enableComponentTracking) {
-    return;
-  }
+  React.useEffect(() => {
+    if (!PERFORMANCE_CONFIG.enableComponentTracking) {
+      return;
+    }
 
-  const endTracking = componentTracker.startTracking(componentName);
-  
-  // Clean up tracking when component unmounts
-  if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
-    window.requestIdleCallback(() => endTracking());
-  } else {
-    setTimeout(endTracking, 0);
-  }
+    const endTracking = componentTracker.startTracking(componentName);
+    
+    // Clean up tracking when component unmounts
+    return () => {
+      if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
+        window.requestIdleCallback(() => endTracking());
+      } else {
+        setTimeout(endTracking, 0);
+      }
+    };
+  }, [componentName]);
 };
+
+// Type declaration for Chrome's performance.memory API
+interface PerformanceMemory {
+  usedJSHeapSize: number;
+  totalJSHeapSize: number;
+  jsHeapSizeLimit: number;
+}
+
+// Extend the Performance interface
+interface PerformanceWithMemory extends Performance {
+  memory?: PerformanceMemory;
+}
 
 // Memory usage tracking
 export const trackMemoryUsage = () => {
-  if ('memory' in performance && (performance as any).memory) {
-    const memory = (performance as any).memory;
+  const performanceWithMemory = performance as PerformanceWithMemory;
+  const performanceMemory = performanceWithMemory.memory;
+  
+  if (performanceMemory) {
     return {
-      usedJSHeapSize: memory.usedJSHeapSize,
-      totalJSHeapSize: memory.totalJSHeapSize,
-      jsHeapSizeLimit: memory.jsHeapSizeLimit,
-      percentUsed: (memory.usedJSHeapSize / memory.jsHeapSizeLimit) * 100,
+      usedJSHeapSize: performanceMemory.usedJSHeapSize,
+      totalJSHeapSize: performanceMemory.totalJSHeapSize,
+      jsHeapSizeLimit: performanceMemory.jsHeapSizeLimit,
+      percentUsed: (performanceMemory.usedJSHeapSize / performanceMemory.jsHeapSizeLimit) * 100,
     };
   }
   return null;
@@ -264,7 +284,7 @@ export const trackPageLoad = () => {
     if (navTiming) {
       const pageLoadTime = navTiming.loadEventEnd - navTiming.fetchStart;
       const domContentLoaded = navTiming.domContentLoadedEventEnd - navTiming.fetchStart;
-      const domProcessing = navTiming.domComplete - (navTiming as any).domLoading;
+      const domProcessing = navTiming.domComplete - navTiming.domInteractive;
 
       if (pageLoadTime > PERFORMANCE_CONFIG.slowThreshold.pageLoad) {
         console.warn(`Slow page load detected: ${pageLoadTime.toFixed(2)}ms`);
@@ -316,14 +336,31 @@ export const performanceMark = {
   },
 };
 
+// Types for performance stats
+interface PerformanceStats {
+  count: number;
+  average: number;
+  median: number;
+  p95: number;
+  p99: number;
+  min: number;
+  max: number;
+}
+
+interface APIStats {
+  success: PerformanceStats | null;
+  failed: PerformanceStats | null;
+  failureRate: number;
+}
+
 // Export performance report
 export const generatePerformanceReport = () => {
   const report = {
     timestamp: new Date().toISOString(),
     pageLoad: trackPageLoad(),
     memory: trackMemoryUsage(),
-    components: {} as Record<string, any>,
-    apis: {} as Record<string, any>,
+    components: {} as Record<string, PerformanceStats | null>,
+    apis: {} as Record<string, APIStats | null>,
   };
 
   // Get component stats

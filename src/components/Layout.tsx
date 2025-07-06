@@ -19,10 +19,11 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
   const navigation = [
     { name: 'Dashboard', href: '/dashboard', icon: '📊' },
-    { name: 'Voice Discovery', href: '/voice-discovery', icon: '🎙️' },
-    { name: 'Content', href: '/content', icon: '✍️' },
-    { name: 'History', href: '/content/history', icon: '📝' },
+    { name: 'Brand House', href: '/brand-house', icon: '🏛️' },
+    { name: 'Content Queue', href: '/content-approval', icon: '📋' },
+    { name: 'News Sources', href: '/news-setup', icon: '📰' },
     { name: 'Analytics', href: '/analytics', icon: '📈', subscription: 'professional' },
+    { name: 'Subscription', href: '/subscription', icon: '💳' },
   ];
 
   const filteredNavigation = navigation.filter(item => {
@@ -39,7 +40,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         <div className="flex h-full flex-col">
           {/* Logo */}
           <div className="flex h-16 shrink-0 items-center px-6 border-b border-gray-200">
-            <h1 className="text-xl font-bold text-gray-900">Brand DNA</h1>
+            <h1 className="text-xl font-bold text-gray-900">BrandPillar AI</h1>
           </div>
 
           {/* Navigation */}

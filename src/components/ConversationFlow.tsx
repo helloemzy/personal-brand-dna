@@ -402,7 +402,7 @@ const ConversationFlow: React.FC<ConversationFlowProps> = ({
       {!conversationComplete && !showTextFallback && (
         <div className="mb-6">
           <VoiceRecorder
-            onAudioRecorded={handleAudioResponse}
+            onAudioRecorded={(audioBlob: Blob, duration: number) => handleAudioResponse(audioBlob)}
             maxDuration={120}
             isDisabled={isLoading}
             className="w-full"

@@ -202,7 +202,7 @@ const LinkedInSettings: React.FC = () => {
     <div className="bg-white rounded-lg shadow-md p-6">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-bold text-gray-900 flex items-center">
-          {React.createElement(FaLinkedin, { className: "mr-2 text-blue-600" })}
+          <FaLinkedin className="mr-2 text-blue-600" />
           LinkedIn Settings
         </h2>
       </div>
@@ -224,7 +224,7 @@ const LinkedInSettings: React.FC = () => {
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center">
-                    {React.createElement(FaCheckCircle, { className: "text-green-600 text-xl mr-3" })}
+                    <FaCheckCircle className="text-green-600 text-xl mr-3" />
                     <div>
                       <p className="font-medium text-gray-900">Connected as {status.linkedinUserName}</p>
                       <p className="text-sm text-gray-600">
@@ -242,7 +242,7 @@ const LinkedInSettings: React.FC = () => {
                 
                 {status.expiresAt && new Date(status.expiresAt).getTime() - Date.now() < 7 * 24 * 60 * 60 * 1000 && (
                   <div className="flex items-center p-3 bg-amber-50 rounded-lg">
-                    {React.createElement(FaExclamationTriangle, { className: "text-amber-600 mr-2" })}
+                    <FaExclamationTriangle className="text-amber-600 mr-2" />
                     <span className="text-sm text-amber-800">
                       Your LinkedIn connection will expire soon. You'll need to reconnect to continue publishing.
                     </span>
@@ -251,13 +251,13 @@ const LinkedInSettings: React.FC = () => {
               </div>
             ) : (
               <div className="text-center py-8">
-                {React.createElement(FaTimesCircle, { className: "text-gray-400 text-4xl mx-auto mb-4" })}
+                <FaTimesCircle className="text-gray-400 text-4xl mx-auto mb-4" />
                 <p className="text-gray-600 mb-4">No LinkedIn account connected</p>
                 <button
                   onClick={connectLinkedIn}
                   className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 inline-flex items-center"
                 >
-                  {React.createElement(FaLinkedin, { className: "mr-2" })}
+                  <FaLinkedin className="mr-2" />
                   Connect LinkedIn Account
                 </button>
               </div>
@@ -267,7 +267,7 @@ const LinkedInSettings: React.FC = () => {
           {/* Publishing Preferences */}
           <div className="bg-gray-50 rounded-lg p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-              {React.createElement(FaCog, { className: "mr-2" })}
+              <FaCog className="mr-2" />
               Publishing Preferences
             </h3>
             
@@ -356,7 +356,7 @@ const LinkedInSettings: React.FC = () => {
           {/* Privacy & Data */}
           <div className="bg-gray-50 rounded-lg p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-              {React.createElement(FaShieldAlt, { className: "mr-2" })}
+              <FaShieldAlt className="mr-2" />
               Privacy & Data Management
             </h3>
             
@@ -394,7 +394,7 @@ const LinkedInSettings: React.FC = () => {
                 onClick={exportData}
                 className="w-full flex items-center justify-center px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
               >
-                {React.createElement(FaDownload, { className: "mr-2" })}
+                <FaDownload className="mr-2" />
                 Export My LinkedIn Data
               </button>
               
@@ -402,7 +402,7 @@ const LinkedInSettings: React.FC = () => {
                 onClick={() => setShowDataModal(true)}
                 className="w-full flex items-center justify-center px-4 py-2 text-red-600 border border-red-600 rounded-lg hover:bg-red-50"
               >
-                {React.createElement(FaTrash, { className: "mr-2" })}
+                <FaTrash className="mr-2" />
                 Delete All LinkedIn Data
               </button>
               

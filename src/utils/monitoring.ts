@@ -1,10 +1,20 @@
 // Monitoring and Error Tracking Utilities
 
+// Define specific metadata types
+type MonitoringMetadata = {
+  userId?: string;
+  sessionId?: string;
+  timestamp?: string;
+  errorCode?: string | number;
+  stackTrace?: string;
+  [key: string]: string | number | boolean | undefined;
+};
+
 interface ErrorContext {
   userId?: string;
   component?: string;
   action?: string;
-  metadata?: Record<string, any>;
+  metadata?: MonitoringMetadata;
 }
 
 class MonitoringService {
@@ -64,7 +74,7 @@ class MonitoringService {
     console.log('User context set:', { userId, email });
   }
 
-  addBreadcrumb(message: string, category: string, data?: any) {
+  addBreadcrumb(message: string, category: string, data?: Record<string, unknown>) {
     // Track user actions for debugging
     console.log('Breadcrumb:', { message, category, data, timestamp: new Date().toISOString() });
   }
@@ -79,7 +89,10 @@ class MonitoringService {
     }
   }
 
-  private sendToMonitoringService(data: any, context?: any) {
+  private sendToMonitoringService(
+    data: { error: Error; timestamp: string },
+    context?: ErrorContext
+  ) {
     // Placeholder for actual monitoring service integration
     // In production, this would send to Sentry, DataDog, etc.
     fetch('/api/monitoring/error', {
@@ -104,17 +117,24 @@ class MonitoringService {
 }
 
 // Performance monitoring decorator
-export function measurePerformance(target: any, propertyKey: string, descriptor: PropertyDescriptor) {
+export function measurePerformance(
+  target: object,
+  propertyKey: string,
+  descriptor: PropertyDescriptor
+) {
   const originalMethod = descriptor.value;
 
-  descriptor.value = async function (...args: any[]) {
+  descriptor.value = async function (this: unknown, ...args: unknown[]) {
     const start = performance.now();
     
     try {
       const result = await originalMethod.apply(this, args);
       const duration = performance.now() - start;
       
-      monitoring.trackPerformance(`${target.constructor.name}.${propertyKey}`, duration);
+      monitoring.trackPerformance(
+        `${target.constructor.name}.${propertyKey}`,
+        duration
+      );
       
       return result;
     } catch (error) {

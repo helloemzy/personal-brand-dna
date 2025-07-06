@@ -49,7 +49,11 @@ export const workshopAPI = {
     step: number;
     stepData: any;
   }): Promise<AxiosResponse<WorkshopSaveResponse>> => {
-    return apiClient.post('/workshop?action=save', data);
+    // Backend expects action=session with sessionId in query params for POST
+    return apiClient.post(`/workshop?action=session&sessionId=${data.sessionId}`, {
+      currentStep: data.step,
+      stepData: data.stepData
+    });
   },
 
   // Complete workshop and generate voice profile

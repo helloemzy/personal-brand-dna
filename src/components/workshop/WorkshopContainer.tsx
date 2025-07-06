@@ -2,6 +2,7 @@ import React, { useEffect, useCallback, useMemo } from 'react';
 import { useAppDispatch, useAppSelector } from '../../hooks/redux';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, Check } from 'lucide-react';
+import WorkshopErrorBoundary from './WorkshopErrorBoundary';
 import { 
   selectWorkshopState, 
   selectCurrentStep, 
@@ -9,10 +10,14 @@ import {
   selectWorkshopProgress,
   goToStep,
   completeStep,
-  startWorkshop
+  startWorkshop,
+  setSaving,
+  setError,
+  resetWorkshop
 } from '../../store/slices/workshopSlice';
 import { debouncedFunctions } from '../../utils/debounce';
 import { useComponentPerformance } from '../../utils/performance';
+import workshopAPI from '../../services/workshopAPI';
 
 // Step Components (to be implemented)
 import ValuesAudit from './steps/ValuesAudit';
@@ -28,11 +33,11 @@ const ProgressIndicator: React.FC = () => {
   const progress = useAppSelector(selectWorkshopProgress);
 
   const steps = [
-    { number: 1, title: 'Values', description: 'Core professional values' },
-    { number: 2, title: 'Tone', description: 'Communication style' },
-    { number: 3, title: 'Audience', description: 'Target personas' },
-    { number: 4, title: 'Writing', description: 'Sample analysis' },
-    { number: 5, title: 'Personality', description: 'Quick assessment' }
+    { number: 1, title: 'Foundation', description: 'Mission & values' },
+    { number: 2, title: 'Personality', description: 'Brand voice & tone' },
+    { number: 3, title: 'Promise', description: 'Value proposition' },
+    { number: 4, title: 'Proof', description: 'Credibility & expertise' },
+    { number: 5, title: 'People', description: 'Target audience' }
   ];
 
   return (
@@ -90,36 +95,116 @@ const WorkshopContainer: React.FC = () => {
   // Track component performance
   useComponentPerformance('WorkshopContainer');
 
-  // Initialize workshop on mount
+  // Initialize workshop state only once on mount
   useEffect(() => {
-    if (!workshopState.startedAt) {
+    // Only initialize if workshop hasn't started yet
+    if (!workshopState.startedAt && !workshopState.sessionId) {
+      console.log('Initializing new workshop session');
       dispatch(startWorkshop());
     }
-  }, [dispatch, workshopState.startedAt]);
+  }, []); // Empty dependency array - only run once on mount
 
   // Save workshop progress function
   const saveWorkshopProgress = useCallback(async () => {
-    try {
-      // API call to save workshop state
-      console.log('Auto-saving workshop progress...', workshopState);
-      // await api.saveWorkshopProgress(workshopState);
-    } catch (error) {
-      console.error('Failed to save workshop progress:', error);
+    if (!workshopState.sessionId) {
+      console.log('No session ID, skipping save');
+      return;
     }
-  }, [workshopState]);
+
+    try {
+      dispatch(setSaving(true));
+      console.log('Auto-saving workshop progress...', workshopState);
+      
+      // Prepare step data based on current step
+      // The backend expects stepData to have keys matching the step names
+      let stepData: any = {};
+      
+      switch (currentStep) {
+        case 1:
+          stepData = {
+            values: {
+              selected: workshopState.values.selected,
+              custom: workshopState.values.custom,
+              rankings: workshopState.values.rankings
+            }
+          };
+          break;
+        case 2:
+          stepData = {
+            tone: workshopState.tonePreferences
+          };
+          break;
+        case 3:
+          stepData = {
+            audience: workshopState.audiencePersonas
+          };
+          break;
+        case 4:
+          stepData = {
+            writing_sample: {
+              text: workshopState.writingSample?.text || '',
+              wordCount: workshopState.writingSample?.wordCount || 0,
+              uploadedAt: workshopState.writingSample?.uploadedAt || new Date().toISOString()
+            }
+          };
+          break;
+        case 5:
+          stepData = {
+            personality: {
+              responses: workshopState.personalityQuiz.responses,
+              currentQuestionIndex: workshopState.personalityQuiz.currentQuestionIndex
+            }
+          };
+          break;
+      }
+      
+      // Call the API to save progress
+      const response = await workshopAPI.saveProgress({
+        sessionId: workshopState.sessionId,
+        step: currentStep,
+        stepData
+      });
+      
+      console.log('Workshop progress saved successfully:', response.data);
+      dispatch(setSaving(false));
+      dispatch(setError(null)); // Clear any previous errors
+    } catch (error: any) {
+      console.error('Failed to save workshop progress:', error);
+      
+      // Provide more specific error messages
+      let errorMessage = 'Failed to save progress. Your work will be saved when connection is restored.';
+      
+      if (error.response?.status === 503) {
+        errorMessage = 'Workshop save feature is in demo mode. Database connection not configured.';
+      } else if (error.response?.status === 401) {
+        errorMessage = 'Your session has expired. Please log in again.';
+      } else if (error.response?.status === 404) {
+        errorMessage = 'Workshop session not found. Please refresh the page.';
+      } else if (error.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      } else if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      }
+      
+      dispatch(setError(errorMessage));
+      dispatch(setSaving(false));
+    }
+  }, [workshopState, currentStep, dispatch]);
 
   // Create debounced auto-save function
-  const debouncedAutoSave = useMemo(
-    () => debouncedFunctions.workshopAutoSave(saveWorkshopProgress),
-    [saveWorkshopProgress]
-  );
+  // TEMPORARILY DISABLED: Auto-save causing issues with unconfigured Supabase
+  // const debouncedAutoSave = useMemo(
+  //   () => debouncedFunctions.workshopAutoSave(saveWorkshopProgress),
+  //   [saveWorkshopProgress]
+  // );
 
   // Auto-save when workshop state changes
-  useEffect(() => {
-    if (workshopState.startedAt) {
-      debouncedAutoSave();
-    }
-  }, [workshopState, debouncedAutoSave]);
+  // TEMPORARILY DISABLED: To prevent API errors
+  // useEffect(() => {
+  //   if (workshopState.startedAt) {
+  //     debouncedAutoSave();
+  //   }
+  // }, [workshopState, debouncedAutoSave]);
 
   const handleNext = useCallback(() => {
     // Mark current step as completed
@@ -218,9 +303,19 @@ const WorkshopContainer: React.FC = () => {
           </button>
 
           <div className="flex items-center space-x-2">
+            {workshopState.isSaving && (
+              <span className="text-sm text-gray-500 italic">
+                Saving...
+              </span>
+            )}
             <button
               onClick={saveWorkshopProgress}
-              className="px-4 py-2 text-sm text-gray-600 hover:text-gray-900 transition-colors"
+              disabled={workshopState.isSaving}
+              className={`px-4 py-2 text-sm transition-colors ${
+                workshopState.isSaving 
+                  ? 'text-gray-400 cursor-not-allowed' 
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
             >
               Save Progress
             </button>
@@ -242,6 +337,35 @@ const WorkshopContainer: React.FC = () => {
           </button>
         </div>
 
+        {/* Error Message */}
+        {workshopState.lastError && (
+          <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+            <div className="flex">
+              <div className="flex-shrink-0">
+                <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div className="ml-3">
+                <p className="text-sm font-medium text-red-800">
+                  {workshopState.lastError}
+                </p>
+              </div>
+              <div className="ml-auto pl-3">
+                <button
+                  onClick={() => dispatch(setError(null))}
+                  className="inline-flex text-red-400 hover:text-red-500"
+                >
+                  <span className="sr-only">Dismiss</span>
+                  <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Help Text */}
         <div className="mt-6 text-center text-sm text-gray-500">
           <p>Your progress is automatically saved as you work</p>
@@ -254,4 +378,11 @@ const WorkshopContainer: React.FC = () => {
   );
 };
 
-export default React.memo(WorkshopContainer);
+// Wrap with error boundary
+const WorkshopContainerWithErrorBoundary: React.FC = () => (
+  <WorkshopErrorBoundary>
+    <WorkshopContainer />
+  </WorkshopErrorBoundary>
+);
+
+export default React.memo(WorkshopContainerWithErrorBoundary);

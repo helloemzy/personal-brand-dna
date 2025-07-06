@@ -196,12 +196,12 @@ const LinkedInQueue: React.FC = () => {
     };
 
     const statusIcons = {
-      pending: () => React.createElement(FaClock, { className: "mr-1" }),
-      approved: () => React.createElement(FaCheckCircle, { className: "mr-1" }),
-      published: () => React.createElement(FaLinkedin, { className: "mr-1" }),
-      rejected: () => React.createElement(FaTimesCircle, { className: "mr-1" }),
-      scheduled: () => React.createElement(FaCalendarAlt, { className: "mr-1" }),
-      failed: () => React.createElement(FaExclamationTriangle, { className: "mr-1" })
+      pending: () => <FaClock className="mr-1" />,
+      approved: () => <FaCheckCircle className="mr-1" />,
+      published: () => <FaLinkedin className="mr-1" />,
+      rejected: () => <FaTimesCircle className="mr-1" />,
+      scheduled: () => <FaCalendarAlt className="mr-1" />,
+      failed: () => <FaExclamationTriangle className="mr-1" />
     };
 
     const color = statusColors[item.status as keyof typeof statusColors] || 'bg-gray-100 text-gray-800';
@@ -230,13 +230,13 @@ const LinkedInQueue: React.FC = () => {
     <div className="bg-white rounded-lg shadow-md p-6">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-bold text-gray-900 flex items-center">
-          {React.createElement(FaLinkedin, { className: "mr-2 text-blue-600" })}
+          <FaLinkedin className="mr-2 text-blue-600" />
           Publishing Queue
         </h2>
         
         <div className="flex items-center space-x-4">
           <div className="flex items-center">
-            {React.createElement(FaFilter, { className: "mr-2 text-gray-500" })}
+            <FaFilter className="mr-2 text-gray-500" />
             <select
               value={filter}
               onChange={(e) => setFilter(e.target.value as any)}
@@ -281,7 +281,7 @@ const LinkedInQueue: React.FC = () => {
                     </span>
                     {item.scheduled_for && (
                       <span className="text-sm text-purple-600 flex items-center">
-                        {React.createElement(FaCalendarAlt, { className: "mr-1" })}
+                        <FaCalendarAlt className="mr-1" />
                         Scheduled: {formatDate(item.scheduled_for)}
                       </span>
                     )}
@@ -323,7 +323,7 @@ const LinkedInQueue: React.FC = () => {
                     className="p-2 text-gray-600 hover:text-gray-800"
                     title="View details"
                   >
-                    {React.createElement(FaEye, {})}
+                    <FaEye />
                   </button>
                   
                   {item.status === 'pending' && item.approval_status === 'pending_review' && (
@@ -334,7 +334,7 @@ const LinkedInQueue: React.FC = () => {
                         className="p-2 text-green-600 hover:text-green-800 disabled:opacity-50"
                         title="Approve"
                       >
-                        {React.createElement(FaCheckCircle, {})}
+                        <FaCheckCircle />
                       </button>
                       <button
                         onClick={() => {
@@ -345,7 +345,7 @@ const LinkedInQueue: React.FC = () => {
                         className="p-2 text-red-600 hover:text-red-800 disabled:opacity-50"
                         title="Reject"
                       >
-                        {React.createElement(FaTimesCircle, {})}
+                        <FaTimesCircle />
                       </button>
                     </>
                   )}
@@ -357,7 +357,7 @@ const LinkedInQueue: React.FC = () => {
                       className="p-2 text-blue-600 hover:text-blue-800 disabled:opacity-50"
                       title="Publish now"
                     >
-                      {React.createElement(FaPaperPlane, {})}
+                      <FaPaperPlane />
                     </button>
                   )}
                   
@@ -368,7 +368,7 @@ const LinkedInQueue: React.FC = () => {
                       className="p-2 text-red-600 hover:text-red-800 disabled:opacity-50"
                       title="Delete"
                     >
-                      {React.createElement(FaTrash, {})}
+                      <FaTrash />
                     </button>
                   )}
                 </div>
@@ -378,7 +378,7 @@ const LinkedInQueue: React.FC = () => {
               {item.safetyChecks && item.safetyChecks.length > 0 && (
                 <div className="mt-3 pt-3 border-t border-gray-200">
                   <div className="flex items-center text-sm">
-                    {React.createElement(FaShieldAlt, { className: "mr-2 text-gray-500" })}
+                    <FaShieldAlt className="mr-2 text-gray-500" />
                     <span className="text-gray-600 mr-3">Safety Checks:</span>
                     {item.safetyChecks.map((check, index) => (
                       <span
@@ -461,9 +461,9 @@ const LinkedInQueue: React.FC = () => {
                       >
                         <div className="flex items-center">
                           {check.passed ? (
-                            React.createElement(FaCheckCircle, { className: "text-green-600 mr-2" })
+                            <FaCheckCircle className="text-green-600 mr-2" />
                           ) : (
-                            React.createElement(FaTimesCircle, { className: "text-red-600 mr-2" })
+                            <FaTimesCircle className="text-red-600 mr-2" />
                           )}
                           <span className="font-medium capitalize">
                             {check.check_type.replace('_', ' ')}

@@ -2,6 +2,7 @@
  * Debounce and throttle utilities for performance optimization
  */
 
+import * as React from 'react';
 import { DEBOUNCE_DELAYS, THROTTLE_DELAYS } from '../config/performance';
 
 /**
@@ -181,6 +182,3 @@ export function useThrottle<T>(value: T, delay: number): T {
 
   return throttledValue;
 }
-
-// Import React for hooks
-import * as React from 'react';

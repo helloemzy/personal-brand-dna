@@ -146,7 +146,7 @@ const WritingSample: React.FC = () => {
     dispatch(setWritingSample({
       text,
       wordCount,
-      uploadedAt: new Date()
+      uploadedAt: new Date().toISOString()
     }));
 
     // Simulate analysis (in production, this would call an API)

@@ -1,14 +1,14 @@
 import React, { useState, useCallback, useMemo } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
 import { Plus, Info, Star } from 'lucide-react';
+import { useAppDispatch, useAppSelector } from '../../../hooks/redux';
 import { 
   selectValue,
   deselectValue,
   addCustomValue,
   rankValue,
+  selectWorkshopState,
   WorkshopValue
 } from '../../../store/slices/workshopSlice';
-import { AppDispatch, RootState } from '../../../store';
 
 // Professional values organized by category
 const VALUE_CATEGORIES = {
@@ -57,24 +57,60 @@ const VALUE_CATEGORIES = {
 };
 
 const ValuesAudit: React.FC = () => {
-  const dispatch = useDispatch<AppDispatch>();
-  const selectedValues = useSelector((state: RootState) => state.workshop.values.selected);
-  const customValues = useSelector((state: RootState) => state.workshop.values.custom);
-  const rankings = useSelector((state: RootState) => state.workshop.values.rankings);
+  const dispatch = useAppDispatch();
+  
+  // Use the proper selector that handles persisted state
+  const workshopState = useAppSelector(selectWorkshopState);
+  
+  // Debug log the workshop state
+  console.log('ValuesAudit - workshopState:', workshopState);
+  console.log('ValuesAudit - workshopState.values:', workshopState?.values);
+  
+  // Safe access with proper defaults
+  const selectedValues = workshopState?.values?.selected || [];
+  const customValues = workshopState?.values?.custom || [];
+  const rankings = workshopState?.values?.rankings || {};
+  
+  // Additional debug logging
+  console.log('ValuesAudit - selectedValues:', selectedValues);
+  console.log('ValuesAudit - type of selectedValues:', typeof selectedValues, Array.isArray(selectedValues));
   
   const [showCustomForm, setShowCustomForm] = useState(false);
   const [customValueName, setCustomValueName] = useState('');
 
   const handleValueToggle = useCallback((valueId: string) => {
-    if (selectedValues.includes(valueId)) {
-      dispatch(deselectValue(valueId));
-    } else if (selectedValues.length < 10) {
-      dispatch(selectValue(valueId));
+    try {
+      if (!valueId) {
+        console.error('handleValueToggle: valueId is undefined');
+        return;
+      }
+      
+      // Log state before action for debugging
+      console.log('Before toggle - selectedValues:', selectedValues);
+      console.log('Toggling value:', valueId);
+      
+      // Ensure arrays are valid before checking
+      const values = Array.isArray(selectedValues) ? selectedValues : [];
+      
+      if (values.includes(valueId)) {
+        console.log('Deselecting value:', valueId);
+        dispatch(deselectValue(valueId));
+      } else if (values.length < 10) {
+        console.log('Selecting value:', valueId);
+        dispatch(selectValue(valueId));
+      } else {
+        console.log('Cannot select more than 10 values');
+      }
+    } catch (error) {
+      console.error('Error in handleValueToggle:', error);
+      console.error('Stack trace:', error instanceof Error ? error.stack : 'No stack trace');
+      // Don't re-throw - let the UI continue functioning
     }
   }, [selectedValues, dispatch]);
 
   const handleAddCustomValue = useCallback(() => {
-    if (customValueName.trim() && selectedValues.length < 10) {
+    const values = Array.isArray(selectedValues) ? selectedValues : [];
+    if (customValueName.trim() && values.length < 10) {
       const customValue: WorkshopValue = {
         id: `custom_${Date.now()}`,
         name: customValueName.trim(),
@@ -86,10 +122,18 @@ const ValuesAudit: React.FC = () => {
       setCustomValueName('');
       setShowCustomForm(false);
     }
-  }, [customValueName, selectedValues.length, dispatch]);
+  }, [customValueName, selectedValues, dispatch]);
 
   const handleRankValue = useCallback((valueId: string, rank: number) => {
-    dispatch(rankValue({ valueId, rank }));
+    try {
+      if (!valueId || isNaN(rank) || rank < 1 || rank > 5) {
+        console.error('Invalid rank value:', { valueId, rank });
+        return;
+      }
+      dispatch(rankValue({ valueId, rank }));
+    } catch (error) {
+      console.error('Error ranking value:', error);
+    }
   }, [dispatch]);
 
   const getAllValues = useMemo(() => {
@@ -125,13 +169,14 @@ const ValuesAudit: React.FC = () => {
           <div className="flex items-center">
             <Info className="w-5 h-5 text-blue-600 mr-2" />
             <span className="text-blue-900">
-              {selectedValues.length}/10 values selected
-              {selectedValues.length < 5 && ' (minimum 5 required)'}
+              {Array.isArray(selectedValues) ? selectedValues.length : 0}/10 values selected
+              {(!Array.isArray(selectedValues) || selectedValues.length < 5) && ' (minimum 5 required)'}
             </span>
           </div>
           <button
             onClick={() => setShowCustomForm(true)}
-            className="flex items-center text-blue-600 hover:text-blue-700 font-medium"
+            disabled={Array.isArray(selectedValues) && selectedValues.length >= 10}
+            className="flex items-center text-blue-600 hover:text-blue-700 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Plus className="w-4 h-4 mr-1" />
             Add Custom Value
@@ -146,20 +191,29 @@ const ValuesAudit: React.FC = () => {
             <h3 className="font-semibold text-gray-900">{category}</h3>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
               {values.map((value) => {
-                const isSelected = selectedValues.includes(value.id);
-                const rank = rankings[value.id];
+                const values = Array.isArray(selectedValues) ? selectedValues : [];
+                const isSelected = values.includes(value.id);
+                const rank = rankings?.[value.id];
                 
                 return (
                   <div
                     key={value.id}
-                    onClick={() => handleValueToggle(value.id)}
+                    onClick={() => {
+                      const vals = Array.isArray(selectedValues) ? selectedValues : [];
+                      if (vals.length < 10 || isSelected) {
+                        handleValueToggle(value.id);
+                      }
+                    }}
                     className={`
-                      relative p-4 rounded-lg border-2 cursor-pointer transition-all
+                      relative p-4 rounded-lg border-2 transition-all
                       ${isSelected 
                         ? 'border-blue-500 bg-blue-50' 
                         : 'border-gray-200 hover:border-gray-300 bg-white'
                       }
-                      ${selectedValues.length >= 10 && !isSelected ? 'opacity-50 cursor-not-allowed' : ''}
+                      ${(Array.isArray(selectedValues) && selectedValues.length >= 10 && !isSelected) 
+                        ? 'opacity-50 cursor-not-allowed' 
+                        : 'cursor-pointer'
+                      }
                     `}
                   >
                     <div className="flex items-start justify-between">
@@ -198,22 +252,55 @@ const ValuesAudit: React.FC = () => {
           <div className="space-y-3">
             <h3 className="font-semibold text-gray-900">Your Custom Values</h3>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-              {customValues.map((value: any) => {
-                const isSelected = selectedValues.includes(value.id);
+              {customValues.map((value) => {
+                const vals = Array.isArray(selectedValues) ? selectedValues : [];
+                const isSelected = vals.includes(value.id);
+                const rank = rankings?.[value.id];
                 return (
                   <div
                     key={value.id}
-                    onClick={() => handleValueToggle(value.id)}
+                    onClick={() => {
+                      const vals = Array.isArray(selectedValues) ? selectedValues : [];
+                      if (vals.length < 10 || isSelected) {
+                        handleValueToggle(value.id);
+                      }
+                    }}
                     className={`
-                      relative p-4 rounded-lg border-2 cursor-pointer transition-all
+                      relative p-4 rounded-lg border-2 transition-all
                       ${isSelected 
                         ? 'border-blue-500 bg-blue-50' 
                         : 'border-gray-200 hover:border-gray-300 bg-white'
                       }
+                      ${(Array.isArray(selectedValues) && selectedValues.length >= 10 && !isSelected) 
+                        ? 'opacity-50 cursor-not-allowed' 
+                        : 'cursor-pointer'
+                      }
                     `}
                   >
-                    <h4 className="font-medium text-gray-900">{value.name}</h4>
-                    <p className="text-xs text-gray-500 mt-1">{value.description}</p>
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <h4 className="font-medium text-gray-900">{value.name}</h4>
+                        <p className="text-xs text-gray-500 mt-1">{value.description}</p>
+                      </div>
+                      {isSelected && (
+                        <div className="ml-2">
+                          <select
+                            value={rank || ''}
+                            onChange={(e) => {
+                              e.stopPropagation();
+                              handleRankValue(value.id, parseInt(e.target.value));
+                            }}
+                            onClick={(e) => e.stopPropagation()}
+                            className="text-xs border border-gray-300 rounded px-1 py-0.5"
+                          >
+                            <option value="">Rank</option>
+                            {[1, 2, 3, 4, 5].map(n => (
+                              <option key={n} value={n}>{n}</option>
+                            ))}
+                          </select>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 );
               })}
@@ -223,15 +310,19 @@ const ValuesAudit: React.FC = () => {
       </div>
 
       {/* Selected Values Summary */}
-      {selectedValues.length > 0 && (
+      {Array.isArray(selectedValues) && selectedValues.length > 0 && (
         <div className="bg-gray-50 rounded-lg p-4">
           <h3 className="font-semibold text-gray-900 mb-3">Your Selected Values</h3>
           <div className="flex flex-wrap gap-2">
-            {selectedValues
-              .sort((a: any, b: any) => (rankings[a] || 999) - (rankings[b] || 999))
-              .map((valueId: any) => {
+            {(Array.isArray(selectedValues) ? selectedValues : [])
+              .sort((a, b) => {
+                const rankA = rankings?.[a] || 999;
+                const rankB = rankings?.[b] || 999;
+                return rankA - rankB;
+              })
+              .map((valueId) => {
                 const value = getValueById(valueId);
-                const rank = rankings[valueId];
+                const rank = rankings?.[valueId];
                 return value ? (
                   <div
                     key={valueId}

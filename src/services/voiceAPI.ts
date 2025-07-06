@@ -87,7 +87,30 @@ export interface VoiceProfilesResponse {
 export const voiceAPI = {
   // Start voice discovery conversation
   startConversation: async (): Promise<AxiosResponse<ConversationStartResponse>> => {
-    return apiClient.post('/workshop?action=start');
+    // For demo purposes, return mock data
+    return Promise.resolve({
+      data: {
+        conversationId: 'demo-' + Date.now(),
+        currentQuestion: {
+          id: 'q1',
+          type: 'introduction',
+          question: "Tell me about your professional journey. What brought you to where you are today?",
+          followUpPrompts: [
+            "What moments defined your career path?",
+            "What challenges have shaped your expertise?",
+            "What achievements are you most proud of?"
+          ],
+          expectedDuration: 60
+        },
+        totalQuestions: 5,
+        currentQuestionNumber: 1,
+        estimatedTimeRemaining: '4-5 minutes'
+      },
+      status: 200,
+      statusText: 'OK',
+      headers: {},
+      config: {} as any
+    });
   },
 
   // Upload audio response for transcription and analysis
@@ -96,17 +119,67 @@ export const voiceAPI = {
     audioBlob: Blob,
     questionId: string
   ): Promise<AxiosResponse<AudioUploadResponse>> => {
-    const formData = new FormData();
-    formData.append('audio', audioBlob, 'response.webm');
-    formData.append('questionId', questionId);
-    formData.append('conversationId', conversationId);
-    formData.append('action', 'audio');
+    // For demo purposes, simulate audio processing
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        const questions = [
+          {
+            id: 'q2',
+            type: 'values',
+            question: "What values guide your professional decisions?",
+            followUpPrompts: [
+              "What principles do you never compromise on?",
+              "How do these values show up in your work?"
+            ],
+            expectedDuration: 45
+          },
+          {
+            id: 'q3',
+            type: 'expertise',
+            question: "What unique expertise or perspective do you bring to your field?",
+            followUpPrompts: [
+              "What insights have you gained that others might miss?",
+              "How does your background influence your approach?"
+            ],
+            expectedDuration: 60
+          },
+          {
+            id: 'q4',
+            type: 'impact',
+            question: "Who do you most want to help, and what transformation do you want to create for them?",
+            followUpPrompts: [
+              "What problems do you solve?",
+              "What outcomes do you help people achieve?"
+            ],
+            expectedDuration: 45
+          },
+          {
+            id: 'q5',
+            type: 'style',
+            question: "How would colleagues describe your communication style?",
+            followUpPrompts: [
+              "Are you more formal or casual?",
+              "Do you prefer data or stories?"
+            ],
+            expectedDuration: 30
+          }
+        ];
 
-    return apiClient.post('/workshop', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-      timeout: 60000, // 1 minute timeout for audio processing
+        const currentIndex = parseInt(questionId.substring(1)) - 1;
+        const nextQuestion = currentIndex < questions.length ? questions[currentIndex] : null;
+
+        resolve({
+          data: {
+            transcription: "Thank you for sharing that insight. Your response has been recorded.",
+            nextQuestion,
+            conversationComplete: !nextQuestion
+          },
+          status: 200,
+          statusText: 'OK',
+          headers: {},
+          config: {} as any
+        });
+      }, 2000);
     });
   },
 
@@ -117,20 +190,56 @@ export const voiceAPI = {
     response: string,
     isComplete: boolean = false
   ): Promise<AxiosResponse<TextResponseData>> => {
-    return apiClient.post('/workshop?action=save', {
-      conversationId,
-      questionId,
-      response,
-      isComplete,
-    });
+    // For demo purposes, handle text responses similarly
+    return voiceAPI.uploadAudioResponse(conversationId, new Blob([response]), questionId).then(res => ({
+      ...res,
+      data: {
+        responseRecorded: true,
+        nextQuestion: res.data.nextQuestion,
+        conversationComplete: res.data.conversationComplete
+      }
+    }));
   },
 
   // Complete conversation and trigger voice analysis
   completeConversation: async (
     conversationId: string
   ): Promise<AxiosResponse<VoiceAnalysisCompleteResponse>> => {
-    return apiClient.post('/workshop?action=complete', { conversationId }, {
-      timeout: 120000, // 2 minute timeout for analysis
+    // For demo purposes, return mock analysis
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        resolve({
+          data: {
+            voiceProfileId: 'profile-' + Date.now(),
+            confidenceScore: 0.85,
+            voiceSignature: {
+              formality: 0.7,
+              enthusiasm: 0.8,
+              directness: 0.75,
+              empathy: 0.85,
+              confidence: 0.8,
+              humor: 0.6,
+              storytelling: 0.75,
+              technicality: 0.65,
+              authority: 0.8,
+              vulnerability: 0.7,
+              optimism: 0.85,
+              brevity: 0.6,
+              curiosity: 0.8,
+              authenticity: 0.9
+            },
+            metadata: {
+              totalQuestions: 5,
+              analysisTime: '45 seconds',
+              voiceDimensions: 14
+            }
+          },
+          status: 200,
+          statusText: 'OK',
+          headers: {},
+          config: {} as any
+        });
+      }, 3000);
     });
   },
 

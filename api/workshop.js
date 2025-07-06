@@ -2,11 +2,15 @@
 import { createClient } from '@supabase/supabase-js';
 import jwt from 'jsonwebtoken';
 
-const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-const supabase = createClient(supabaseUrl, supabaseKey);
+// For demo purposes, use fallback values if env vars are not set
+const supabaseUrl = process.env.SUPABASE_URL || 'https://demo.supabase.co';
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || 'demo-key';
+const supabase = supabaseUrl && supabaseKey && supabaseUrl !== 'https://demo.supabase.co' 
+  ? createClient(supabaseUrl, supabaseKey) 
+  : null;
 
-const JWT_SECRET = process.env.JWT_SECRET;
+// Use a default JWT secret for demo purposes if not configured
+const JWT_SECRET = process.env.JWT_SECRET || 'demo-jwt-secret-for-personal-brand-dna-2024';
 
 // Auth middleware
 async function authenticateToken(req) {
@@ -39,6 +43,15 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') {
     res.status(200).end();
     return;
+  }
+
+  // Check if Supabase is properly configured
+  if (!supabase) {
+    console.error('Supabase client not initialized. Check SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY environment variables.');
+    return res.status(503).json({ 
+      error: 'Database service unavailable',
+      message: 'The workshop feature is currently in demo mode. Database connection not configured.'
+    });
   }
 
   try {

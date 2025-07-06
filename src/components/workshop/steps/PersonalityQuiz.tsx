@@ -249,7 +249,7 @@ const PersonalityQuiz: React.FC = () => {
     const response: QuizResponse = {
       questionId: currentQuestion.id,
       answer,
-      answeredAt: new Date()
+      answeredAt: new Date().toISOString()
     };
     
     dispatch(answerQuizQuestion(response));

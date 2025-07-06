@@ -1,4 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import type { RootState } from '../index';
+import { ensureWorkshopState } from '../../utils/workshopStateHelper';
 
 // Types
 export interface WorkshopValue {
@@ -31,21 +33,30 @@ export interface AudiencePersona {
   };
 }
 
+// Style metrics interface
+interface StyleMetrics {
+  averageSentenceLength: number;
+  vocabularyDiversity: number;
+  formalityScore: number;
+  activeVoiceRatio: number;
+  complexityScore: number;
+}
+
 export interface WritingSample {
   text: string;
   wordCount: number;
-  uploadedAt: Date;
+  uploadedAt: string; // ISO string
   analysisResults?: {
     readability: number;
     sentiment: Record<string, number>;
-    styleMetrics: Record<string, any>;
+    styleMetrics: StyleMetrics;
   };
 }
 
 export interface QuizResponse {
   questionId: string;
   answer: string;
-  answeredAt: Date;
+  answeredAt: string; // ISO string
 }
 
 export interface WorkshopState {
@@ -55,9 +66,9 @@ export interface WorkshopState {
   isCompleted: boolean;
   
   // Timing
-  startedAt: Date | null;
-  lastSavedAt: Date | null;
-  completedAt: Date | null;
+  startedAt: string | null; // ISO string
+  lastSavedAt: string | null; // ISO string
+  completedAt: string | null; // ISO string
   
   // Step 1: Values
   values: {
@@ -122,7 +133,7 @@ const workshopSlice = createSlice({
   reducers: {
     // Navigation
     startWorkshop: (state) => {
-      state.startedAt = new Date();
+      state.startedAt = new Date().toISOString();
       state.sessionId = `workshop_${Date.now()}`;
     },
     
@@ -134,28 +145,81 @@ const workshopSlice = createSlice({
       if (!state.completedSteps.includes(action.payload)) {
         state.completedSteps.push(action.payload);
       }
-      state.lastSavedAt = new Date();
+      state.lastSavedAt = new Date().toISOString();
     },
     
     // Values (Step 1)
     selectValue: (state, action: PayloadAction<string>) => {
-      if (!state.values.selected.includes(action.payload)) {
+      // Initialize values if needed
+      if (!state.values) {
+        state.values = { selected: [], custom: [], rankings: {} };
+      }
+      if (!state.values.selected) {
+        state.values.selected = [];
+      }
+      if (!state.values.rankings) {
+        state.values.rankings = {};
+      }
+      
+      // Add value if not already selected and within limit
+      if (!state.values.selected.includes(action.payload) && state.values.selected.length < 10) {
         state.values.selected.push(action.payload);
       }
     },
     
     deselectValue: (state, action: PayloadAction<string>) => {
+      // Initialize values if needed
+      if (!state.values) {
+        state.values = { selected: [], custom: [], rankings: {} };
+      }
+      if (!state.values.selected) {
+        state.values.selected = [];
+      }
+      if (!state.values.rankings) {
+        state.values.rankings = {};
+      }
+      
+      // Remove value from selection
       state.values.selected = state.values.selected.filter(id => id !== action.payload);
-      delete state.values.rankings[action.payload];
+      
+      // Remove ranking if exists
+      if (state.values.rankings[action.payload]) {
+        delete state.values.rankings[action.payload];
+      }
     },
     
     addCustomValue: (state, action: PayloadAction<WorkshopValue>) => {
-      state.values.custom.push(action.payload);
-      state.values.selected.push(action.payload.id);
+      // Initialize values if needed
+      if (!state.values) {
+        state.values = { selected: [], custom: [], rankings: {} };
+      }
+      if (!state.values.custom) {
+        state.values.custom = [];
+      }
+      if (!state.values.selected) {
+        state.values.selected = [];
+      }
+      
+      // Add custom value if within limits
+      if (state.values.selected.length < 10) {
+        state.values.custom.push(action.payload);
+        state.values.selected.push(action.payload.id);
+      }
     },
     
     rankValue: (state, action: PayloadAction<{ valueId: string; rank: number }>) => {
-      state.values.rankings[action.payload.valueId] = action.payload.rank;
+      // Initialize values if needed
+      if (!state.values) {
+        state.values = { selected: [], custom: [], rankings: {} };
+      }
+      if (!state.values.rankings) {
+        state.values.rankings = {};
+      }
+      
+      // Set ranking if value is selected
+      if (state.values.selected?.includes(action.payload.valueId)) {
+        state.values.rankings[action.payload.valueId] = action.payload.rank;
+      }
     },
     
     // Tone (Step 2)
@@ -169,6 +233,10 @@ const workshopSlice = createSlice({
     
     // Audience (Step 3)
     addPersona: (state, action: PayloadAction<AudiencePersona>) => {
+      // Initialize personas array if needed
+      if (!state.audiencePersonas) {
+        state.audiencePersonas = [];
+      }
       state.audiencePersonas.push(action.payload);
     },
     
@@ -196,6 +264,14 @@ const workshopSlice = createSlice({
     
     // Quiz (Step 5)
     answerQuizQuestion: (state, action: PayloadAction<QuizResponse>) => {
+      // Initialize quiz state if needed
+      if (!state.personalityQuiz) {
+        state.personalityQuiz = { currentQuestionIndex: 0, responses: [], results: null };
+      }
+      if (!state.personalityQuiz.responses) {
+        state.personalityQuiz.responses = [];
+      }
+      
       state.personalityQuiz.responses.push(action.payload);
       state.personalityQuiz.currentQuestionIndex += 1;
     },
@@ -211,7 +287,7 @@ const workshopSlice = createSlice({
     
     completeWorkshop: (state) => {
       state.isCompleted = true;
-      state.completedAt = new Date();
+      state.completedAt = new Date().toISOString();
     },
     
     resetWorkshop: () => initialState,
@@ -246,15 +322,51 @@ export const {
   loadWorkshopState
 } = workshopSlice.actions;
 
-// Selectors
-type StateWithWorkshop = { workshop: WorkshopState };
-export const selectWorkshopState = (state: StateWithWorkshop) => state.workshop;
-export const selectCurrentStep = (state: StateWithWorkshop) => state.workshop.currentStep;
-export const selectCompletedSteps = (state: StateWithWorkshop) => state.workshop.completedSteps;
-export const selectIsStepCompleted = (step: number) => (state: StateWithWorkshop) => 
-  state.workshop.completedSteps.includes(step);
-export const selectWorkshopProgress = (state: StateWithWorkshop) => 
-  (state.workshop.completedSteps.length / 5) * 100;
+// Type for persisted state
+interface PersistedWorkshopState extends WorkshopState {
+  _persist?: {
+    version: number;
+    rehydrated: boolean;
+  };
+}
+
+// Selectors with proper handling for persisted state
+export const selectWorkshopState = (state: RootState): WorkshopState => {
+  try {
+    const workshop = state.workshop as PersistedWorkshopState;
+    // If it's a persisted state object, return the actual state
+    if (workshop && '_persist' in workshop) {
+      // Extract the actual workshop state, excluding _persist
+      const { _persist, ...actualState } = workshop;
+      return ensureWorkshopState(actualState);
+    }
+    return ensureWorkshopState(state.workshop);
+  } catch (error) {
+    console.error('Error in selectWorkshopState:', error);
+    // Return a valid default state if there's any error
+    return ensureWorkshopState(null);
+  }
+};
+
+export const selectCurrentStep = (state: RootState) => {
+  const workshop = selectWorkshopState(state);
+  return workshop?.currentStep || 1;
+};
+
+export const selectCompletedSteps = (state: RootState) => {
+  const workshop = selectWorkshopState(state);
+  return workshop?.completedSteps || [];
+};
+
+export const selectIsStepCompleted = (step: number) => (state: RootState) => {
+  const completedSteps = selectCompletedSteps(state);
+  return completedSteps.includes(step);
+};
+
+export const selectWorkshopProgress = (state: RootState) => {
+  const completedSteps = selectCompletedSteps(state);
+  return (completedSteps.length / 5) * 100;
+};
 
 // Reducer
 export default workshopSlice.reducer;
