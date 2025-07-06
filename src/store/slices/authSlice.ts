@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { authAPI } from '../../services/authAPI';
+import { checkSupabaseAuth, signOutSupabase } from '../../utils/supabaseAuth';
 
 // Types
 export interface User {
@@ -71,8 +72,11 @@ export const logoutUser = createAsyncThunk(
   async (_, { getState }) => {
     const state = getState() as { auth: AuthState };
     
-    // Call logout API if authenticated
-    if (state.auth.isAuthenticated) {
+    // Sign out from Supabase
+    await signOutSupabase();
+    
+    // Call logout API if authenticated with legacy system
+    if (state.auth.isAuthenticated && state.auth.token) {
       try {
         await authAPI.logout();
       } catch (error) {
@@ -92,18 +96,25 @@ export const logoutUser = createAsyncThunk(
 export const checkAuthStatus = createAsyncThunk(
   'auth/checkStatus',
   async () => {
-    const token = localStorage.getItem('token');
-    
-    if (!token) {
-      throw new Error('No token found');
+    try {
+      // First try Supabase auth
+      const supabaseAuth = await checkSupabaseAuth();
+      return supabaseAuth;
+    } catch (supabaseError) {
+      // Fallback to legacy auth
+      const token = localStorage.getItem('token');
+      
+      if (!token) {
+        throw new Error('No authentication found');
+      }
+      
+      const response = await authAPI.getProfile();
+      return {
+        user: response.data.user,
+        token,
+        refreshToken: localStorage.getItem('refreshToken'),
+      };
     }
-    
-    const response = await authAPI.getProfile();
-    return {
-      user: response.data.user,
-      token,
-      refreshToken: localStorage.getItem('refreshToken'),
-    };
   }
 );
 
@@ -179,6 +190,18 @@ const authSlice = createSlice({
       if (state.user) {
         state.user = { ...state.user, ...action.payload };
       }
+    },
+    setCredentials: (state, action) => {
+      const { user, accessToken, refreshToken } = action.payload;
+      state.user = user;
+      state.token = accessToken;
+      state.refreshToken = refreshToken;
+      state.isAuthenticated = true;
+      state.error = null;
+      
+      // Store tokens in localStorage
+      if (accessToken) localStorage.setItem('token', accessToken);
+      if (refreshToken) localStorage.setItem('refreshToken', refreshToken);
     },
     clearAuth: (state) => {
       state.user = null;
@@ -362,7 +385,7 @@ const authSlice = createSlice({
 });
 
 // Actions
-export const { clearError, updateUser, clearAuth } = authSlice.actions;
+export const { clearError, updateUser, setCredentials, clearAuth } = authSlice.actions;
 
 // Selectors
 export const selectUser = (state: { auth: AuthState }) => state.auth.user;
