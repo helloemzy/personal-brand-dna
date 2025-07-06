@@ -41,12 +41,45 @@ const TierSelectionPage = lazy(() => import('./pages/TierSelectionPage'));
 const RSSSetupPage = lazy(() => import('./pages/RSSSetupPage'));
 const ContentApprovalDashboard = lazy(() => import('./pages/ContentApprovalDashboard'));
 const WorkshopContainer = lazy(() => import('./components/workshop/WorkshopContainer'));
+const DebugWorkshopPage = lazy(() => import('./pages/DebugWorkshopPage'));
 
 function App() {
   const dispatch = useAppDispatch();
   const { isAuthenticated, isLoading } = useAppSelector((state) => state.auth);
 
   useEffect(() => {
+    // Check for state reset request in URL
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('reset') === 'true') {
+      console.log('State reset requested - clearing persisted data');
+      
+      // Clear all localStorage data related to the app
+      try {
+        // Clear Redux persist data
+        localStorage.removeItem('persist:root');
+        localStorage.removeItem('persist:workshop');
+        localStorage.removeItem('persist:auth');
+        localStorage.removeItem('persist:content');
+        
+        // Clear any workshop-specific data
+        Object.keys(localStorage).forEach(key => {
+          if (key.startsWith('workshop_') || key.startsWith('brandhouse_')) {
+            localStorage.removeItem(key);
+          }
+        });
+        
+        // Remove the reset parameter and reload
+        urlParams.delete('reset');
+        const newUrl = window.location.pathname + (urlParams.toString() ? '?' + urlParams.toString() : '');
+        window.location.href = newUrl;
+      } catch (error) {
+        console.error('Error clearing state:', error);
+        // Force reload anyway
+        window.location.href = window.location.pathname;
+      }
+      return;
+    }
+
     // Check for existing Supabase session on app load
     const checkSupabaseSession = async () => {
       try {
@@ -232,6 +265,17 @@ function App() {
               </Layout>
             </ProtectedRoute>
           } />
+
+          {/* Debug route - only in development */}
+          {process.env.NODE_ENV === 'development' && (
+            <Route path="/debug-workshop" element={
+              <ProtectedRoute>
+                <Layout>
+                  <DebugWorkshopPage />
+                </Layout>
+              </ProtectedRoute>
+            } />
+          )}
 
           <Route path="/tier-selection" element={
             <ProtectedRoute>

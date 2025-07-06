@@ -1,20 +1,51 @@
 # BrandPillar AI - Project Context
 
-## 🚨 CRITICAL UPDATE - January 6, 2025 (DEPLOYMENT COMPLETE!)
+## 🚨 CRITICAL UPDATE - January 7, 2025 (DEBUGGING FEATURES ADDED)
+
+### ⚠️ CRITICAL BUG: Brand House Workshop Crash - Enhanced Debugging Available
+
+**Issue**: Application crashes with "Something went wrong" when users select values in Brand House Values Audit.
+
+**Fixes Applied (Session 1)**:
+- ✅ Removed double Redux persistence configuration
+- ✅ Enhanced Redux DevTools configuration
+- ✅ Added null safety checks to workshop actions
+- ✅ Fixed component selectors to use proper workshop selector
+- ✅ Added state validation helpers
+- ✅ Enhanced error logging
+
+**New Debugging Features (Session 2)**:
+- ✅ **State Reset URL**: Add `?reset=true` to URL to clear corrupted state
+- ✅ **Debug Middleware**: Console command `window.enableWorkshopDebugging()`
+- ✅ **Debug Panel**: Development route `/debug-workshop` for state inspection
+- ✅ **Debug Guide**: Comprehensive `WORKSHOP_DEBUG_GUIDE.md` created
+
+**Quick Fix for Users**:
+```
+https://brandpillar-ai.vercel.app/?reset=true
+```
+
+**Current Status**: Debugging tools in place to identify root cause
+
+**Impact**: Users can now recover using reset mechanism while we investigate.
+
+---
+
+## 🚨 PREVIOUS UPDATE - January 6, 2025 (DEPLOYMENT COMPLETE!)
 
 **Status Update**: BrandPillar AI is now LIVE and operational with working authentication!
 
 **Current State**: 
 - ✅ Live at https://brandpillar-ai.vercel.app
 - ✅ Google OAuth authentication FULLY WORKING
-- ✅ Supabase-Redux integration fixed
+- ❌ Brand House assessment BROKEN (crashes on trait selection)
 - ✅ Database properly connected
 - ✅ User login and session management operational
 - ✅ Correct post-login redirects implemented
 - ✅ Environment variables configured in Vercel
-- ✅ Ready for user testing and feature validation
+- ⚠️ Requires immediate bug fix before user testing
 
-**What's Built**: Google OAuth authentication, Brand House assessment, content generation framework, news monitoring, trial management, database schema
+**What's Built**: Google OAuth authentication, Brand House assessment (with critical bug), content generation framework, news monitoring, trial management, database schema
 
 **Technical Achievement (January 6, 2025)**:
 - Fixed OAuth redirect URL mismatch by changing Vercel domain to brandpillar-ai.vercel.app
@@ -23,7 +54,7 @@
 - Updated AuthCallbackPage to sync Supabase sessions with Redux store
 - Added auth state listener in App.tsx for real-time session updates
 
-**Next Priority**: Test Brand House questionnaire and content generation features
+**Immediate Priority**: Fix Brand House workshop Redux persistence bug
 
 ---
 
@@ -612,6 +643,48 @@ CREATE TABLE generated_content (
 - **Career Opportunities**: >15% report new opportunities
 - **MRR Growth**: 15% month-over-month
 
+## 💸 TECHNICAL DEBT & IMMEDIATE FIXES NEEDED
+
+### 🔥 HIGHEST PRIORITY - Brand House Workshop Crash
+**Status**: Partially fixed but STILL CRASHING
+**Next Steps**: See IMPLEMENTATION_TRACKER.md for remaining debug steps
+**Workaround**: Users should use incognito mode or clear browser data
+
+### Critical Issues (Fix After Workshop Bug):
+1. **Workshop State Persistence** - Still causing crashes, needs complete rewrite
+2. **Error Monitoring Setup** - Sentry integration needed for production debugging
+3. **Mobile Experience** - UI not optimized for mobile devices
+4. **Accessibility** - Missing ARIA labels and keyboard navigation
+5. **No Tests** - Zero test coverage for critical paths
+
+### Already Fixed:
+- ✅ Type safety improvements (removed most `any` types)
+- ✅ Redux DevTools configuration enhanced
+- ✅ Error boundaries added to workshop
+- ✅ Null safety checks in Redux actions
+
+### High Priority Issues:
+1. **No Error Monitoring** - Need Sentry or similar
+2. **No Analytics** - Can't track user behavior
+3. **No A/B Testing** - Can't optimize conversions
+4. **Poor Mobile Experience** - Not optimized for mobile
+5. **No Accessibility** - Missing ARIA labels, keyboard nav
+
+### Medium Priority Issues:
+1. **Bundle Size** - No code splitting for workshop
+2. **SEO** - Poor meta tags and no sitemap
+3. **Performance** - No lazy loading for images
+4. **Documentation** - Outdated and inaccurate
+5. **CI/CD** - No automated testing pipeline
+
+### Estimated Effort to Fix:
+- **Critical Issues**: 2-3 days
+- **High Priority**: 1-2 weeks  
+- **Medium Priority**: 2-3 weeks
+- **Total Technical Debt**: ~1 month of focused work
+
+---
+
 ## 🎯 Key Commands & Development
 
 ### Quick Start
@@ -713,6 +786,52 @@ The documentation describes an extremely sophisticated AI system that does NOT e
 4. Only then consider building full vision
 
 **Critical Decision Required**: Continue claiming features that don't exist, or pivot to realistic MVP approach?
+
+---
+
+## 🐛 KNOWN CRITICAL BUGS & SOLUTIONS
+
+### 1. Brand House Workshop Crash (January 7, 2025)
+
+**Symptoms**: 
+- Application shows "Something went wrong" error when selecting more than 3 traits
+- Error boundary triggered, forcing page refresh
+- Redux DevTools may crash or freeze
+
+**Root Causes**:
+1. **Double Redux Persistence**: Workshop state persisted at both slice and root level
+2. **Redux DevTools Serialization**: Can't handle nested `_persist` metadata
+3. **Missing Null Checks**: Workshop actions assume state exists
+4. **Type Safety Issues**: Incorrect selector types and hook violations
+
+**Quick Fix** (Temporary):
+```bash
+# Clear corrupted state in browser console:
+localStorage.removeItem('persist:root');
+localStorage.removeItem('persist:workshop');
+location.reload();
+```
+
+**Permanent Fix**: Implement the 6-step solution in IMPLEMENTATION_TRACKER.md
+
+**Prevention**:
+- Never persist the same slice at multiple levels
+- Always add null checks in Redux actions
+- Configure DevTools to handle non-serializable data
+- Use proper TypeScript types for selectors
+
+### 2. Authentication State Sync Issues
+
+**Fixed on January 6, 2025**: Supabase and Redux auth states now properly synchronized.
+
+### 3. Missing Dependencies
+
+**Common Issues**:
+- `react-phone-number-input` not installed
+- Missing Supabase client configuration
+- Environment variables not set in Vercel
+
+**Solution**: Check package.json and .env.example for all required dependencies and variables.
 
 ---
 

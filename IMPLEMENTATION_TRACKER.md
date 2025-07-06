@@ -1382,9 +1382,36 @@ WorkshopState {
 
 ---
 
-**Document Updated**: January 2025
-**Purpose**: Provide honest assessment for stakeholders
-**Next Step**: Schedule reality alignment meeting
+**Document Updated**: January 7, 2025
+**Purpose**: Track implementation progress and critical bugs
+**Next Step**: Fix Brand House Workshop crash before any other features
+
+---
+
+## 🚨 FOR NEXT DEVELOPER - START HERE
+
+### Most Critical Issue: Brand House Workshop Crash
+**Problem**: Users cannot select values in Brand House assessment without app crashing
+**Status**: Partially fixed but still occurring
+**Files to Check**:
+1. `/src/components/workshop/steps/ValuesAudit.tsx` - Component with the issue
+2. `/src/store/slices/workshopSlice.ts` - Redux state management
+3. `/src/utils/workshopStateHelper.ts` - State validation helpers
+4. `/DEBUG_WORKSHOP_ISSUE.md` - Debugging guide
+
+**Quick Test**:
+1. Go to https://brandpillar-ai.vercel.app
+2. Login with Google
+3. Navigate to Brand House
+4. Try selecting 4+ values
+5. App will show "Something went wrong"
+
+**Emergency Fix for Users**:
+- Use incognito mode
+- Or add `?reset=true` to URL
+- Or clear all browser data
+
+**Next Steps**: Follow the debugging steps in section "IMMEDIATE NEXT STEPS REQUIRED" above
 
 ### 🚀 UPDATED GO-LIVE COMMAND SEQUENCE
 
@@ -1513,3 +1540,389 @@ The BrandPillar AI platform is now a streamlined, market-ready MVP that combines
 - Implemented session persistence
 
 **🚀 BrandPillar AI is LIVE at https://brandpillar-ai.vercel.app!**
+
+---
+
+## 🚨 CRITICAL BUG - JANUARY 7, 2025 (PARTIALLY FIXED)
+
+### Brand House Workshop Error: "Something went wrong" - STILL OCCURRING
+
+**Issue**: Application continues to crash when users select values in the Brand House Values Audit step.
+
+**Fixes Already Applied**:
+1. ✅ Removed double Redux persistence in store configuration
+2. ✅ Enhanced Redux DevTools to handle non-serializable data
+3. ✅ Added null safety checks to all workshop Redux actions
+4. ✅ Updated ValuesAudit to use proper selectWorkshopState selector
+5. ✅ Created workshopStateHelper.ts for state validation
+6. ✅ Enhanced error boundary with better debugging
+7. ✅ Added comprehensive error logging
+
+**Root Cause Analysis**:
+
+#### 1. **Double Redux Persistence Configuration** (PRIMARY CAUSE)
+The workshop slice is being persisted at two levels simultaneously:
+```typescript
+// PROBLEM: Workshop is persisted at slice level
+workshop: persistReducer(workshopPersistConfig, workshopSlice),
+
+// AND ALSO at root level (causing double persistence)
+const persistedReducer = persistReducer(persistConfig, rootReducer);
+```
+This causes:
+- Serialization conflicts when Redux Persist tries to save/restore data twice
+- Corrupted state with nested `_persist` metadata
+- Redux DevTools crashes trying to display the double-persisted state
+
+#### 2. **Redux DevTools Serialization Error**
+- DevTools attempts to serialize non-serializable `_persist` metadata
+- Each trait selection triggers a state update that DevTools can't handle
+- The crash happens immediately after the 3rd selection
+
+#### 3. **Missing Safety Checks**
+```typescript
+// PROBLEM: No null checks in workshop actions
+selectValue: (state, action) => {
+  if (!state.values.selected.includes(action.payload)) {
+    state.values.selected.push(action.payload); // Assumes state.values exists
+  }
+}
+```
+
+#### 4. **Type Safety Issues**
+- Workshop selectors using local `StateWithWorkshop` type instead of `RootState`
+- Missing proper type guards for persisted state
+- React hooks (useComponentPerformance) violating rules of hooks
+
+### ✅ DEBUGGING IMPROVEMENTS IMPLEMENTED (January 7, 2025 - Session 2)
+
+The following additional debugging and recovery features have been implemented:
+
+#### 1. ✅ State Reset Mechanism
+- Added URL-based reset: `?reset=true` clears all persisted state
+- Implemented in App.tsx at startup
+- Users can now recover from corrupted state easily
+
+#### 2. ✅ Redux Debugging Middleware
+- Created `workshopDebuggerMiddleware` in `/src/store/middleware/workshopDebugger.ts`
+- Logs detailed information about every workshop action
+- Can be enabled via console: `window.enableWorkshopDebugging()`
+- Tracks state changes, array corruption, and persistence issues
+
+#### 3. ✅ Debug Panel Page
+- Created `/debug-workshop` route (development only)
+- Shows current workshop state
+- Provides debug action buttons
+- Displays localStorage usage and sizes
+
+#### 4. ✅ Comprehensive Debug Guide
+- Created `WORKSHOP_DEBUG_GUIDE.md` with detailed instructions
+- Includes quick fixes for users
+- Developer debugging steps
+- Root cause analysis
+- Emergency recovery procedures
+
+### 🚨 NEXT STEPS IF BUG PERSISTS:
+
+#### 1. Test with Fresh State
+```bash
+# Navigate to:
+https://brandpillar-ai.vercel.app/?reset=true
+
+# Then test the workshop flow:
+1. Login with Google
+2. Go to Brand House
+3. Select 5-10 values one at a time
+4. Check console for errors
+```
+
+#### 2. Enable Debug Mode and Reproduce
+```javascript
+// In browser console:
+window.enableWorkshopDebugging();
+
+// Then reproduce the issue and check console logs
+```
+
+#### 3. Consider Disabling Workshop Persistence
+If the bug continues, temporarily disable workshop persistence:
+```typescript
+// In src/config/performance.ts
+persistKeys: [
+  'auth',
+  // 'workshop', // Temporarily disabled
+  'userPreferences',
+  'contentDrafts',
+],
+```
+
+#### 4. Implement Sentry for Production
+- Follow the existing Sentry setup guide
+- This will help track the issue in production
+- Get real user error reports
+
+### Emergency Workaround for Users:
+1. Use incognito/private browsing mode
+2. Clear all browser data for the site
+3. Add `?reset=true` to URL to force state reset
+
+### Original Solution Steps (Already Applied):
+
+#### Step 1: Fix Redux Persistence (Choose ONE approach)
+
+**Option A: Remove Root-Level Persistence for Workshop** (RECOMMENDED)
+```typescript
+// In src/store/index.ts
+const rootReducer = combineReducers({
+  auth: authSlice,
+  voice: voiceSlice,
+  content: contentSlice,
+  analytics: analyticsSlice,
+  subscription: subscriptionSlice,
+  ui: uiSlice,
+  workshop: workshopSlice, // Remove persistReducer wrapper
+  news: newsSlice,
+});
+
+// In src/store/persistConfig.ts
+export const persistConfig: PersistConfig<RootState> = {
+  key: 'root',
+  storage,
+  whitelist: ['auth', 'voice', 'content'], // Remove 'workshop'
+  // ... rest of config
+};
+
+// Create separate persisted workshop reducer
+export const persistedWorkshopReducer = persistReducer(workshopPersistConfig, workshopSlice);
+```
+
+**Option B: Remove Slice-Level Persistence**
+```typescript
+// In src/store/index.ts
+const rootReducer = combineReducers({
+  // ... other reducers
+  workshop: workshopSlice, // Use plain reducer
+  // ...
+});
+
+// Keep root persistence, update workshopPersistConfig usage
+```
+
+#### Step 2: Configure Redux DevTools Safely
+```typescript
+// In src/store/index.ts
+import { configureStore } from '@reduxjs/toolkit';
+
+const store = configureStore({
+  reducer: persistedReducer,
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware({
+      serializableCheck: {
+        ignoredActions: [
+          FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER,
+          'workshop/selectValue',
+          'workshop/deselectValue',
+        ],
+        ignoredActionsPaths: ['meta.arg', 'payload.timestamp'],
+        ignoredPaths: ['_persist', 'workshop._persist'],
+      },
+    }),
+  devTools: process.env.NODE_ENV !== 'production' && {
+    serialize: {
+      options: {
+        undefined: true,
+        function: false,
+        symbol: false,
+      },
+    },
+    actionSanitizer: (action) => {
+      if (action.type === 'workshop/selectValue' || action.type === 'workshop/deselectValue') {
+        return { ...action, _sanitized: true };
+      }
+      return action;
+    },
+    stateSanitizer: (state) => {
+      if (state.workshop?._persist) {
+        const { _persist, ...workshopWithoutPersist } = state.workshop;
+        return { ...state, workshop: workshopWithoutPersist };
+      }
+      return state;
+    },
+  },
+});
+```
+
+#### Step 3: Add Null Safety to Workshop Actions
+```typescript
+// In src/store/slices/workshopSlice.ts
+selectValue: (state, action: PayloadAction<string>) => {
+  // Initialize if needed
+  if (!state.values) {
+    state.values = { selected: [], custom: [], rankings: {} };
+  }
+  if (!state.values.selected) {
+    state.values.selected = [];
+  }
+  
+  // Add value if not already selected
+  if (!state.values.selected.includes(action.payload) && state.values.selected.length < 10) {
+    state.values.selected.push(action.payload);
+  }
+},
+
+deselectValue: (state, action: PayloadAction<string>) => {
+  if (state.values?.selected) {
+    state.values.selected = state.values.selected.filter(id => id !== action.payload);
+  }
+  if (state.values?.rankings) {
+    delete state.values.rankings[action.payload];
+  }
+},
+```
+
+#### Step 4: Fix Component Error Handling
+```typescript
+// In src/components/workshop/steps/ValuesAudit.tsx
+const ValuesAudit: React.FC = () => {
+  const dispatch = useAppDispatch();
+  
+  // Safe selectors with defaults
+  const selectedValues = useAppSelector((state) => 
+    state.workshop?.values?.selected || []
+  );
+  const customValues = useAppSelector((state) => 
+    state.workshop?.values?.custom || []
+  );
+  const rankings = useAppSelector((state) => 
+    state.workshop?.values?.rankings || {}
+  );
+
+  const handleValueToggle = useCallback((valueId: string) => {
+    try {
+      if (selectedValues.includes(valueId)) {
+        dispatch(deselectValue(valueId));
+      } else if (selectedValues.length < 10) {
+        dispatch(selectValue(valueId));
+      }
+    } catch (error) {
+      console.error('Error toggling value:', error);
+      // Could show user-friendly error toast here
+    }
+  }, [selectedValues, dispatch]);
+  
+  // ... rest of component
+};
+```
+
+#### Step 5: Add Workshop-Specific Error Boundary
+```typescript
+// Create src/components/workshop/WorkshopErrorBoundary.tsx
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
+
+class WorkshopErrorBoundary extends React.Component<
+  { children: React.ReactNode },
+  { hasError: boolean; error?: Error }
+> {
+  constructor(props: { children: React.ReactNode }) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    console.error('Workshop error:', error, errorInfo);
+    
+    // Clear corrupted workshop state
+    try {
+      const persistRoot = localStorage.getItem('persist:root');
+      if (persistRoot) {
+        const parsed = JSON.parse(persistRoot);
+        delete parsed.workshop;
+        localStorage.setItem('persist:root', JSON.stringify(parsed));
+      }
+      localStorage.removeItem('persist:workshop');
+    } catch (e) {
+      console.error('Failed to clear workshop state:', e);
+    }
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+          <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-6">
+            <h2 className="text-xl font-bold text-gray-900 mb-4">
+              Workshop Error
+            </h2>
+            <p className="text-gray-600 mb-4">
+              We encountered an error with your workshop session. 
+              Your progress has been saved.
+            </p>
+            <button
+              onClick={() => window.location.reload()}
+              className="w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700"
+            >
+              Restart Workshop
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
+
+// Wrap WorkshopContainer with error boundary
+export default function WorkshopContainerWithErrorBoundary() {
+  return (
+    <WorkshopErrorBoundary>
+      <WorkshopContainer />
+    </WorkshopErrorBoundary>
+  );
+}
+```
+
+#### Step 6: Fix React Hooks Violations
+```typescript
+// In src/utils/performance.ts
+import { useEffect } from 'react';
+
+export const useComponentPerformance = (componentName: string) => {
+  useEffect(() => {
+    if (!PERFORMANCE_CONFIG.enableComponentTracking) {
+      return;
+    }
+
+    const endTracking = componentTracker.startTracking(componentName);
+    
+    return () => {
+      if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
+        window.requestIdleCallback(() => endTracking());
+      } else {
+        setTimeout(endTracking, 0);
+      }
+    };
+  }, [componentName]);
+};
+```
+
+### Testing the Fix:
+1. Clear browser localStorage completely
+2. Restart the development server
+3. Navigate to Brand House
+4. Try selecting 4+ traits - should work without errors
+5. Check Redux DevTools - should show clean state without _persist
+
+### Prevention Measures:
+1. Add E2E tests for workshop flow
+2. Add unit tests for Redux actions with edge cases
+3. Set up error monitoring (Sentry) for production
+4. Document Redux persistence strategy clearly
+5. Add TypeScript strict mode for better type safety
+
+---
