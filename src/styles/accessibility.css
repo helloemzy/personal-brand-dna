@@ -1,0 +1,235 @@
+/**
+ * Accessibility Styles
+ * High contrast mode and other accessibility-specific styles
+ */
+
+/* High Contrast Mode Support */
+@media (prefers-contrast: high) {
+  /* Increase contrast for text */
+  body {
+    color: #000;
+    background-color: #fff;
+  }
+  
+  /* Stronger borders */
+  button,
+  input,
+  select,
+  textarea,
+  .border,
+  .border-gray-200,
+  .border-gray-300 {
+    border-color: #000 !important;
+    border-width: 2px !important;
+  }
+  
+  /* High contrast buttons */
+  .bg-blue-600,
+  .bg-blue-500 {
+    background-color: #0000ff !important;
+    color: #fff !important;
+  }
+  
+  .bg-gray-200,
+  .bg-gray-100 {
+    background-color: #e0e0e0 !important;
+    color: #000 !important;
+  }
+  
+  /* Links */
+  a {
+    color: #0000ff !important;
+    text-decoration: underline !important;
+  }
+  
+  a:visited {
+    color: #800080 !important;
+  }
+  
+  /* Focus indicators */
+  *:focus {
+    outline: 3px solid #000 !important;
+    outline-offset: 2px !important;
+  }
+  
+  /* Error states */
+  .text-red-600,
+  .text-red-500 {
+    color: #ff0000 !important;
+  }
+  
+  /* Success states */
+  .text-green-600,
+  .text-green-500 {
+    color: #008000 !important;
+  }
+}
+
+/* Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  
+  .transition-all,
+  .transition-colors,
+  .transition-opacity,
+  .transition-transform {
+    transition: none !important;
+  }
+}
+
+/* Color Blind Friendly Palette */
+:root {
+  /* Colorblind-safe palette */
+  --cb-blue: #0173B2;
+  --cb-orange: #DE8F05;
+  --cb-green: #029E73;
+  --cb-yellow: #CC78BC;
+  --cb-red: #CA0020;
+  --cb-purple: #7B3294;
+  --cb-gray: #949494;
+}
+
+/* Focus Visible Enhancements */
+.focus-visible:focus {
+  outline: none;
+}
+
+.focus-visible:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+
+/* Skip Links */
+.skip-link {
+  position: absolute;
+  left: -10000px;
+  top: auto;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+.skip-link:focus {
+  position: absolute;
+  left: 6px;
+  top: 6px;
+  width: auto;
+  height: auto;
+  overflow: visible;
+  z-index: 999;
+  padding: 0.5rem 1rem;
+  background: #000;
+  color: #fff;
+  text-decoration: none;
+  border-radius: 0.25rem;
+}
+
+/* Screen Reader Only Text */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+.not-sr-only:focus {
+  position: static;
+  width: auto;
+  height: auto;
+  padding: inherit;
+  margin: inherit;
+  overflow: visible;
+  clip: auto;
+  white-space: normal;
+}
+
+/* Keyboard Navigation Indicators */
+[role="tablist"] [role="tab"][aria-selected="true"] {
+  border-bottom: 3px solid currentColor;
+}
+
+[role="menu"] [role="menuitem"]:focus,
+[role="listbox"] [role="option"]:focus {
+  background-color: rgba(59, 130, 246, 0.1);
+  outline: 2px solid #3B82F6;
+  outline-offset: -2px;
+}
+
+/* Form Field Focus States */
+input:focus,
+select:focus,
+textarea:focus {
+  outline: 2px solid #3B82F6;
+  outline-offset: 0;
+  border-color: #3B82F6;
+}
+
+/* Error Announcement Styles */
+[role="alert"],
+[aria-live="assertive"] {
+  font-weight: 600;
+}
+
+/* Loading States */
+[aria-busy="true"] {
+  cursor: wait;
+  opacity: 0.7;
+}
+
+/* Disabled States */
+[disabled],
+[aria-disabled="true"] {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Touch Target Sizing */
+button,
+a,
+input[type="checkbox"],
+input[type="radio"],
+select {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* High Contrast Focus Indicators */
+@media (prefers-contrast: high) {
+  *:focus {
+    outline: 3px solid currentColor !important;
+    outline-offset: 2px !important;
+  }
+}
+
+/* Print Styles for Accessibility */
+@media print {
+  /* Ensure links are visible */
+  a[href]:after {
+    content: " (" attr(href) ")";
+  }
+  
+  /* Remove unnecessary elements */
+  nav,
+  aside,
+  .no-print {
+    display: none !important;
+  }
+  
+  /* High contrast for print */
+  * {
+    color: #000 !important;
+    background: #fff !important;
+  }
+}

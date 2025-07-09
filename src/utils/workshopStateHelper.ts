@@ -9,13 +9,18 @@ export const ensureWorkshopState = (state: Partial<WorkshopState> | null | undef
     currentStep: 1,
     completedSteps: [],
     isCompleted: false,
+    assessmentScore: null,
+    workshopPath: null,
     startedAt: null,
     lastSavedAt: null,
     completedAt: null,
     values: {
       selected: [],
       custom: [],
-      rankings: {}
+      rankings: {},
+      primary: [],
+      aspirational: [],
+      stories: {}
     },
     tonePreferences: {
       formal_casual: 0,
@@ -26,9 +31,8 @@ export const ensureWorkshopState = (state: Partial<WorkshopState> | null | undef
     audiencePersonas: [],
     writingSample: null,
     personalityQuiz: {
-      currentQuestionIndex: 0,
       responses: [],
-      results: null
+      currentQuestionIndex: 0
     },
     sessionId: null,
     isSaving: false,
@@ -48,7 +52,10 @@ export const ensureWorkshopState = (state: Partial<WorkshopState> | null | undef
       ...(state.values || {}),
       selected: Array.isArray(state.values?.selected) ? state.values.selected : [],
       custom: Array.isArray(state.values?.custom) ? state.values.custom : [],
-      rankings: state.values?.rankings || {}
+      rankings: state.values?.rankings || {},
+      primary: Array.isArray(state.values?.primary) ? state.values.primary : [],
+      aspirational: Array.isArray(state.values?.aspirational) ? state.values.aspirational : [],
+      stories: state.values?.stories || {}
     },
     tonePreferences: {
       ...defaultState.tonePreferences,
@@ -60,7 +67,9 @@ export const ensureWorkshopState = (state: Partial<WorkshopState> | null | undef
       responses: Array.isArray(state.personalityQuiz?.responses) ? state.personalityQuiz.responses : []
     },
     completedSteps: Array.isArray(state.completedSteps) ? state.completedSteps : [],
-    audiencePersonas: Array.isArray(state.audiencePersonas) ? state.audiencePersonas : []
+    audiencePersonas: Array.isArray(state.audiencePersonas) ? state.audiencePersonas : [],
+    assessmentScore: typeof state.assessmentScore === 'number' ? state.assessmentScore : null,
+    workshopPath: state.workshopPath || null
   };
 };
 

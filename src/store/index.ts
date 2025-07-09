@@ -5,6 +5,7 @@ import { persistConfig } from './persistConfig';
 import { configureReduxDevTools } from '../utils/reduxDevtools';
 import { errorLoggerMiddleware } from './middleware/errorLogger';
 import { workshopDebuggerMiddleware } from './middleware/workshopDebugger';
+import { sentryMiddleware, createSentryCrashReporter } from './middleware/sentryMiddleware';
 
 // Import slices
 import authSlice from './slices/authSlice';
@@ -62,7 +63,12 @@ export const store = configureStore({
           'workshop.sessionStartedAt',
         ],
       },
-    }).concat(errorLoggerMiddleware, workshopDebuggerMiddleware),
+    }).concat(
+      sentryMiddleware, 
+      createSentryCrashReporter(), 
+      errorLoggerMiddleware, 
+      workshopDebuggerMiddleware
+    ),
   devTools: process.env.NODE_ENV !== 'production' && {
     serialize: {
       options: {

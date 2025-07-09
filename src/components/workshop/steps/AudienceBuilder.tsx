@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { Plus, Edit2, Trash2, Users, Target, Briefcase, MessageSquare } from 'lucide-react';
+import { Plus, Edit2, Trash2, Users, Target, Briefcase, MessageSquare, Star } from 'lucide-react';
 import { 
   selectWorkshopState,
   addPersona,
   updatePersona,
   removePersona,
+  setPrimaryPersona,
   AudiencePersona
 } from '../../../store/slices/workshopSlice';
 import { AppDispatch } from '../../../store';
@@ -63,6 +64,11 @@ const PersonaForm: React.FC<{
       ageRange: '',
       experience: '',
       company_size: ''
+    },
+    transformation: persona?.transformation || {
+      outcome: '',
+      beforeState: '',
+      afterState: ''
     }
   });
 
@@ -233,6 +239,61 @@ const PersonaForm: React.FC<{
         </button>
       </div>
 
+      {/* Transformation Section */}
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-4">
+        <h4 className="font-medium text-blue-900">Transformation Journey</h4>
+        
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            What's the #1 transformation you help them achieve?
+          </label>
+          <textarea
+            value={formData.transformation.outcome}
+            onChange={(e) => setFormData(prev => ({
+              ...prev,
+              transformation: { ...prev.transformation, outcome: e.target.value }
+            }))}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            placeholder="e.g., Transform from overwhelmed manager to confident leader who runs efficient, motivated teams"
+            rows={2}
+          />
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              How do they feel BEFORE working with you?
+            </label>
+            <textarea
+              value={formData.transformation.beforeState}
+              onChange={(e) => setFormData(prev => ({
+                ...prev,
+                transformation: { ...prev.transformation, beforeState: e.target.value }
+              }))}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="e.g., Stressed, overwhelmed, unsure, lacking confidence"
+              rows={2}
+            />
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              How do they feel AFTER working with you?
+            </label>
+            <textarea
+              value={formData.transformation.afterState}
+              onChange={(e) => setFormData(prev => ({
+                ...prev,
+                transformation: { ...prev.transformation, afterState: e.target.value }
+              }))}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="e.g., Confident, in control, inspired, empowered"
+              rows={2}
+            />
+          </div>
+        </div>
+      </div>
+
       {/* Optional Demographics */}
       <div>
         <h4 className="text-sm font-medium text-gray-700 mb-2">
@@ -296,7 +357,8 @@ const PersonaCard: React.FC<{
   persona: AudiencePersona;
   onEdit: () => void;
   onDelete: () => void;
-}> = ({ persona, onEdit, onDelete }) => {
+  onSetPrimary: () => void;
+}> = ({ persona, onEdit, onDelete, onSetPrimary }) => {
   return (
     <div className="bg-white border border-gray-200 rounded-lg p-5 hover:shadow-md transition-shadow">
       <div className="flex justify-between items-start mb-3">
@@ -305,6 +367,15 @@ const PersonaCard: React.FC<{
           <p className="text-sm text-gray-600">{persona.role} • {persona.industry}</p>
         </div>
         <div className="flex space-x-2">
+          {!persona.isPrimary && (
+            <button
+              onClick={onSetPrimary}
+              className="text-gray-400 hover:text-yellow-600 transition-colors"
+              title="Set as primary audience"
+            >
+              <Star className="w-4 h-4" />
+            </button>
+          )}
           <button
             onClick={onEdit}
             className="text-gray-400 hover:text-blue-600 transition-colors"
@@ -351,7 +422,20 @@ const PersonaCard: React.FC<{
             <span className="font-medium">Communication:</span> {persona.communicationStyle}
           </span>
         </div>
+
+        {persona.transformation && persona.transformation.outcome && (
+          <div className="mt-3 pt-3 border-t border-gray-100">
+            <p className="text-sm font-medium text-gray-700 mb-1">Transformation</p>
+            <p className="text-sm text-gray-600">{persona.transformation.outcome}</p>
+          </div>
+        )}
       </div>
+
+      {persona.isPrimary && (
+        <div className="mt-3 px-2 py-1 bg-blue-100 text-blue-700 text-xs font-medium rounded-full text-center">
+          Primary Audience
+        </div>
+      )}
     </div>
   );
 };
@@ -387,6 +471,10 @@ const AudienceBuilder: React.FC = () => {
     if (window.confirm('Are you sure you want to delete this persona?')) {
       dispatch(removePersona(id));
     }
+  };
+
+  const handleSetPrimaryPersona = (id: string) => {
+    dispatch(setPrimaryPersona(id));
   };
 
   const handleEditPersona = (persona: AudiencePersona) => {
@@ -461,6 +549,7 @@ const AudienceBuilder: React.FC = () => {
                   persona={persona}
                   onEdit={() => handleEditPersona(persona)}
                   onDelete={() => handleDeletePersona(persona.id)}
+                  onSetPrimary={() => handleSetPrimaryPersona(persona.id)}
                 />
               ))}
             </div>
@@ -484,6 +573,12 @@ const AudienceBuilder: React.FC = () => {
             <strong>{audiencePersonas.length} persona{audiencePersonas.length > 1 ? 's' : ''}</strong> created. 
             Your content will be tailored to resonate with these specific audience segments.
           </p>
+          {audiencePersonas.length > 1 && !audiencePersonas.some(p => p.isPrimary) && (
+            <p className="text-sm text-orange-700 mt-2">
+              <Star className="w-4 h-4 inline mr-1" />
+              Tip: Click the star icon to set your primary audience for more focused content.
+            </p>
+          )}
         </div>
       )}
     </div>

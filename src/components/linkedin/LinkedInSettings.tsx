@@ -1,15 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import {
-  FaLinkedin,
-  FaCheckCircle,
-  FaTimesCircle,
-  FaShieldAlt,
-  FaCog,
-  FaExclamationTriangle,
-  FaDownload,
-  FaTrash
-} from 'react-icons/fa';
+import { FaLinkedin, FaCheckCircle, FaTimesCircle, FaShieldAlt, FaCog, FaExclamationTriangle, FaDownload, FaTrash } from '../../utils/icons';
 import Toast, { toast } from '../Toast';
+import { linkedinAPI } from '../../services/linkedinAPI';
 
 interface LinkedInStatus {
   connected: boolean;
@@ -49,19 +41,12 @@ const LinkedInSettings: React.FC = () => {
   const checkLinkedInStatus = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch('/api/linkedin/status', {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
+      const response = await linkedinAPI.getStatus();
+      setStatus({
+        connected: response.data.connected,
+        linkedinUserName: response.data.linkedinId,
+        expiresAt: response.data.expiresAt
       });
-      const data = await response.json();
-      if (data.success) {
-        setStatus({
-          connected: data.connected,
-          linkedinUserName: data.linkedinUserName,
-          expiresAt: data.expiresAt
-        });
-      }
     } catch (error) {
       console.error('Failed to check LinkedIn status:', error);
     } finally {
@@ -71,39 +56,29 @@ const LinkedInSettings: React.FC = () => {
 
   const fetchCompliance = async () => {
     try {
-      const response = await fetch('/api/linkedin/compliance', {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-      });
-      const data = await response.json();
-      if (data.success) {
-        setCompliance(data.compliance);
-      }
+      const response = await linkedinAPI.getCompliance();
+      setCompliance(response.data);
     } catch (error) {
       console.error('Failed to fetch compliance data:', error);
     }
   };
 
-  const connectLinkedIn = () => {
-    window.location.href = '/api/linkedin/auth';
+  const connectLinkedIn = async () => {
+    try {
+      const response = await linkedinAPI.startAuth();
+      window.location.href = response.data.authUrl;
+    } catch (error) {
+      console.error('Failed to start LinkedIn auth:', error);
+      toast.error('Failed to connect to LinkedIn');
+    }
   };
 
   const disconnectLinkedIn = async () => {
     try {
-      const response = await fetch('/api/linkedin/disconnect', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-      });
-      
-      const data = await response.json();
-      if (data.success) {
-        setStatus({ connected: false });
-        setShowDisconnectModal(false);
-        toast.success('LinkedIn account disconnected successfully');
-      }
+      await linkedinAPI.disconnect();
+      setStatus({ connected: false });
+      setShowDisconnectModal(false);
+      toast.success('LinkedIn account disconnected successfully');
     } catch (error) {
       toast.error('Failed to disconnect LinkedIn account');
     }

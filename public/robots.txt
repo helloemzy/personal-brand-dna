@@ -1,0 +1,28 @@
+User-agent: *
+Allow: /
+
+User-agent: *
+Disallow: /api/
+Disallow: /admin/
+Disallow: /workshop/steps/
+Disallow: /_next/
+Disallow: /static/
+
+# Allow search engines to access public share pages
+Allow: /share/
+
+# Block bad bots
+User-agent: AhrefsBot
+Disallow: /
+
+User-agent: SemrushBot
+Disallow: /
+
+User-agent: MJ12bot
+Disallow: /
+
+User-agent: DotBot
+Disallow: /
+
+# Sitemap location
+Sitemap: https://brandpillar-ai.vercel.app/sitemap.xml

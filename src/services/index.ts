@@ -8,6 +8,10 @@ export { calendarAPI } from './calendarAPI';
 export { linkedinAPI } from './linkedinAPI';
 export { monitoringAPI, captureError } from './monitoringAPI';
 
+// Export persistence services
+export { workshopPersistence } from './workshopPersistenceService';
+export type { OfflineQueueItem, ConflictResolution } from './workshopPersistenceService';
+
 // Re-export types
 export type {
   // Content types

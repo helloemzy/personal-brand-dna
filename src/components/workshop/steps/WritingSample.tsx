@@ -1,6 +1,6 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { Upload, FileText, BarChart3, AlertCircle, CheckCircle } from 'lucide-react';
+import { Upload, FileText, BarChart3, AlertCircle, CheckCircle, Sparkles, Target } from 'lucide-react';
 import { 
   selectWorkshopState,
   setWritingSample,
@@ -8,25 +8,114 @@ import {
 } from '../../../store/slices/workshopSlice';
 import { AppDispatch } from '../../../store';
 
-// Sample writing prompts for users who need inspiration
-const writingPrompts = [
+// Type for writing prompts
+interface WritingPrompt {
+  title: string;
+  prompt: string;
+  category: 'expertise' | 'experience' | 'evolution';
+  tags: string[];
+  personalized?: boolean;
+}
+
+// Base writing prompts
+const baseWritingPrompts: WritingPrompt[] = [
   {
     title: 'Professional Achievement',
-    prompt: 'Describe a recent professional achievement or project you\'re proud of. What was the challenge, your approach, and the outcome?'
+    prompt: 'Describe a recent professional achievement or project you\'re proud of. What was the challenge, your approach, and the outcome?',
+    category: 'expertise',
+    tags: ['achievement', 'results', 'expertise']
   },
   {
     title: 'Industry Insight',
-    prompt: 'Share your perspective on a current trend or challenge in your industry. What do you think professionals should know about it?'
+    prompt: 'Share your perspective on a current trend or challenge in your industry. What do you think professionals should know about it?',
+    category: 'evolution',
+    tags: ['trends', 'insights', 'thought-leadership']
   },
   {
     title: 'Leadership Experience',
-    prompt: 'Write about a time when you led a team or initiative. What leadership lessons did you learn from the experience?'
+    prompt: 'Write about a time when you led a team or initiative. What leadership lessons did you learn from the experience?',
+    category: 'experience',
+    tags: ['leadership', 'teams', 'lessons']
   },
   {
     title: 'Problem-Solution Story',
-    prompt: 'Describe a complex problem you solved at work. Walk through your thought process and the solution you implemented.'
+    prompt: 'Describe a complex problem you solved at work. Walk through your thought process and the solution you implemented.',
+    category: 'expertise',
+    tags: ['problem-solving', 'analytical', 'technical']
+  },
+  {
+    title: 'Career Journey',
+    prompt: 'Tell the story of a pivotal moment in your career that shaped who you are professionally today.',
+    category: 'experience',
+    tags: ['journey', 'growth', 'personal']
+  },
+  {
+    title: 'Future Vision',
+    prompt: 'What change do you want to see in your industry in the next 5 years? How are you contributing to making it happen?',
+    category: 'evolution',
+    tags: ['vision', 'innovation', 'change']
   }
 ];
+
+// Function to generate personalized prompts based on user data
+const generatePersonalizedPrompts = (workshopState: any): WritingPrompt[] => {
+  const prompts = [...baseWritingPrompts];
+  const personalizedPrompts: WritingPrompt[] = [];
+  
+  // Get user's primary audience
+  const primaryAudience = workshopState.audiencePersonas?.find((p: any) => p.isPrimary) || workshopState.audiencePersonas?.[0];
+  
+  // Get user's top values
+  const topValues = workshopState.values?.primary || [];
+  const valueName = topValues.length > 0 ? topValues[0] : null;
+  
+  // Add value-based prompt if user has selected values
+  if (valueName && workshopState.values?.selected) {
+    const valueObj = workshopState.values.selected.find((v: string) => v === valueName);
+    personalizedPrompts.push({
+      title: 'Living Your Values',
+      prompt: `Share a specific example of how you've demonstrated ${valueName} in your professional life. What happened and what impact did it have?`,
+      category: 'experience',
+      tags: ['values', 'authenticity', 'personal'],
+      personalized: true
+    });
+  }
+  
+  // Add audience-based prompt if user has defined personas
+  if (primaryAudience) {
+    personalizedPrompts.push({
+      title: 'Client Transformation',
+      prompt: `Describe a time when you helped a ${primaryAudience.role} in ${primaryAudience.industry} overcome a significant challenge. What was their situation before and after working with you?`,
+      category: 'expertise',
+      tags: ['transformation', 'impact', 'client-success'],
+      personalized: true
+    });
+    
+    // Add transformation-focused prompt if transformation data exists
+    if (primaryAudience.transformation?.outcome) {
+      personalizedPrompts.push({
+        title: 'Transformation Story',
+        prompt: `Tell the story of how you helped someone achieve this transformation: "${primaryAudience.transformation.outcome}". Include specific details about their journey.`,
+        category: 'experience',
+        tags: ['transformation', 'results', 'storytelling'],
+        personalized: true
+      });
+    }
+  }
+  
+  // Add industry-specific prompt
+  const industry = primaryAudience?.industry || 'your industry';
+  personalizedPrompts.push({
+    title: 'Industry Expertise',
+    prompt: `What's one thing about ${industry} that most people misunderstand? Share your insider perspective and explain why this matters.`,
+    category: 'expertise',
+    tags: ['expertise', 'insights', 'education'],
+    personalized: true
+  });
+  
+  // Return personalized prompts first, then base prompts
+  return [...personalizedPrompts, ...prompts].slice(0, 8);
+};
 
 // Analysis metrics display component
 const AnalysisResults: React.FC<{
@@ -110,11 +199,16 @@ const AnalysisResults: React.FC<{
 // Main component
 const WritingSample: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
-  const { writingSample } = useSelector(selectWorkshopState);
+  const workshopState = useSelector(selectWorkshopState);
+  const { writingSample } = workshopState;
   const [text, setText] = useState(writingSample?.text || '');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [selectedPrompt, setSelectedPrompt] = useState<number | null>(null);
+  const [promptCategory, setPromptCategory] = useState<string>('all');
   const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  // Generate personalized prompts
+  const writingPrompts = useMemo(() => generatePersonalizedPrompts(workshopState), [workshopState]);
 
   const wordCount = text.trim().split(/\s+/).filter(word => word.length > 0).length;
   const minWords = 150;
@@ -191,30 +285,106 @@ const WritingSample: React.FC = () => {
           Provide a sample of your professional writing (150-1000 words). This helps us analyze 
           your natural communication style, tone, and patterns.
         </p>
+        
+        {/* Content Pillars Info */}
+        <div className="mt-4 p-3 bg-blue-50 rounded-lg">
+          <div className="flex items-start">
+            <Target className="w-5 h-5 text-blue-600 mt-0.5 mr-2 flex-shrink-0" />
+            <div className="text-sm text-blue-900">
+              <p className="font-medium mb-1">Your content will be analyzed for 3 pillars:</p>
+              <ul className="space-y-1 text-blue-700">
+                <li>• <strong>Expertise (40%):</strong> What you know - skills, insights, knowledge</li>
+                <li>• <strong>Experience (35%):</strong> What you've learned - stories, lessons, journey</li>
+                <li>• <strong>Evolution (25%):</strong> Where you're going - vision, trends, innovation</li>
+              </ul>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Writing Prompts */}
       <div className="mb-6">
-        <h3 className="text-lg font-medium text-gray-900 mb-3">
-          Need inspiration? Try one of these prompts:
-        </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          {writingPrompts.map((prompt, index) => (
+        <div className="mb-4">
+          <h3 className="text-lg font-medium text-gray-900 mb-3">
+            Need inspiration? Try one of these prompts:
+          </h3>
+          
+          {/* Category Filter */}
+          <div className="flex flex-wrap gap-2 mb-4">
             <button
-              key={index}
-              onClick={() => handlePromptSelect(index)}
-              className={`
-                text-left p-4 rounded-lg border-2 transition-all
-                ${selectedPrompt === index
-                  ? 'border-blue-600 bg-blue-50'
-                  : 'border-gray-200 hover:border-gray-300 bg-white'
-                }
-              `}
+              onClick={() => setPromptCategory('all')}
+              className={`px-3 py-1 text-sm rounded-full transition-colors ${
+                promptCategory === 'all' 
+                  ? 'bg-blue-600 text-white' 
+                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              }`}
             >
-              <h4 className="font-medium text-gray-900">{prompt.title}</h4>
-              <p className="text-sm text-gray-600 mt-1">{prompt.prompt}</p>
+              All Prompts
             </button>
-          ))}
+            <button
+              onClick={() => setPromptCategory('expertise')}
+              className={`px-3 py-1 text-sm rounded-full transition-colors ${
+                promptCategory === 'expertise' 
+                  ? 'bg-blue-600 text-white' 
+                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              }`}
+            >
+              Expertise (40%)
+            </button>
+            <button
+              onClick={() => setPromptCategory('experience')}
+              className={`px-3 py-1 text-sm rounded-full transition-colors ${
+                promptCategory === 'experience' 
+                  ? 'bg-blue-600 text-white' 
+                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              }`}
+            >
+              Experience (35%)
+            </button>
+            <button
+              onClick={() => setPromptCategory('evolution')}
+              className={`px-3 py-1 text-sm rounded-full transition-colors ${
+                promptCategory === 'evolution' 
+                  ? 'bg-blue-600 text-white' 
+                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              }`}
+            >
+              Evolution (25%)
+            </button>
+          </div>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          {writingPrompts
+            .filter(prompt => promptCategory === 'all' || prompt.category === promptCategory)
+            .map((prompt, index) => (
+              <button
+                key={index}
+                onClick={() => handlePromptSelect(index)}
+                className={`
+                  relative text-left p-4 rounded-lg border-2 transition-all
+                  ${selectedPrompt === index
+                    ? 'border-blue-600 bg-blue-50'
+                    : 'border-gray-200 hover:border-gray-300 bg-white'
+                  }
+                `}
+              >
+                {prompt.personalized && (
+                  <div className="absolute top-2 right-2">
+                    <Sparkles className="w-4 h-4 text-purple-600" title="Personalized for you" />
+                  </div>
+                )}
+                <h4 className="font-medium text-gray-900 pr-8">{prompt.title}</h4>
+                <p className="text-sm text-gray-600 mt-1">{prompt.prompt}</p>
+                <div className="mt-2 flex gap-1">
+                  {prompt.tags.map((tag, tagIndex) => (
+                    <span key={tagIndex} className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded">
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              </button>
+            ))}
         </div>
       </div>
 

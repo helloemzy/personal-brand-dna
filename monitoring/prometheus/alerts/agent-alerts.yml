@@ -1,0 +1,48 @@
+groups:
+  - name: agent_alerts
+    interval: 30s
+    rules:
+      - alert: AgentDown
+        expr: up{job="agents"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "AI Agent is down"
+          description: "{{ $labels.agent_type }} agent has been down for more than 1 minute"
+
+      - alert: HighTaskFailureRate
+        expr: rate(agent_tasks_processed_total{status="failed"}[5m]) > 0.1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High task failure rate"
+          description: "{{ $labels.agent_type }} is experiencing {{ $value | humanizePercentage }} failure rate"
+
+      - alert: QueueBacklog
+        expr: agent_queue_depth > 1000
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Large queue backlog"
+          description: "{{ $labels.queue_name }} has {{ $value }} messages pending"
+
+      - alert: SlowTaskProcessing
+        expr: histogram_quantile(0.95, agent_task_duration_seconds_bucket) > 60
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Slow task processing"
+          description: "{{ $labels.agent_type }} 95th percentile processing time is {{ $value }}s"
+
+      - alert: HighMemoryUsage
+        expr: process_resident_memory_bytes{job="agents"} > 1e9
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High memory usage"
+          description: "Agent memory usage is {{ $value | humanize1024 }}B"

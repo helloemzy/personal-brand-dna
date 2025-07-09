@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaPhone, FaSpinner, FaCheckCircle, FaClock, FaMicrophone } from 'react-icons/fa';
+import { FaPhone, FaSpinner, FaCheckCircle, FaClock, FaMicrophone } from '../utils/icons';
 import { authAPI } from '../services/authAPI';
 
 const BrandDiscoveryPage: React.FC = () => {

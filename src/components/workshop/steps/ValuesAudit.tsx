@@ -1,11 +1,14 @@
 import React, { useState, useCallback, useMemo } from 'react';
-import { Plus, Info, Star } from 'lucide-react';
+import { Plus, Info, Star, ArrowRight } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '../../../hooks/redux';
 import { 
   selectValue,
   deselectValue,
   addCustomValue,
   rankValue,
+  setPrimaryValues,
+  setAspirationalValues,
+  addValueStory,
   selectWorkshopState,
   WorkshopValue
 } from '../../../store/slices/workshopSlice';
@@ -70,6 +73,9 @@ const ValuesAudit: React.FC = () => {
   const selectedValues = workshopState?.values?.selected || [];
   const customValues = workshopState?.values?.custom || [];
   const rankings = workshopState?.values?.rankings || {};
+  const primaryValues = workshopState?.values?.primary || [];
+  const aspirationalValues = workshopState?.values?.aspirational || [];
+  const valueStories = workshopState?.values?.stories || {};
   
   // Additional debug logging
   console.log('ValuesAudit - selectedValues:', selectedValues);
@@ -77,6 +83,9 @@ const ValuesAudit: React.FC = () => {
   
   const [showCustomForm, setShowCustomForm] = useState(false);
   const [customValueName, setCustomValueName] = useState('');
+  const [showHierarchy, setShowHierarchy] = useState(false);
+  const [storyValueId, setStoryValueId] = useState<string | null>(null);
+  const [storyText, setStoryText] = useState('');
 
   const handleValueToggle = useCallback((valueId: string) => {
     try {
@@ -149,6 +158,40 @@ const ValuesAudit: React.FC = () => {
   const getValueById = useCallback((id: string) => {
     return getAllValues.find(v => v.id === id);
   }, [getAllValues]);
+
+  const handlePrimaryValueToggle = useCallback((valueId: string) => {
+    const currentPrimary = [...primaryValues];
+    const index = currentPrimary.indexOf(valueId);
+    
+    if (index > -1) {
+      currentPrimary.splice(index, 1);
+    } else if (currentPrimary.length < 2) {
+      currentPrimary.push(valueId);
+    }
+    
+    dispatch(setPrimaryValues(currentPrimary));
+  }, [primaryValues, dispatch]);
+
+  const handleAspirationalValueToggle = useCallback((valueId: string) => {
+    const currentAspirational = [...aspirationalValues];
+    const index = currentAspirational.indexOf(valueId);
+    
+    if (index > -1) {
+      currentAspirational.splice(index, 1);
+    } else if (currentAspirational.length < 3) {
+      currentAspirational.push(valueId);
+    }
+    
+    dispatch(setAspirationalValues(currentAspirational));
+  }, [aspirationalValues, dispatch]);
+
+  const handleSaveStory = useCallback(() => {
+    if (storyValueId && storyText.trim()) {
+      dispatch(addValueStory({ valueId: storyValueId, story: storyText.trim() }));
+      setStoryValueId(null);
+      setStoryText('');
+    }
+  }, [storyValueId, storyText, dispatch]);
 
   return (
     <div className="space-y-6">
@@ -338,6 +381,178 @@ const ValuesAudit: React.FC = () => {
                 ) : null;
               })}
           </div>
+        </div>
+      )}
+
+      {/* Value Hierarchy Section */}
+      {Array.isArray(selectedValues) && selectedValues.length >= 5 && (
+        <div className="mt-8 space-y-6">
+          <button
+            onClick={() => setShowHierarchy(!showHierarchy)}
+            className="w-full flex items-center justify-between p-4 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors"
+          >
+            <div className="flex items-center">
+              <Star className="w-5 h-5 text-blue-600 mr-2" />
+              <span className="font-semibold text-blue-900">
+                Define Your Value Hierarchy
+              </span>
+            </div>
+            <ArrowRight className={`w-5 h-5 text-blue-600 transform transition-transform ${showHierarchy ? 'rotate-90' : ''}`} />
+          </button>
+
+          {showHierarchy && (
+            <div className="space-y-6 p-6 bg-gray-50 rounded-lg">
+              {/* Primary Values */}
+              <div>
+                <h3 className="font-semibold text-gray-900 mb-2">
+                  Which 2 values are absolutely non-negotiable for you?
+                </h3>
+                <p className="text-sm text-gray-600 mb-4">
+                  These are your core values that you will never compromise on.
+                </p>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                  {selectedValues.map((valueId) => {
+                    const value = getValueById(valueId);
+                    const isPrimary = primaryValues.includes(valueId);
+                    return value ? (
+                      <div
+                        key={valueId}
+                        onClick={() => handlePrimaryValueToggle(valueId)}
+                        className={`
+                          p-3 rounded-lg border-2 cursor-pointer transition-all
+                          ${isPrimary
+                            ? 'border-yellow-500 bg-yellow-50'
+                            : 'border-gray-200 hover:border-gray-300 bg-white'
+                          }
+                          ${primaryValues.length >= 2 && !isPrimary
+                            ? 'opacity-50 cursor-not-allowed'
+                            : ''
+                          }
+                        `}
+                      >
+                        <div className="flex items-center">
+                          {isPrimary && <Star className="w-4 h-4 text-yellow-500 mr-2" />}
+                          <span className="text-sm font-medium">{value.name}</span>
+                        </div>
+                      </div>
+                    ) : null;
+                  })}
+                </div>
+                {primaryValues.length < 2 && (
+                  <p className="text-xs text-orange-600 mt-2">
+                    Please select 2 non-negotiable values
+                  </p>
+                )}
+              </div>
+
+              {/* Aspirational Values */}
+              <div>
+                <h3 className="font-semibold text-gray-900 mb-2">
+                  Which values do you aspire to embody more?
+                </h3>
+                <p className="text-sm text-gray-600 mb-4">
+                  Select up to 3 values you want to develop further.
+                </p>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                  {selectedValues.map((valueId) => {
+                    const value = getValueById(valueId);
+                    const isAspirational = aspirationalValues.includes(valueId);
+                    const isPrimary = primaryValues.includes(valueId);
+                    return value && !isPrimary ? (
+                      <div
+                        key={valueId}
+                        onClick={() => handleAspirationalValueToggle(valueId)}
+                        className={`
+                          p-3 rounded-lg border-2 cursor-pointer transition-all
+                          ${isAspirational
+                            ? 'border-green-500 bg-green-50'
+                            : 'border-gray-200 hover:border-gray-300 bg-white'
+                          }
+                          ${aspirationalValues.length >= 3 && !isAspirational
+                            ? 'opacity-50 cursor-not-allowed'
+                            : ''
+                          }
+                        `}
+                      >
+                        <span className="text-sm font-medium">{value.name}</span>
+                      </div>
+                    ) : null;
+                  })}
+                </div>
+              </div>
+
+              {/* Value Stories */}
+              {primaryValues.length > 0 && (
+                <div>
+                  <h3 className="font-semibold text-gray-900 mb-2">
+                    Share a brief story about living your values
+                  </h3>
+                  <p className="text-sm text-gray-600 mb-4">
+                    Tell us about a time when you demonstrated one of your primary values.
+                  </p>
+                  <div className="space-y-3">
+                    {primaryValues.map((valueId) => {
+                      const value = getValueById(valueId);
+                      const hasStory = valueStories[valueId];
+                      return value ? (
+                        <div key={valueId} className="bg-white p-4 rounded-lg border border-gray-200">
+                          <div className="flex items-center justify-between mb-2">
+                            <h4 className="font-medium text-gray-900">{value.name}</h4>
+                            {hasStory ? (
+                              <span className="text-xs text-green-600">Story saved</span>
+                            ) : (
+                              <button
+                                onClick={() => {
+                                  setStoryValueId(valueId);
+                                  setStoryText(valueStories[valueId] || '');
+                                }}
+                                className="text-xs text-blue-600 hover:text-blue-700"
+                              >
+                                Add story
+                              </button>
+                            )}
+                          </div>
+                          {storyValueId === valueId ? (
+                            <div className="space-y-2">
+                              <textarea
+                                value={storyText}
+                                onChange={(e) => setStoryText(e.target.value)}
+                                placeholder="Describe a specific moment when this value guided your actions..."
+                                className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                                rows={3}
+                              />
+                              <div className="flex justify-end space-x-2">
+                                <button
+                                  onClick={() => {
+                                    setStoryValueId(null);
+                                    setStoryText('');
+                                  }}
+                                  className="px-3 py-1 text-sm text-gray-600 hover:text-gray-800"
+                                >
+                                  Cancel
+                                </button>
+                                <button
+                                  onClick={handleSaveStory}
+                                  disabled={!storyText.trim()}
+                                  className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                  Save Story
+                                </button>
+                              </div>
+                            </div>
+                          ) : (
+                            hasStory && (
+                              <p className="text-sm text-gray-600">{valueStories[valueId]}</p>
+                            )
+                          )}
+                        </div>
+                      ) : null;
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
 

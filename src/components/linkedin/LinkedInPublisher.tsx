@@ -1,12 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  FaLinkedin, 
-  FaCheckCircle, 
-  FaTimesCircle,
-  FaExclamationTriangle,
-  FaChartLine,
-  FaShieldAlt
-} from 'react-icons/fa';
+import { FaLinkedin, FaCheckCircle, FaTimesCircle, FaExclamationTriangle, FaChartLine, FaShieldAlt } from '../../utils/icons';
 
 // Type assertion to fix React Icons issue
 const FaLinkedinIcon = FaLinkedin as any;

@@ -7,6 +7,7 @@ import storage from 'redux-persist/lib/storage';
 import { createTransform } from 'redux-persist';
 import type { PersistConfig } from 'redux-persist';
 import { REDUX_PERSIST_CONFIG } from '../config/performance';
+import { workshopMigrate, WORKSHOP_MIGRATION_VERSION } from './migrations/workshopMigrations';
 
 // Transform to compress large objects before persisting
 const compressTransform = createTransform(
@@ -69,6 +70,8 @@ export const persistConfig: PersistConfig<any> = {
   transforms: [compressTransform, sizeLimitTransform, dateTransform],
   debug: process.env['NODE_ENV'] === 'development',
   throttle: REDUX_PERSIST_CONFIG.debounce,
+  version: WORKSHOP_MIGRATION_VERSION,
+  migrate: workshopMigrate,
 };
 
 // Specific persist configs for different slices
@@ -85,6 +88,8 @@ export const workshopPersistConfig = {
   whitelist: ['values', 'tonePreferences', 'audiencePersonas', 'writingSample', 'personalityQuiz', 'completedSteps', 'sessionId'],
   blacklist: ['isSaving', 'lastError'],
   throttle: 2000, // Debounce workshop saves
+  version: WORKSHOP_MIGRATION_VERSION,
+  migrate: workshopMigrate,
 };
 
 export const contentPersistConfig = {

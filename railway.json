@@ -1,9 +1,29 @@
 {
-  "$schema": "https://schema.up.railway.app/railway.schema.json",
+  "$schema": "https://railway.app/railway.schema.json",
   "build": {
-    "builder": "NIXPACKS"
+    "builder": "NIXPACKS",
+    "buildCommand": "npm install && npm run build:agents",
+    "watchPatterns": [
+      "apps/agents/**",
+      "packages/**"
+    ]
   },
   "deploy": {
-    "startCommand": "npm start"
+    "startCommand": "npm run start:agents",
+    "healthcheckPath": "/health",
+    "healthcheckTimeout": 30,
+    "restartPolicyType": "ON_FAILURE",
+    "restartPolicyMaxRetries": 3
+  },
+  "environments": {
+    "production": {
+      "CLOUDAMQP_URL": "${{ CLOUDAMQP_URL }}",
+      "REDIS_URL": "${{ REDIS_URL }}",
+      "SUPABASE_URL": "${{ SUPABASE_URL }}",
+      "SUPABASE_SERVICE_KEY": "${{ SUPABASE_SERVICE_KEY }}",
+      "OPENAI_API_KEY": "${{ OPENAI_API_KEY }}",
+      "NODE_ENV": "production",
+      "LOG_LEVEL": "info"
+    }
   }
 }

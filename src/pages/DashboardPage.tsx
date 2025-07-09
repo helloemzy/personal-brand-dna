@@ -1,19 +1,33 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAppSelector } from '../hooks/redux';
+import { selectWorkshopState } from '../store/slices/workshopSlice';
 import TrialBanner from '../components/TrialBanner';
+import { useTracking } from '../hooks/useTracking';
+import SEO from '../components/SEO';
 
 const DashboardPage: React.FC = () => {
   const { user } = useAppSelector((state) => state.auth);
-
+  const workshopState = useAppSelector(selectWorkshopState);
+  const { trackEvent, trackFeatureUsage } = useTracking({ 
+    trackPageViews: true, 
+    trackClicks: true,
+    trackScrollDepth: true 
+  });
+  
+  // Determine if user has completed assessment
+  const hasCompletedAssessment = workshopState.assessmentScore !== null;
+  
   const quickActions = [
     {
       title: 'Brand House',
-      description: 'Complete your 15-minute brand assessment',
+      description: hasCompletedAssessment 
+        ? 'Continue your brand framework development'
+        : 'Complete your 15-minute brand assessment',
       icon: '🏛️',
-      href: '/brand-house',
+      href: hasCompletedAssessment ? '/brand-house' : '/brand-house/assessment',
       color: 'bg-blue-50 border-blue-200 hover:bg-blue-100',
-      cta: 'Start Assessment',
+      cta: hasCompletedAssessment ? 'Continue Workshop' : 'Start Assessment',
     },
     {
       title: 'Content Queue',
@@ -62,6 +76,7 @@ const DashboardPage: React.FC = () => {
 
   return (
     <div className="space-y-8">
+      <SEO />
       {/* Trial Banner */}
       {isTrialActive && (
         <TrialBanner daysLeft={trialDaysLeft} tier={currentTier} />

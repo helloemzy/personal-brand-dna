@@ -4,6 +4,7 @@ import { useAppDispatch } from '../hooks/redux';
 import { setCredentials } from '../store/slices/authSlice';
 import { authAPI } from '../services/authAPI';
 import { toast } from '../components/Toast';
+import SEO from '../components/SEO';
 
 const LandingPage: React.FC = () => {
   const navigate = useNavigate();
@@ -27,6 +28,7 @@ const LandingPage: React.FC = () => {
   };
   return (
     <div className="bg-white">
+      <SEO />
       {/* Hero Section */}
       <div className="relative bg-gradient-to-r from-blue-600 to-blue-800 overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">

@@ -126,7 +126,7 @@ export const REDUX_PERSIST_CONFIG = {
   // Keys to persist
   persistKeys: [
     'auth',
-    // 'workshop', // TEMPORARILY DISABLED to fix crash
+    'workshop', // Re-enabled with proper migration support
     'userPreferences',
     'contentDrafts',
   ],

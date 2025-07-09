@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaPhone, FaUser, FaBriefcase, FaGlobe, FaMicrophone } from 'react-icons/fa';
+import { FaPhone, FaUser, FaBriefcase, FaGlobe, FaMicrophone } from '../utils/icons';
 import PhoneInput from 'react-phone-number-input';
 import 'react-phone-number-input/style.css';
 import '../styles/phone-input.css';
 import { authAPI } from '../services/authAPI';
+import SEO from '../components/SEO';
 
 interface GetStartedFormData {
   name: string;
@@ -129,8 +130,8 @@ const GetStartedPage: React.FC = () => {
         // Clear form data
         sessionStorage.removeItem('getStartedData');
 
-        // Navigate to brand house assessment
-        navigate('/brand-house');
+        // Navigate to pre-workshop assessment
+        navigate('/brand-house/assessment');
       } else {
         setError(response.message || 'Invalid verification code');
       }
@@ -216,6 +217,10 @@ const GetStartedPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center px-4">
+      <SEO 
+        title="Get Started - Begin Your Brand Journey | BrandPillar AI"
+        description="Start building your personal brand with our AI-powered platform. Complete a quick form and discover your brand DNA in just 10 minutes."
+      />
       <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-8">
         <div className="text-center mb-8">
           <div className="bg-gradient-to-r from-blue-600 to-purple-600 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">

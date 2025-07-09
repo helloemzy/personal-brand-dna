@@ -1,0 +1,105 @@
+version: '3.8'
+
+services:
+  # RabbitMQ Message Bus
+  rabbitmq:
+    image: rabbitmq:3.12-management-alpine
+    container_name: brandpillar-rabbitmq
+    ports:
+      - "5672:5672"     # AMQP port
+      - "15672:15672"   # Management UI
+    environment:
+      RABBITMQ_DEFAULT_USER: brandpillar
+      RABBITMQ_DEFAULT_PASS: secret
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+      - rabbitmq_logs:/var/log/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis for State Management
+  redis:
+    image: redis:7-alpine
+    container_name: brandpillar-redis
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes --requirepass secret
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Prometheus for Metrics
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: brandpillar-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./monitoring/prometheus/alerts:/etc/prometheus/alerts
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+    depends_on:
+      - agents
+
+  # Grafana for Visualization
+  grafana:
+    image: grafana/grafana:latest
+    container_name: brandpillar-grafana
+    ports:
+      - "3002:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=secret
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning
+      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards
+    depends_on:
+      - prometheus
+
+  # BrandPillar AI Agents (for local development)
+  agents:
+    build:
+      context: .
+      dockerfile: apps/agents/Dockerfile
+    container_name: brandpillar-agents
+    ports:
+      - "3003:3000"  # Health check endpoint
+    environment:
+      - NODE_ENV=development
+      - PORT=3000
+      - CLOUDAMQP_URL=amqp://brandpillar:secret@rabbitmq:5672
+      - REDIS_URL=redis://:secret@redis:6379
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_SERVICE_KEY=${SUPABASE_SERVICE_KEY}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - LOG_LEVEL=debug
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./apps/agents:/app/apps/agents
+      - ./packages:/app/packages
+    command: npm run dev
+
+volumes:
+  rabbitmq_data:
+  rabbitmq_logs:
+  redis_data:
+  prometheus_data:
+  grafana_data:

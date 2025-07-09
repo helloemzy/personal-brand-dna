@@ -1,51 +1,117 @@
-import { useEffect, lazy, Suspense } from 'react';
+import { useEffect, Suspense, useState } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
+import { HelmetProvider } from 'react-helmet-async';
+import * as Sentry from '@sentry/react';
 import { useAppDispatch, useAppSelector } from './hooks/redux';
 import { checkAuthStatus, setCredentials, clearAuth } from './store/slices/authSlice';
 import { supabase } from './services/supabaseClient';
+import { initSentry } from './config/sentry';
+import { useSentryTracking } from './hooks/useSentryTracking';
+import { trackingService } from './services/trackingService';
+import { lazyWithPreload, preloadOnIdle, lazyWithRetry } from './utils/lazyWithPreload';
+import LazyLoadingFallback, { 
+  WorkshopLoadingFallback, 
+  DashboardLoadingFallback,
+  ContentLoadingFallback,
+  AnalyticsLoadingFallback 
+} from './components/LazyLoadingFallback';
 
-// Layout Components
+// Initialize Sentry as early as possible
+initSentry();
+
+// Eagerly loaded critical components
 import Layout from './components/Layout';
 import PublicLayout from './components/PublicLayout';
-
-// Eagerly loaded components (needed immediately)
 import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/auth/LoginPage';
-
-// Utility Components
 import ErrorBoundary from './components/ErrorBoundary';
 import Toast from './components/Toast';
 import LoadingSpinner from './components/LoadingSpinner';
-
-// Route Guards
 import ProtectedRoute from './components/ProtectedRoute';
 import PublicRoute from './components/PublicRoute';
 
-// Lazy loaded components
-const RegisterPage = lazy(() => import('./pages/auth/RegisterPage'));
-const ForgotPasswordPage = lazy(() => import('./pages/auth/ForgotPasswordPage'));
-const ResetPasswordPage = lazy(() => import('./pages/auth/ResetPasswordPage'));
-const PhoneLoginPage = lazy(() => import('./pages/auth/PhoneLoginPage'));
-const GoogleLoginPage = lazy(() => import('./pages/auth/GoogleLoginPage'));
-const AuthCallbackPage = lazy(() => import('./pages/auth/AuthCallbackPage'));
-const GetStartedPage = lazy(() => import('./pages/GetStartedPage'));
+// Lazy loaded with preload capability
+const RegisterPage = lazyWithPreload(() => import('./pages/auth/RegisterPage'));
+const ForgotPasswordPage = lazyWithPreload(() => import('./pages/auth/ForgotPasswordPage'));
+const ResetPasswordPage = lazyWithPreload(() => import('./pages/auth/ResetPasswordPage'));
+const PhoneLoginPage = lazyWithPreload(() => import('./pages/auth/PhoneLoginPage'));
+const GoogleLoginPage = lazyWithPreload(() => import('./pages/auth/GoogleLoginPage'));
+const AuthCallbackPage = lazyWithPreload(() => import('./pages/auth/AuthCallbackPage'));
+const GetStartedPage = lazyWithPreload(() => import('./pages/GetStartedPage'));
 
-// Protected Pages (all lazy loaded)
-const DashboardPage = lazy(() => import('./pages/DashboardPage'));
-const ContentGenerationPage = lazy(() => import('./pages/ContentGenerationPage'));
-const ContentHistoryPage = lazy(() => import('./pages/ContentHistoryPage'));
-const AnalyticsPage = lazy(() => import('./pages/AnalyticsPage'));
-const ProfilePage = lazy(() => import('./pages/ProfilePage'));
-const SubscriptionPage = lazy(() => import('./pages/SubscriptionPage'));
-const TierSelectionPage = lazy(() => import('./pages/TierSelectionPage'));
-const RSSSetupPage = lazy(() => import('./pages/RSSSetupPage'));
-const ContentApprovalDashboard = lazy(() => import('./pages/ContentApprovalDashboard'));
-const WorkshopContainer = lazy(() => import('./components/workshop/WorkshopContainer'));
-const DebugWorkshopPage = lazy(() => import('./pages/DebugWorkshopPage'));
+// Protected Pages with retry capability
+const DashboardPage = lazyWithRetry(() => import('./pages/DashboardPage'));
+const ContentGenerationPage = lazyWithRetry(() => import('./pages/ContentGenerationPage'));
+const ContentHistoryPage = lazyWithRetry(() => import('./pages/ContentHistoryPage'));
+const AnalyticsPage = lazyWithRetry(() => import('./pages/AnalyticsPage'));
+const ProfilePage = lazyWithRetry(() => import('./pages/ProfilePage'));
+const SubscriptionPage = lazyWithRetry(() => import('./pages/SubscriptionPage'));
+const TierSelectionPage = lazyWithRetry(() => import('./pages/TierSelectionPage'));
+const RSSSetupPage = lazyWithRetry(() => import('./pages/RSSSetupPage'));
+const EnhancedRSSSetupPage = lazyWithRetry(() => import('./pages/EnhancedRSSSetupPage'));
+const NewsMonitoringPage = lazyWithRetry(() => import('./pages/NewsMonitoringPage'));
+const ContentApprovalDashboard = lazyWithRetry(() => import('./pages/ContentApprovalDashboard'));
+const LinkedInCallbackPage = lazyWithRetry(() => import('./pages/LinkedInCallbackPage'));
+// const ContentCalendarPage = lazyWithRetry(() => import('./pages/ContentCalendarPage'));
+const AnalyticsDashboardPage = lazyWithRetry(() => import('./pages/AnalyticsDashboardPage'));
+const UserAnalyticsDashboard = lazyWithRetry(() => import('./pages/UserAnalyticsDashboard'));
+const AnalyticsSettingsPage = lazyWithRetry(() => import('./pages/AnalyticsSettingsPage'));
+
+// Workshop components with special handling
+const WorkshopContainer = lazyWithPreload(() => import('./components/workshop/WorkshopContainer'));
+const PreWorkshopAssessment = lazyWithPreload(() => import('./components/workshop/PreWorkshopAssessment'));
+const WorkshopResultsPage = lazyWithPreload(() => import('./pages/WorkshopResultsPage'));
+const SharedResultsPage = lazyWithPreload(() => import('./pages/SharedResultsPage'));
+
+// Development only components
+const DebugWorkshopPage = process.env.NODE_ENV === 'development' 
+  ? lazyWithRetry(() => import('./pages/DebugWorkshopPage'))
+  : null;
+
+// Optional feature components loaded on demand
+const PrivacyConsentBanner = lazyWithRetry(() => import('./components/PrivacyConsentBanner'));
+const AccessibilityAudit = lazyWithRetry(() => import('./components/accessibility/AccessibilityAudit'));
+const KeyboardShortcuts = lazyWithRetry(() => import('./components/accessibility/KeyboardShortcuts'));
+
+// Create Sentry-enhanced router for performance monitoring
+const SentryRoutes = Sentry.withSentryRouting(Routes);
 
 function App() {
   const dispatch = useAppDispatch();
-  const { isAuthenticated, isLoading } = useAppSelector((state) => state.auth);
+  const { isAuthenticated, isLoading, user } = useAppSelector((state) => state.auth);
+  const [showPrivacyBanner, setShowPrivacyBanner] = useState(false);
+  
+  // Track user context and navigation in Sentry
+  useSentryTracking();
+
+  // Initialize analytics with user context
+  useEffect(() => {
+    if (user?.id) {
+      trackingService.setUserId(user.id);
+    }
+  }, [user]);
+
+  // Check if we need to show privacy banner
+  useEffect(() => {
+    const privacySettings = trackingService.getPrivacySettings();
+    if (!privacySettings.consentGiven) {
+      setShowPrivacyBanner(true);
+    }
+  }, []);
+
+  // Preload commonly used routes when idle
+  useEffect(() => {
+    if (isAuthenticated) {
+      // Preload dashboard and common authenticated routes
+      preloadOnIdle(DashboardPage);
+      preloadOnIdle(WorkshopContainer);
+      preloadOnIdle(ContentGenerationPage);
+    } else {
+      // Preload auth routes
+      preloadOnIdle(RegisterPage);
+      preloadOnIdle(GetStartedPage);
+    }
+  }, [isAuthenticated]);
 
   useEffect(() => {
     // Check for state reset request in URL
@@ -53,40 +119,35 @@ function App() {
     if (urlParams.get('reset') === 'true') {
       console.log('State reset requested - clearing persisted data');
       
-      // Clear all localStorage data related to the app
       try {
-        // Clear Redux persist data
-        localStorage.removeItem('persist:root');
-        localStorage.removeItem('persist:workshop');
-        localStorage.removeItem('persist:auth');
-        localStorage.removeItem('persist:content');
+        // Clear all localStorage data
+        ['persist:root', 'persist:workshop', 'persist:auth', 'persist:content']
+          .forEach(key => localStorage.removeItem(key));
         
-        // Clear any workshop-specific data
+        // Clear workshop-specific data
         Object.keys(localStorage).forEach(key => {
           if (key.startsWith('workshop_') || key.startsWith('brandhouse_')) {
             localStorage.removeItem(key);
           }
         });
         
-        // Remove the reset parameter and reload
+        // Reload without reset parameter
         urlParams.delete('reset');
         const newUrl = window.location.pathname + (urlParams.toString() ? '?' + urlParams.toString() : '');
         window.location.href = newUrl;
       } catch (error) {
         console.error('Error clearing state:', error);
-        // Force reload anyway
         window.location.href = window.location.pathname;
       }
       return;
     }
 
-    // Check for existing Supabase session on app load
+    // Check for existing Supabase session
     const checkSupabaseSession = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
         
         if (session?.user) {
-          // User is logged in via Supabase, sync with Redux
           dispatch(setCredentials({
             user: {
               id: session.user.id,
@@ -103,7 +164,6 @@ function App() {
             refreshToken: session.refresh_token || null,
           }));
         } else {
-          // No Supabase session, check legacy auth
           dispatch(checkAuthStatus());
         }
       } catch (error) {
@@ -119,7 +179,6 @@ function App() {
       console.log('Auth state change:', event);
       
       if (event === 'SIGNED_IN' && session) {
-        // User signed in
         dispatch(setCredentials({
           user: {
             id: session.user.id,
@@ -136,10 +195,8 @@ function App() {
           refreshToken: session.refresh_token || null,
         }));
       } else if (event === 'SIGNED_OUT') {
-        // User signed out
         dispatch(clearAuth());
       } else if (event === 'TOKEN_REFRESHED' && session) {
-        // Token was refreshed
         dispatch(setCredentials({
           user: {
             id: session.user.id,
@@ -158,11 +215,18 @@ function App() {
       }
     });
 
-    // Cleanup subscription
     return () => {
       subscription.unsubscribe();
     };
   }, [dispatch]);
+
+  // Set document metadata
+  useEffect(() => {
+    document.documentElement.lang = 'en';
+    if (!document.title) {
+      document.title = 'BrandPillar AI - Build Your Personal Brand';
+    }
+  }, []);
 
   if (isLoading) {
     return (
@@ -176,10 +240,25 @@ function App() {
   }
 
   return (
-    <ErrorBoundary>
-      <div className="App min-h-screen bg-gray-50">
-        <Suspense fallback={<LoadingSpinner />}>
-          <Routes>
+    <HelmetProvider>
+      <ErrorBoundary>
+        <div className="App min-h-screen bg-gray-50">
+          <Toast />
+          
+          {/* Privacy Consent Banner */}
+          {showPrivacyBanner && (
+            <Suspense fallback={null}>
+            <PrivacyConsentBanner onClose={() => setShowPrivacyBanner(false)} />
+          </Suspense>
+        )}
+        
+        {/* Lazy load accessibility features */}
+        <Suspense fallback={null}>
+          <AccessibilityAudit />
+          <KeyboardShortcuts />
+        </Suspense>
+        
+        <SentryRoutes>
           {/* Public Routes */}
           <Route path="/" element={
             <PublicRoute>
@@ -200,7 +279,9 @@ function App() {
           <Route path="/phone-login" element={
             <PublicRoute>
               <PublicLayout>
-                <PhoneLoginPage />
+                <Suspense fallback={<LazyLoadingFallback />}>
+                  <PhoneLoginPage />
+                </Suspense>
               </PublicLayout>
             </PublicRoute>
           } />
@@ -208,19 +289,31 @@ function App() {
           <Route path="/google-login" element={
             <PublicRoute>
               <PublicLayout>
-                <GoogleLoginPage />
+                <Suspense fallback={<LazyLoadingFallback />}>
+                  <GoogleLoginPage />
+                </Suspense>
               </PublicLayout>
             </PublicRoute>
           } />
           
           <Route path="/auth/callback" element={
-            <AuthCallbackPage />
+            <Suspense fallback={<LoadingSpinner />}>
+              <AuthCallbackPage />
+            </Suspense>
+          } />
+          
+          <Route path="/linkedin/callback" element={
+            <Suspense fallback={<LoadingSpinner />}>
+              <LinkedInCallbackPage />
+            </Suspense>
           } />
           
           <Route path="/get-started" element={
             <PublicRoute>
               <PublicLayout>
-                <GetStartedPage />
+                <Suspense fallback={<LazyLoadingFallback />}>
+                  <GetStartedPage />
+                </Suspense>
               </PublicLayout>
             </PublicRoute>
           } />
@@ -228,7 +321,9 @@ function App() {
           <Route path="/register" element={
             <PublicRoute>
               <PublicLayout>
-                <RegisterPage />
+                <Suspense fallback={<LazyLoadingFallback />}>
+                  <RegisterPage />
+                </Suspense>
               </PublicLayout>
             </PublicRoute>
           } />
@@ -236,7 +331,9 @@ function App() {
           <Route path="/forgot-password" element={
             <PublicRoute>
               <PublicLayout>
-                <ForgotPasswordPage />
+                <Suspense fallback={<LazyLoadingFallback />}>
+                  <ForgotPasswordPage />
+                </Suspense>
               </PublicLayout>
             </PublicRoute>
           } />
@@ -244,7 +341,9 @@ function App() {
           <Route path="/reset-password" element={
             <PublicRoute>
               <PublicLayout>
-                <ResetPasswordPage />
+                <Suspense fallback={<LazyLoadingFallback />}>
+                  <ResetPasswordPage />
+                </Suspense>
               </PublicLayout>
             </PublicRoute>
           } />
@@ -253,25 +352,56 @@ function App() {
           <Route path="/dashboard" element={
             <ProtectedRoute>
               <Layout>
-                <DashboardPage />
+                <Suspense fallback={<DashboardLoadingFallback />}>
+                  <DashboardPage />
+                </Suspense>
               </Layout>
+            </ProtectedRoute>
+          } />
+
+          <Route path="/brand-house/assessment" element={
+            <ProtectedRoute>
+              <Suspense fallback={<WorkshopLoadingFallback />}>
+                <PreWorkshopAssessment />
+              </Suspense>
             </ProtectedRoute>
           } />
 
           <Route path="/brand-house" element={
             <ProtectedRoute>
               <Layout>
-                <WorkshopContainer />
+                <Suspense fallback={<WorkshopLoadingFallback />}>
+                  <WorkshopContainer />
+                </Suspense>
               </Layout>
             </ProtectedRoute>
           } />
 
+          <Route path="/workshop/results" element={
+            <ProtectedRoute>
+              <Layout>
+                <Suspense fallback={<WorkshopLoadingFallback />}>
+                  <WorkshopResultsPage />
+                </Suspense>
+              </Layout>
+            </ProtectedRoute>
+          } />
+          
+          {/* Public Share Route */}
+          <Route path="/share/:shareCode" element={
+            <Suspense fallback={<LazyLoadingFallback />}>
+              <SharedResultsPage />
+            </Suspense>
+          } />
+
           {/* Debug route - only in development */}
-          {process.env.NODE_ENV === 'development' && (
+          {process.env.NODE_ENV === 'development' && DebugWorkshopPage && (
             <Route path="/debug-workshop" element={
               <ProtectedRoute>
                 <Layout>
-                  <DebugWorkshopPage />
+                  <Suspense fallback={<LazyLoadingFallback />}>
+                    <DebugWorkshopPage />
+                  </Suspense>
                 </Layout>
               </ProtectedRoute>
             } />
@@ -280,7 +410,9 @@ function App() {
           <Route path="/tier-selection" element={
             <ProtectedRoute>
               <Layout>
-                <TierSelectionPage />
+                <Suspense fallback={<LazyLoadingFallback />}>
+                  <TierSelectionPage />
+                </Suspense>
               </Layout>
             </ProtectedRoute>
           } />
@@ -288,7 +420,19 @@ function App() {
           <Route path="/news-setup" element={
             <ProtectedRoute>
               <Layout>
-                <RSSSetupPage />
+                <Suspense fallback={<ContentLoadingFallback />}>
+                  <EnhancedRSSSetupPage />
+                </Suspense>
+              </Layout>
+            </ProtectedRoute>
+          } />
+
+          <Route path="/news-monitoring" element={
+            <ProtectedRoute>
+              <Layout>
+                <Suspense fallback={<ContentLoadingFallback />}>
+                  <NewsMonitoringPage />
+                </Suspense>
               </Layout>
             </ProtectedRoute>
           } />
@@ -296,7 +440,9 @@ function App() {
           <Route path="/content-approval" element={
             <ProtectedRoute>
               <Layout>
-                <ContentApprovalDashboard />
+                <Suspense fallback={<ContentLoadingFallback />}>
+                  <ContentApprovalDashboard />
+                </Suspense>
               </Layout>
             </ProtectedRoute>
           } />
@@ -304,7 +450,9 @@ function App() {
           <Route path="/content" element={
             <ProtectedRoute>
               <Layout>
-                <ContentGenerationPage />
+                <Suspense fallback={<ContentLoadingFallback />}>
+                  <ContentGenerationPage />
+                </Suspense>
               </Layout>
             </ProtectedRoute>
           } />
@@ -312,15 +460,59 @@ function App() {
           <Route path="/content/history" element={
             <ProtectedRoute>
               <Layout>
-                <ContentHistoryPage />
+                <Suspense fallback={<ContentLoadingFallback />}>
+                  <ContentHistoryPage />
+                </Suspense>
               </Layout>
             </ProtectedRoute>
           } />
 
+          {/* <Route path="/content/calendar" element={
+            <ProtectedRoute>
+              <Layout>
+                <Suspense fallback={<ContentLoadingFallback />}>
+                  <ContentCalendarPage />
+                </Suspense>
+              </Layout>
+            </ProtectedRoute>
+          } /> */}
+
           <Route path="/analytics" element={
             <ProtectedRoute requiresSubscription="professional">
               <Layout>
-                <AnalyticsPage />
+                <Suspense fallback={<AnalyticsLoadingFallback />}>
+                  <AnalyticsPage />
+                </Suspense>
+              </Layout>
+            </ProtectedRoute>
+          } />
+
+          <Route path="/analytics/dashboard" element={
+            <ProtectedRoute>
+              <Layout>
+                <Suspense fallback={<AnalyticsLoadingFallback />}>
+                  <AnalyticsDashboardPage />
+                </Suspense>
+              </Layout>
+            </ProtectedRoute>
+          } />
+
+          <Route path="/analytics/users" element={
+            <ProtectedRoute>
+              <Layout>
+                <Suspense fallback={<AnalyticsLoadingFallback />}>
+                  <UserAnalyticsDashboard />
+                </Suspense>
+              </Layout>
+            </ProtectedRoute>
+          } />
+
+          <Route path="/analytics/settings" element={
+            <ProtectedRoute>
+              <Layout>
+                <Suspense fallback={<LazyLoadingFallback />}>
+                  <AnalyticsSettingsPage />
+                </Suspense>
               </Layout>
             </ProtectedRoute>
           } />
@@ -328,7 +520,9 @@ function App() {
           <Route path="/profile" element={
             <ProtectedRoute>
               <Layout>
-                <ProfilePage />
+                <Suspense fallback={<LazyLoadingFallback />}>
+                  <ProfilePage />
+                </Suspense>
               </Layout>
             </ProtectedRoute>
           } />
@@ -336,7 +530,9 @@ function App() {
           <Route path="/subscription" element={
             <ProtectedRoute>
               <Layout>
-                <SubscriptionPage />
+                <Suspense fallback={<LazyLoadingFallback />}>
+                  <SubscriptionPage />
+                </Suspense>
               </Layout>
             </ProtectedRoute>
           } />
@@ -363,13 +559,15 @@ function App() {
               </div>
             </PublicLayout>
           } />
-          </Routes>
-        </Suspense>
+        </SentryRoutes>
 
-        {/* Global Toast Notifications */}
-        <Toast />
+        {/* Privacy Consent Banner - Lazy loaded */}
+        <Suspense fallback={null}>
+          <PrivacyConsentBanner />
+        </Suspense>
       </div>
     </ErrorBoundary>
+    </HelmetProvider>
   );
 }
 

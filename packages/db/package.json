@@ -1,0 +1,16 @@
+{
+  "name": "@brandpillar/db",
+  "version": "1.0.0",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc -w"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.50.3"
+  },
+  "devDependencies": {
+    "typescript": "^4.9.5"
+  }
+}

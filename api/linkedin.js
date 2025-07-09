@@ -69,6 +69,14 @@ export default async function handler(req, res) {
         return await handleQueuePost(req, res);
       case 'publish':
         return await handlePublishNow(req, res);
+      case 'queue-list':
+        return await handleGetQueue(req, res);
+      case 'preferences':
+        return await handlePreferences(req, res);
+      case 'compliance':
+        return await handleCompliance(req, res);
+      case 'export':
+        return await handleExportData(req, res);
       default:
         return res.status(404).json({ error: 'Invalid LinkedIn action' });
     }
@@ -359,5 +367,172 @@ async function handlePublishNow(req, res) {
   } catch (error) {
     console.error('Publish post error:', error);
     return res.status(500).json({ error: 'Failed to publish post' });
+  }
+}
+
+// Get queued posts
+async function handleGetQueue(req, res) {
+  if (req.method !== 'GET') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  const { page = 1, limit = 10, status } = req.query;
+  const offset = (page - 1) * limit;
+
+  try {
+    let query = supabase
+      .from('linkedin_queue')
+      .select('*, content_history(topic, content_type, generated_content)', { count: 'exact' })
+      .eq('user_id', req.user.userId)
+      .order('scheduled_for', { ascending: true })
+      .range(offset, offset + limit - 1);
+
+    if (status) {
+      query = query.eq('status', status);
+    }
+
+    const { data: queue, error, count } = await query;
+
+    if (error) throw error;
+
+    return res.status(200).json({
+      queue,
+      pagination: {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        total: count,
+        totalPages: Math.ceil(count / limit)
+      }
+    });
+  } catch (error) {
+    console.error('Get queue error:', error);
+    return res.status(500).json({ error: 'Failed to fetch queue' });
+  }
+}
+
+// Handle preferences
+async function handlePreferences(req, res) {
+  if (req.method === 'GET') {
+    try {
+      const { data: preferences, error } = await supabase
+        .from('user_preferences')
+        .select('*')
+        .eq('user_id', req.user.userId)
+        .single();
+
+      if (error && error.code !== 'PGRST116') throw error;
+
+      // Return default preferences if none exist
+      const defaultPreferences = {
+        autoApprove: false,
+        notifyOnPublish: true,
+        notifyOnEngagement: true,
+        defaultScheduleTime: '09:00',
+        weekendPosting: false,
+        maxPostsPerDay: 2,
+        optimalPostingTimes: ['08:00', '12:00', '17:00', '19:00']
+      };
+
+      return res.status(200).json(preferences || defaultPreferences);
+    } catch (error) {
+      console.error('Get preferences error:', error);
+      return res.status(500).json({ error: 'Failed to fetch preferences' });
+    }
+  } else if (req.method === 'PUT') {
+    try {
+      const { error } = await supabase
+        .from('user_preferences')
+        .upsert({
+          user_id: req.user.userId,
+          ...req.body,
+          updated_at: new Date().toISOString()
+        });
+
+      if (error) throw error;
+
+      return res.status(200).json({ message: 'Preferences updated successfully' });
+    } catch (error) {
+      console.error('Update preferences error:', error);
+      return res.status(500).json({ error: 'Failed to update preferences' });
+    }
+  } else {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+}
+
+// Get compliance data
+async function handleCompliance(req, res) {
+  if (req.method !== 'GET') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  try {
+    // Get publishing stats
+    const { data: stats, error } = await supabase
+      .from('linkedin_queue')
+      .select('status')
+      .eq('user_id', req.user.userId);
+
+    if (error) throw error;
+
+    const compliance = {
+      totalActions: stats.length,
+      postsPublished: stats.filter(s => s.status === 'published').length,
+      postsRejected: stats.filter(s => s.status === 'failed').length,
+      privacyActions: 0, // Track privacy-related actions
+      lastActionAt: stats[0]?.created_at || null
+    };
+
+    return res.status(200).json(compliance);
+  } catch (error) {
+    console.error('Get compliance error:', error);
+    return res.status(500).json({ error: 'Failed to fetch compliance data' });
+  }
+}
+
+// Export user data
+async function handleExportData(req, res) {
+  if (req.method !== 'GET') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  try {
+    // Fetch all user's LinkedIn data
+    const [connection, queue, content] = await Promise.all([
+      supabase
+        .from('linkedin_connections')
+        .select('linkedin_id, created_at, is_active')
+        .eq('user_id', req.user.userId)
+        .single(),
+      supabase
+        .from('linkedin_queue')
+        .select('*')
+        .eq('user_id', req.user.userId),
+      supabase
+        .from('content_history')
+        .select('*')
+        .eq('user_id', req.user.userId)
+        .eq('status', 'published')
+    ]);
+
+    const exportData = {
+      exportDate: new Date().toISOString(),
+      userId: req.user.userId,
+      linkedinConnection: connection.data,
+      queueHistory: queue.data,
+      publishedContent: content.data
+    };
+
+    // Set headers for file download
+    res.setHeader('Content-Type', 'application/json');
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename="linkedin-data-${new Date().toISOString().split('T')[0]}.json"`
+    );
+
+    return res.status(200).json(exportData);
+  } catch (error) {
+    console.error('Export data error:', error);
+    return res.status(500).json({ error: 'Failed to export data' });
   }
 }

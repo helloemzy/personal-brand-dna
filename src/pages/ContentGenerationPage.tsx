@@ -4,11 +4,13 @@ import { contentAPI, GenerateContentRequest, ContentTemplate } from '../services
 import TemplateSelector from '../components/TemplateSelector';
 import { sampleTemplates } from '../data/sampleTemplates';
 import { voiceAPI, VoiceProfile } from '../services/voiceAPI';
+import LinkedInPostButton from '../components/linkedin/LinkedInPostButton';
 
 const ContentGenerationPage: React.FC = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedContent, setGeneratedContent] = useState<string | null>(null);
   const [contentVariations, setContentVariations] = useState<string[]>([]);
+  const [currentContentId, setCurrentContentId] = useState<string>('');
   const [templates, setTemplates] = useState<ContentTemplate[]>([]);
   const [voiceProfiles, setVoiceProfiles] = useState<VoiceProfile[]>([]);
   const [selectedTemplate, setSelectedTemplate] = useState<string>('');
@@ -87,6 +89,7 @@ const ContentGenerationPage: React.FC = () => {
       const response = await contentAPI.generateContent(request);
       setGeneratedContent(response.data.content);
       setContentVariations(response.data.variations);
+      setCurrentContentId(response.data.contentId);
       toast.success('Content Generated', 'Your personalized content has been created successfully!');
     } catch (error: any) {
       console.error('Content generation failed:', error);
@@ -389,13 +392,19 @@ const ContentGenerationPage: React.FC = () => {
                 >
                   Generate New Version
                 </button>
+                <LinkedInPostButton
+                  content={generatedContent}
+                  contentId={currentContentId}
+                  className="flex-1 text-sm font-medium"
+                />
                 <button
                   onClick={() => {
                     setGeneratedContent(null);
                     setContentVariations([]);
+                    setCurrentContentId('');
                     setFormData(prev => ({ ...prev, topic: '' }));
                   }}
-                  className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-md text-sm font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                  className="flex-1 bg-gray-600 text-white py-2 px-4 rounded-md text-sm font-medium hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
                 >
                   Start New Content
                 </button>

@@ -1,17 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  FaLinkedin, 
-  FaClock, 
-  FaCheckCircle, 
-  FaTimesCircle,
-  FaExclamationTriangle,
-  FaPaperPlane,
-  FaTrash,
-  FaEye,
-  FaCalendarAlt,
-  FaShieldAlt,
-  FaFilter
-} from 'react-icons/fa';
+import { FaLinkedin, FaClock, FaCheckCircle, FaTimesCircle, FaExclamationTriangle, FaPaperPlane, FaTrash, FaEye, FaCalendarAlt, FaShieldAlt, FaFilter } from '../../utils/icons';
 import Toast, { toast } from '../Toast';
 
 interface QueueItem {
@@ -195,21 +183,21 @@ const LinkedInQueue: React.FC = () => {
       failed: 'bg-gray-100 text-gray-800'
     };
 
-    const statusIcons = {
-      pending: () => <FaClock className="mr-1" />,
-      approved: () => <FaCheckCircle className="mr-1" />,
-      published: () => <FaLinkedin className="mr-1" />,
-      rejected: () => <FaTimesCircle className="mr-1" />,
-      scheduled: () => <FaCalendarAlt className="mr-1" />,
-      failed: () => <FaExclamationTriangle className="mr-1" />
+    const statusIcons: Record<string, any> = {
+      pending: FaClock,
+      approved: FaCheckCircle,
+      published: FaLinkedin,
+      rejected: FaTimesCircle,
+      scheduled: FaCalendarAlt,
+      failed: FaExclamationTriangle
     };
 
     const color = statusColors[item.status as keyof typeof statusColors] || 'bg-gray-100 text-gray-800';
-    const iconFn = statusIcons[item.status as keyof typeof statusIcons];
+    const IconComponent = statusIcons[item.status as keyof typeof statusIcons];
 
     return (
       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${color}`}>
-        {iconFn && iconFn()}
+        {IconComponent && <IconComponent className="mr-1" />}
         {item.status.charAt(0).toUpperCase() + item.status.slice(1)}
       </span>
     );

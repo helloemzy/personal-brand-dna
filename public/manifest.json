@@ -1,6 +1,6 @@
 {
-  "short_name": "Personal Brand DNA",
-  "name": "Personal Brand DNA System",
+  "short_name": "BrandPillar AI",
+  "name": "BrandPillar AI - Personal Brand DNA Platform",
   "description": "Discover your authentic professional voice and generate content that drives career growth",
   "icons": [
     {
@@ -11,16 +11,45 @@
     {
       "src": "logo192.png",
       "type": "image/png",
-      "sizes": "192x192"
+      "sizes": "192x192",
+      "purpose": "any maskable"
     },
     {
       "src": "logo512.png",
       "type": "image/png",
-      "sizes": "512x512"
+      "sizes": "512x512",
+      "purpose": "any maskable"
     }
   ],
-  "start_url": ".",
+  "start_url": "/",
+  "scope": "/",
   "display": "standalone",
-  "theme_color": "#2563eb",
-  "background_color": "#ffffff"
+  "theme_color": "#4F46E5",
+  "background_color": "#F9FAFB",
+  "orientation": "portrait",
+  "categories": ["business", "productivity", "social"],
+  "prefer_related_applications": false,
+  "shortcuts": [
+    {
+      "name": "Brand Workshop",
+      "short_name": "Workshop",
+      "description": "Start your brand discovery journey",
+      "url": "/brand-house",
+      "icons": [{ "src": "logo192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Dashboard",
+      "short_name": "Dashboard",
+      "description": "View your dashboard",
+      "url": "/dashboard",
+      "icons": [{ "src": "logo192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Analytics",
+      "short_name": "Analytics",
+      "description": "View your performance metrics",
+      "url": "/analytics/dashboard",
+      "icons": [{ "src": "logo192.png", "sizes": "192x192" }]
+    }
+  ]
 }

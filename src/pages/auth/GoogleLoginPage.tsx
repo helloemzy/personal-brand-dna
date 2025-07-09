@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../services/supabaseClient';
-import { FcGoogle } from 'react-icons/fc';
-import { FiArrowLeft } from 'react-icons/fi';
+import { FcGoogle, FiArrowLeft } from '../../utils/icons';
+
 
 const GoogleLoginPage: React.FC = () => {
   const navigate = useNavigate();

@@ -31,6 +31,12 @@ export interface AudiencePersona {
     experience?: string;
     company_size?: string;
   };
+  transformation?: {
+    outcome: string; // The #1 transformation you help them achieve
+    beforeState: string; // How they feel before working with you
+    afterState: string; // How they feel after working with you
+  };
+  isPrimary?: boolean; // Is this your primary audience?
 }
 
 // Style metrics interface
@@ -65,6 +71,10 @@ export interface WorkshopState {
   completedSteps: number[];
   isCompleted: boolean;
   
+  // Assessment
+  assessmentScore: number | null; // 0-100 clarity score
+  workshopPath: 'direct' | 'discovery' | 'hybrid' | null; // Personalized path based on assessment
+  
   // Timing
   startedAt: string | null; // ISO string
   lastSavedAt: string | null; // ISO string
@@ -75,6 +85,9 @@ export interface WorkshopState {
     selected: string[];
     custom: WorkshopValue[];
     rankings: Record<string, number>; // valueId -> rank (1-10)
+    primary: string[]; // top 2 non-negotiable values
+    aspirational: string[]; // values they aspire to embody more
+    stories: Record<string, string>; // valueId -> story about living this value
   };
   
   // Step 2: Tone
@@ -102,13 +115,18 @@ const initialState: WorkshopState = {
   currentStep: 1,
   completedSteps: [],
   isCompleted: false,
+  assessmentScore: null,
+  workshopPath: null,
   startedAt: null,
   lastSavedAt: null,
   completedAt: null,
   values: {
     selected: [],
     custom: [],
-    rankings: {}
+    rankings: {},
+    primary: [],
+    aspirational: [],
+    stories: {}
   },
   tonePreferences: {
     formal_casual: 0,
@@ -152,7 +170,7 @@ const workshopSlice = createSlice({
     selectValue: (state, action: PayloadAction<string>) => {
       // Initialize values if needed
       if (!state.values) {
-        state.values = { selected: [], custom: [], rankings: {} };
+        state.values = { selected: [], custom: [], rankings: {}, primary: [], aspirational: [], stories: {} };
       }
       if (!state.values.selected) {
         state.values.selected = [];
@@ -170,7 +188,7 @@ const workshopSlice = createSlice({
     deselectValue: (state, action: PayloadAction<string>) => {
       // Initialize values if needed
       if (!state.values) {
-        state.values = { selected: [], custom: [], rankings: {} };
+        state.values = { selected: [], custom: [], rankings: {}, primary: [], aspirational: [], stories: {} };
       }
       if (!state.values.selected) {
         state.values.selected = [];
@@ -191,7 +209,7 @@ const workshopSlice = createSlice({
     addCustomValue: (state, action: PayloadAction<WorkshopValue>) => {
       // Initialize values if needed
       if (!state.values) {
-        state.values = { selected: [], custom: [], rankings: {} };
+        state.values = { selected: [], custom: [], rankings: {}, primary: [], aspirational: [], stories: {} };
       }
       if (!state.values.custom) {
         state.values.custom = [];
@@ -210,7 +228,7 @@ const workshopSlice = createSlice({
     rankValue: (state, action: PayloadAction<{ valueId: string; rank: number }>) => {
       // Initialize values if needed
       if (!state.values) {
-        state.values = { selected: [], custom: [], rankings: {} };
+        state.values = { selected: [], custom: [], rankings: {}, primary: [], aspirational: [], stories: {} };
       }
       if (!state.values.rankings) {
         state.values.rankings = {};
@@ -220,6 +238,33 @@ const workshopSlice = createSlice({
       if (state.values.selected?.includes(action.payload.valueId)) {
         state.values.rankings[action.payload.valueId] = action.payload.rank;
       }
+    },
+    
+    setPrimaryValues: (state, action: PayloadAction<string[]>) => {
+      // Initialize values if needed
+      if (!state.values) {
+        state.values = { selected: [], custom: [], rankings: {}, primary: [], aspirational: [], stories: {} };
+      }
+      state.values.primary = action.payload;
+    },
+    
+    setAspirationalValues: (state, action: PayloadAction<string[]>) => {
+      // Initialize values if needed
+      if (!state.values) {
+        state.values = { selected: [], custom: [], rankings: {}, primary: [], aspirational: [], stories: {} };
+      }
+      state.values.aspirational = action.payload;
+    },
+    
+    addValueStory: (state, action: PayloadAction<{ valueId: string; story: string }>) => {
+      // Initialize values if needed
+      if (!state.values) {
+        state.values = { selected: [], custom: [], rankings: {}, primary: [], aspirational: [], stories: {} };
+      }
+      if (!state.values.stories) {
+        state.values.stories = {};
+      }
+      state.values.stories[action.payload.valueId] = action.payload.story;
     },
     
     // Tone (Step 2)
@@ -249,6 +294,18 @@ const workshopSlice = createSlice({
     
     removePersona: (state, action: PayloadAction<string>) => {
       state.audiencePersonas = state.audiencePersonas.filter(p => p.id !== action.payload);
+    },
+    
+    setPrimaryPersona: (state, action: PayloadAction<string>) => {
+      // Reset all personas to non-primary
+      state.audiencePersonas.forEach(persona => {
+        persona.isPrimary = false;
+      });
+      // Set the selected persona as primary
+      const persona = state.audiencePersonas.find(p => p.id === action.payload);
+      if (persona) {
+        persona.isPrimary = true;
+      }
     },
     
     // Writing Sample (Step 4)
@@ -294,6 +351,15 @@ const workshopSlice = createSlice({
     
     loadWorkshopState: (state, action: PayloadAction<Partial<WorkshopState>>) => {
       return { ...state, ...action.payload };
+    },
+    
+    // Assessment
+    setAssessmentScore: (state, action: PayloadAction<number>) => {
+      state.assessmentScore = action.payload;
+    },
+    
+    setWorkshopPath: (state, action: PayloadAction<'direct' | 'discovery' | 'hybrid'>) => {
+      state.workshopPath = action.payload;
     }
   }
 });
@@ -307,11 +373,15 @@ export const {
   deselectValue,
   addCustomValue,
   rankValue,
+  setPrimaryValues,
+  setAspirationalValues,
+  addValueStory,
   updateTonePreference,
   setTonePreset,
   addPersona,
   updatePersona,
   removePersona,
+  setPrimaryPersona,
   setWritingSample,
   updateAnalysisResults,
   answerQuizQuestion,
@@ -319,7 +389,9 @@ export const {
   setError,
   completeWorkshop,
   resetWorkshop,
-  loadWorkshopState
+  loadWorkshopState,
+  setAssessmentScore,
+  setWorkshopPath
 } = workshopSlice.actions;
 
 // Type for persisted state
