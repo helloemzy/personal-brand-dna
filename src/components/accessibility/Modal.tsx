@@ -116,6 +116,7 @@ const Modal: React.FC<ModalProps> = ({
                     className={`ml-3 inline-flex text-gray-400 hover:text-gray-500 ${focusVisible}`}
                     onClick={onClose}
                     aria-label="Close modal"
+                    data-modal-close="true"
                   >
                     <X className="h-5 w-5" aria-hidden="true" />
                   </button>

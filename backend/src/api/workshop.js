@@ -449,6 +449,235 @@ router.post('/analyze-writing', authenticateToken, async (req, res) => {
 });
 
 
+// Import a workshop session
+router.post('/sessions/import', authenticateToken, async (req, res) => {
+  try {
+    const { session } = req.body;
+    const userId = req.user.id;
+
+    if (!session) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Session data is required' 
+      });
+    }
+
+    // Generate new session ID
+    const newSessionId = `workshop_${Date.now()}_${uuidv4().substring(0, 8)}`;
+
+    // Extract workshop data from the imported session
+    const workshopData = {
+      values: session.values || {},
+      tonePreferences: session.tonePreferences || {},
+      audiencePersonas: session.audiencePersonas || [],
+      writingSample: session.writingSample || {},
+      personalityQuiz: session.personalityQuiz || {}
+    };
+
+    // Create the new session
+    await withTransaction(async (client) => {
+      await client.query(
+        `INSERT INTO workshop_sessions (id, user_id, step, completed, data, created_at, updated_at)
+         VALUES ($1, $2, $3, $4, $5, NOW(), NOW())`,
+        [
+          newSessionId,
+          userId,
+          session.currentStep || 1,
+          session.isCompleted || false,
+          JSON.stringify(workshopData)
+        ]
+      );
+    });
+
+    // Cache the session
+    cache.set(`workshop_session_${newSessionId}`, {
+      id: newSessionId,
+      userId,
+      step: session.currentStep || 1,
+      completed: session.isCompleted || false,
+      data: workshopData
+    }, 3600); // 1 hour cache
+
+    res.json({ 
+      success: true, 
+      sessionId: newSessionId,
+      message: 'Workshop session imported successfully' 
+    });
+  } catch (error) {
+    logger.error('Error importing workshop session:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to import workshop session' 
+    });
+  }
+});
+
+// Delete a workshop session
+router.delete('/session/:sessionId', authenticateToken, async (req, res) => {
+  try {
+    const { sessionId } = req.params;
+    const userId = req.user.id;
+
+    // Check if session exists and belongs to the user
+    const sessionResult = await query(
+      'SELECT id FROM workshop_sessions WHERE id = $1 AND user_id = $2',
+      [sessionId, userId]
+    );
+
+    if (sessionResult.rows.length === 0) {
+      return res.status(404).json({ 
+        success: false, 
+        error: 'Session not found or access denied' 
+      });
+    }
+
+    // Delete the session
+    await query(
+      'DELETE FROM workshop_sessions WHERE id = $1 AND user_id = $2',
+      [sessionId, userId]
+    );
+
+    // Clear any cached data for this session
+    cache.del(`workshop_session_${sessionId}`);
+
+    res.json({ 
+      success: true, 
+      message: 'Workshop session deleted successfully' 
+    });
+  } catch (error) {
+    logger.error('Error deleting workshop session:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to delete workshop session' 
+    });
+  }
+});
+
+// Save workshop results
+router.post('/results', authenticateToken, async (req, res) => {
+  try {
+    const results = req.body;
+    const userId = req.user.id;
+
+    if (!results || !results.id) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Results data is required' 
+      });
+    }
+
+    // Save results to database
+    await withTransaction(async (client) => {
+      await client.query(
+        `INSERT INTO workshop_results (id, user_id, session_id, share_code, data, created_at, expires_at)
+         VALUES ($1, $2, $3, $4, $5, NOW(), NOW() + INTERVAL '7 days')
+         ON CONFLICT (id) DO UPDATE 
+         SET data = EXCLUDED.data, updated_at = NOW()`,
+        [
+          results.id,
+          userId,
+          results.sessionId,
+          results.shareCode || null,
+          JSON.stringify(results)
+        ]
+      );
+    });
+
+    // Cache the results
+    cache.set(`workshop_results_${results.id}`, results, 3600); // 1 hour cache
+
+    res.json({ 
+      success: true, 
+      message: 'Results saved successfully' 
+    });
+  } catch (error) {
+    logger.error('Error saving workshop results:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to save workshop results' 
+    });
+  }
+});
+
+// Get workshop results by ID
+router.get('/results/:id', authenticateToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user.id;
+
+    // Check cache first
+    const cached = cache.get(`workshop_results_${id}`);
+    if (cached) {
+      return res.json(cached);
+    }
+
+    // Load from database
+    const result = await query(
+      'SELECT * FROM workshop_results WHERE id = $1 AND user_id = $2',
+      [id, userId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ 
+        success: false, 
+        error: 'Results not found' 
+      });
+    }
+
+    const results = JSON.parse(result.rows[0].data);
+    
+    // Cache for future requests
+    cache.set(`workshop_results_${id}`, results, 3600);
+
+    res.json(results);
+  } catch (error) {
+    logger.error('Error getting workshop results:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to retrieve workshop results' 
+    });
+  }
+});
+
+// Get workshop results by share code (no auth required for public sharing)
+router.get('/results/share/:shareCode', async (req, res) => {
+  try {
+    const { shareCode } = req.params;
+
+    // Check cache first
+    const cached = cache.get(`workshop_results_share_${shareCode}`);
+    if (cached) {
+      return res.json(cached);
+    }
+
+    // Load from database
+    const result = await query(
+      'SELECT * FROM workshop_results WHERE share_code = $1 AND expires_at > NOW()',
+      [shareCode]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ 
+        success: false, 
+        error: 'Results not found or expired' 
+      });
+    }
+
+    const results = JSON.parse(result.rows[0].data);
+    
+    // Cache for future requests
+    cache.set(`workshop_results_share_${shareCode}`, results, 3600);
+
+    res.json(results);
+  } catch (error) {
+    logger.error('Error getting workshop results by share code:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to retrieve workshop results' 
+    });
+  }
+});
+
 // Helper to get quiz question data (simplified)
 function getQuizQuestion(questionId) {
   // This would normally be imported from a constants file

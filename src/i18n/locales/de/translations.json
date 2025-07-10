@@ -1,0 +1,147 @@
+{
+  "common": {
+    "brandName": "BrandPillar AI",
+    "loading": "Wird geladen...",
+    "error": "Fehler",
+    "success": "Erfolg",
+    "save": "Speichern",
+    "cancel": "Abbrechen",
+    "delete": "Löschen",
+    "edit": "Bearbeiten",
+    "next": "Weiter",
+    "back": "Zurück",
+    "finish": "Fertig",
+    "continue": "Fortfahren",
+    "close": "Schließen",
+    "confirm": "Bestätigen",
+    "yes": "Ja",
+    "no": "Nein"
+  },
+  "navigation": {
+    "home": "Startseite",
+    "brandHouse": "Markenhaus",
+    "dashboard": "Dashboard",
+    "analytics": "Analytik",
+    "content": "Inhalt",
+    "settings": "Einstellungen",
+    "profile": "Profil",
+    "logout": "Abmelden",
+    "login": "Anmelden",
+    "signUp": "Registrieren"
+  },
+  "landing": {
+    "hero": {
+      "title": "Bauen Sie Ihren LinkedIn-Einfluss im Autopilot auf",
+      "subtitle": "KI entdeckt Ihre authentische Stimme, erstellt perfekte Inhalte und veröffentlicht automatisch während Sie schlafen",
+      "cta": "Starten Sie Ihre Markenreise",
+      "learnMore": "Mehr erfahren"
+    },
+    "features": {
+      "title": "Alles was Sie brauchen, um Ihre persönliche Marke aufzubauen",
+      "voiceDiscovery": {
+        "title": "10-Minuten Stimmenerkennung",
+        "description": "Unsere KI führt ein natürliches Gespräch, um Ihren authentischen Kommunikationsstil zu erfassen"
+      },
+      "contentGeneration": {
+        "title": "Perfekte Inhaltserstellung",
+        "description": "Erstellt Beiträge, die genau wie Sie klingen, nicht wie KI"
+      },
+      "autopilot": {
+        "title": "Einstellen und Vergessen Autopilot",
+        "description": "Überwacht Nachrichten, findet Möglichkeiten und veröffentlicht automatisch"
+      }
+    }
+  },
+  "workshop": {
+    "title": "Markenhaus Workshop",
+    "progress": "Schritt {{current}} von {{total}}",
+    "steps": {
+      "values": {
+        "title": "Werteaudit",
+        "subtitle": "Entdecken Sie, was Sie antreibt",
+        "instructions": "Wählen Sie 5-7 Werte, die am meisten mit Ihnen resonieren"
+      },
+      "tone": {
+        "title": "Tonpräferenzen",
+        "subtitle": "Definieren Sie Ihren Kommunikationsstil",
+        "instructions": "Wie möchten Sie bei Ihrem Publikum klingen?"
+      },
+      "audience": {
+        "title": "Zielgruppenersteller",
+        "subtitle": "Mit wem sprechen Sie?",
+        "instructions": "Definieren Sie Ihre idealen Zielgruppen-Personas"
+      },
+      "writing": {
+        "title": "Schreibprobe",
+        "subtitle": "Zeigen Sie uns Ihre Stimme",
+        "instructions": "Schreiben Sie eine kurze Probe in Ihrem natürlichen Stil"
+      },
+      "personality": {
+        "title": "Persönlichkeitsquiz",
+        "subtitle": "Vervollständigen Sie Ihr Markenprofil",
+        "instructions": "Beantworten Sie Fragen, um Ihren Markenarchetyp zu finalisieren"
+      }
+    },
+    "validation": {
+      "required": "Dieses Feld ist erforderlich",
+      "minLength": "Mindestens {{min}} Zeichen erforderlich",
+      "maxLength": "Maximal {{max}} Zeichen erlaubt",
+      "selectValues": "Bitte wählen Sie mindestens {{min}} Werte"
+    }
+  },
+  "results": {
+    "title": "Ihre Markenhaus-Ergebnisse",
+    "archetype": {
+      "title": "Ihr Markenarchetyp",
+      "confidence": "Vertrauenswert: {{score}}%"
+    },
+    "mission": {
+      "title": "Ihr Leitbild"
+    },
+    "values": {
+      "title": "Kernwerte"
+    },
+    "contentPillars": {
+      "title": "Inhaltssäulen",
+      "expertise": "Expertise",
+      "experience": "Erfahrung", 
+      "evolution": "Entwicklung"
+    },
+    "actions": {
+      "downloadPDF": "Bericht herunterladen",
+      "shareResults": "Ergebnisse teilen",
+      "setupNews": "Nachrichtenquellen einrichten",
+      "startContent": "Mit der Inhaltserstellung beginnen"
+    }
+  },
+  "auth": {
+    "welcome": "Willkommen bei BrandPillar AI",
+    "signInWith": "Anmelden mit {{provider}}",
+    "orContinueWith": "Oder fortfahren mit",
+    "emailPlaceholder": "Geben Sie Ihre E-Mail ein",
+    "passwordPlaceholder": "Geben Sie Ihr Passwort ein",
+    "forgotPassword": "Passwort vergessen?",
+    "noAccount": "Noch kein Konto?",
+    "haveAccount": "Bereits ein Konto?",
+    "termsAgreement": "Mit der Fortsetzung stimmen Sie unseren Nutzungsbedingungen und Datenschutzrichtlinien zu"
+  },
+  "errors": {
+    "generic": "Etwas ist schief gelaufen. Bitte versuchen Sie es erneut.",
+    "network": "Netzwerkfehler. Bitte überprüfen Sie Ihre Verbindung.",
+    "auth": {
+      "invalidCredentials": "Ungültige E-Mail oder Passwort",
+      "userNotFound": "Benutzer nicht gefunden",
+      "emailInUse": "E-Mail bereits in Verwendung"
+    },
+    "workshop": {
+      "saveError": "Fehler beim Speichern des Fortschritts",
+      "loadError": "Fehler beim Laden der Workshop-Daten"
+    }
+  },
+  "success": {
+    "saved": "Erfolgreich gespeichert",
+    "updated": "Erfolgreich aktualisiert",
+    "deleted": "Erfolgreich gelöscht",
+    "copied": "In die Zwischenablage kopiert"
+  }
+}

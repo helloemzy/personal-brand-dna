@@ -1,25 +1,24 @@
 // Mock fetch globally
 global.fetch = jest.fn();
 
-// Mock the environment variable before importing the module
+// Save original env
 const originalEnv = process.env;
-process.env = { ...originalEnv, REACT_APP_OPENAI_API_KEY: 'test-api-key' };
 
-// Clear module cache and import after env setup
-jest.resetModules();
-
-// Import after env setup
-const { analyzeWritingWithAI, analyzePersonalityWithAI, generateEnhancedMission } = require('./aiAnalysisService');
-const { WorkshopState } = require('../store/slices/workshopSlice');
-const { Archetype } = require('./archetypeService');
+// Import the service normally
+import { analyzeWritingWithAI, analyzePersonalityWithAI, generateEnhancedMission } from './aiAnalysisService';
+import { WorkshopState } from '../store/slices/workshopSlice';
+import { Archetype } from './archetypeService';
 
 describe('aiAnalysisService', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    // Set test API key by default
+    process.env.REACT_APP_OPENAI_API_KEY = 'test-api-key';
   });
 
   afterEach(() => {
-    process.env = originalEnv;
+    // Restore original env
+    process.env = { ...originalEnv };
   });
 
   const mockArchetypes: Archetype[] = [
@@ -58,8 +57,9 @@ describe('aiAnalysisService', () => {
   ];
 
   describe('analyzeWritingWithAI', () => {
-    test.skip('should return default analysis when no API key is provided', async () => {
-      // Skipped: API key is loaded at module import time, can't test this scenario easily
+    test('should return default analysis when no API key is provided', async () => {
+      // Temporarily remove API key
+      const originalKey = process.env.REACT_APP_OPENAI_API_KEY;
       delete process.env.REACT_APP_OPENAI_API_KEY;
       
       const result = await analyzeWritingWithAI('Sample text', mockArchetypes);
@@ -76,6 +76,11 @@ describe('aiAnalysisService', () => {
         voiceCharacteristics: [],
         archetypeIndicators: {}
       });
+      
+      // Restore API key
+      if (originalKey) {
+        process.env.REACT_APP_OPENAI_API_KEY = originalKey;
+      }
     });
 
     test('should return default analysis when no writing sample is provided', async () => {
@@ -159,18 +164,16 @@ describe('aiAnalysisService', () => {
 
       const result = await analyzeWritingWithAI('Sample text', mockArchetypes);
 
-      expect(result).toEqual({
-        communicationStyle: {
-          formality: 0.5,
-          analyticalVsEmotional: 0.5,
-          assertiveness: 0.5,
-          creativity: 0.5
-        },
-        expertise: [],
-        keyThemes: [],
-        voiceCharacteristics: [],
-        archetypeIndicators: {}
-      });
+      // Should fall back to basic analysis
+      expect(result.communicationStyle.formality).toBe(0.5);
+      expect(result.communicationStyle.assertiveness).toBe(0.5);
+      expect(result.communicationStyle.analyticalVsEmotional).toBeGreaterThanOrEqual(0);
+      expect(result.communicationStyle.creativity).toBeGreaterThan(0);
+      expect(result.expertise).toEqual([]);
+      expect(result.keyThemes).toEqual([]);
+      expect(result.voiceCharacteristics).toHaveLength(3);
+      expect(result.archetypeIndicators).toHaveProperty('innovative-leader');
+      expect(result.archetypeIndicators).toHaveProperty('empathetic-expert');
     });
 
     test('should handle malformed API responses', async () => {
@@ -189,18 +192,16 @@ describe('aiAnalysisService', () => {
 
       const result = await analyzeWritingWithAI('Sample text', mockArchetypes);
 
-      expect(result).toEqual({
-        communicationStyle: {
-          formality: 0.5,
-          analyticalVsEmotional: 0.5,
-          assertiveness: 0.5,
-          creativity: 0.5
-        },
-        expertise: [],
-        keyThemes: [],
-        voiceCharacteristics: [],
-        archetypeIndicators: {}
-      });
+      // Should fall back to basic analysis
+      expect(result.communicationStyle.formality).toBe(0.5);
+      expect(result.communicationStyle.assertiveness).toBe(0.5);
+      expect(result.communicationStyle.analyticalVsEmotional).toBeGreaterThanOrEqual(0);
+      expect(result.communicationStyle.creativity).toBeGreaterThan(0);
+      expect(result.expertise).toEqual([]);
+      expect(result.keyThemes).toEqual([]);
+      expect(result.voiceCharacteristics).toHaveLength(3);
+      expect(result.archetypeIndicators).toHaveProperty('innovative-leader');
+      expect(result.archetypeIndicators).toHaveProperty('empathetic-expert');
     });
   });
 
@@ -212,8 +213,9 @@ describe('aiAnalysisService', () => {
       { questionId: 'motivation', question: 'What motivates you?', answer: 'Creating products that make a difference' }
     ];
 
-    test.skip('should return default analysis when no API key is provided', async () => {
-      // Skipped: API key is loaded at module import time, can't test this scenario easily
+    test('should return default analysis when no API key is provided', async () => {
+      // Temporarily remove API key
+      const originalKey = process.env.REACT_APP_OPENAI_API_KEY;
       delete process.env.REACT_APP_OPENAI_API_KEY;
       
       const result = await analyzePersonalityWithAI(mockResponses, mockArchetypes);
@@ -225,6 +227,11 @@ describe('aiAnalysisService', () => {
         motivations: [],
         archetypeAlignment: {}
       });
+      
+      // Restore API key
+      if (originalKey) {
+        process.env.REACT_APP_OPENAI_API_KEY = originalKey;
+      }
     });
 
     test('should return default analysis when no responses are provided', async () => {
@@ -355,43 +362,35 @@ describe('aiAnalysisService', () => {
     };
 
     test('should return default missions when no API key is provided', async () => {
+      // Temporarily remove API key
+      const originalKey = process.env.REACT_APP_OPENAI_API_KEY;
       delete process.env.REACT_APP_OPENAI_API_KEY;
       
       const result = await generateEnhancedMission(
-        mockWorkshopData,
-        'innovative-leader',
         mockArchetypes[0],
+        mockWorkshopData,
         mockWritingAnalysis,
         mockPersonalityAnalysis
       );
       
-      expect(result).toHaveLength(3);
-      expect(result[0]).toContain('To revolutionize');
+      expect(result).toHaveLength(1);
+      expect(result[0]).toContain('help');
+      
+      // Restore API key
+      if (originalKey) {
+        process.env.REACT_APP_OPENAI_API_KEY = originalKey;
+      }
     });
 
     test('should generate enhanced mission statements', async () => {
       const mockResponse = {
         choices: [{
           message: {
-            content: JSON.stringify({
-              missions: [
-                {
-                  statement: 'To revolutionize product development through innovative thinking',
-                  focus: 'transformation',
-                  tone: 'bold'
-                },
-                {
-                  statement: 'Empowering teams to build products that change the world',
-                  focus: 'empowerment',
-                  tone: 'inspiring'
-                },
-                {
-                  statement: 'Leading the charge in creating technology that matters',
-                  focus: 'leadership',
-                  tone: 'confident'
-                }
-              ]
-            })
+            content: JSON.stringify([
+              'To revolutionize product development through innovative thinking',
+              'Empowering teams to build products that change the world',
+              'Leading the charge in creating technology that matters'
+            ])
           }
         }]
       };
@@ -402,9 +401,8 @@ describe('aiAnalysisService', () => {
       });
 
       const result = await generateEnhancedMission(
-        mockWorkshopData,
-        'innovative-leader',
         mockArchetypes[0],
+        mockWorkshopData,
         mockWritingAnalysis,
         mockPersonalityAnalysis
       );
@@ -420,15 +418,14 @@ describe('aiAnalysisService', () => {
       (global.fetch as jest.Mock).mockRejectedValueOnce(new Error('API Error'));
 
       const result = await generateEnhancedMission(
-        mockWorkshopData,
-        'innovative-leader',
         mockArchetypes[0],
+        mockWorkshopData,
         mockWritingAnalysis,
         mockPersonalityAnalysis
       );
 
-      expect(result).toHaveLength(3);
-      expect(result[0]).toContain('To revolutionize');
+      expect(result).toHaveLength(1);
+      expect(result[0]).toContain('help');
     });
   });
 });

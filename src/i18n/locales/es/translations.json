@@ -1,0 +1,147 @@
+{
+  "common": {
+    "brandName": "BrandPillar AI",
+    "loading": "Cargando...",
+    "error": "Error",
+    "success": "Éxito",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "next": "Siguiente",
+    "back": "Atrás",
+    "finish": "Finalizar",
+    "continue": "Continuar",
+    "close": "Cerrar",
+    "confirm": "Confirmar",
+    "yes": "Sí",
+    "no": "No"
+  },
+  "navigation": {
+    "home": "Inicio",
+    "brandHouse": "Casa de Marca",
+    "dashboard": "Panel",
+    "analytics": "Analíticas",
+    "content": "Contenido",
+    "settings": "Configuración",
+    "profile": "Perfil",
+    "logout": "Cerrar sesión",
+    "login": "Iniciar sesión",
+    "signUp": "Registrarse"
+  },
+  "landing": {
+    "hero": {
+      "title": "Construye tu Influencia en LinkedIn en Piloto Automático",
+      "subtitle": "La IA descubre tu voz auténtica, crea contenido perfecto y publica automáticamente mientras duermes",
+      "cta": "Comienza tu Viaje de Marca",
+      "learnMore": "Aprende Más"
+    },
+    "features": {
+      "title": "Todo lo que Necesitas para Construir tu Marca Personal",
+      "voiceDiscovery": {
+        "title": "Descubrimiento de Voz en 10 Minutos",
+        "description": "Nuestra IA realiza una conversación natural para capturar tu estilo de comunicación auténtico"
+      },
+      "contentGeneration": {
+        "title": "Generación de Contenido Perfecta",
+        "description": "Crea publicaciones que suenan exactamente como tú, no como IA"
+      },
+      "autopilot": {
+        "title": "Piloto Automático Configúralo y Olvídalo",
+        "description": "Monitorea noticias, encuentra oportunidades y publica automáticamente"
+      }
+    }
+  },
+  "workshop": {
+    "title": "Taller Casa de Marca",
+    "progress": "Paso {{current}} de {{total}}",
+    "steps": {
+      "values": {
+        "title": "Auditoría de Valores",
+        "subtitle": "Descubre qué te impulsa",
+        "instructions": "Selecciona 5-7 valores que más resuenen contigo"
+      },
+      "tone": {
+        "title": "Preferencias de Tono",
+        "subtitle": "Define tu estilo de comunicación",
+        "instructions": "¿Cómo quieres sonar ante tu audiencia?"
+      },
+      "audience": {
+        "title": "Constructor de Audiencia",
+        "subtitle": "¿A quién le hablas?",
+        "instructions": "Define tus personas de audiencia ideales"
+      },
+      "writing": {
+        "title": "Muestra de Escritura",
+        "subtitle": "Muéstranos tu voz",
+        "instructions": "Escribe una muestra corta en tu estilo natural"
+      },
+      "personality": {
+        "title": "Cuestionario de Personalidad",
+        "subtitle": "Completa tu perfil de marca",
+        "instructions": "Responde preguntas para finalizar tu arquetipo de marca"
+      }
+    },
+    "validation": {
+      "required": "Este campo es requerido",
+      "minLength": "Se requieren mínimo {{min}} caracteres",
+      "maxLength": "Máximo {{max}} caracteres permitidos",
+      "selectValues": "Por favor selecciona al menos {{min}} valores"
+    }
+  },
+  "results": {
+    "title": "Resultados de tu Casa de Marca",
+    "archetype": {
+      "title": "Tu Arquetipo de Marca",
+      "confidence": "Puntuación de Confianza: {{score}}%"
+    },
+    "mission": {
+      "title": "Tu Declaración de Misión"
+    },
+    "values": {
+      "title": "Valores Fundamentales"
+    },
+    "contentPillars": {
+      "title": "Pilares de Contenido",
+      "expertise": "Experiencia",
+      "experience": "Experiencia", 
+      "evolution": "Evolución"
+    },
+    "actions": {
+      "downloadPDF": "Descargar Informe",
+      "shareResults": "Compartir Resultados",
+      "setupNews": "Configurar Fuentes de Noticias",
+      "startContent": "Comenzar a Crear Contenido"
+    }
+  },
+  "auth": {
+    "welcome": "Bienvenido a BrandPillar AI",
+    "signInWith": "Iniciar sesión con {{provider}}",
+    "orContinueWith": "O continuar con",
+    "emailPlaceholder": "Ingresa tu correo electrónico",
+    "passwordPlaceholder": "Ingresa tu contraseña",
+    "forgotPassword": "¿Olvidaste tu contraseña?",
+    "noAccount": "¿No tienes una cuenta?",
+    "haveAccount": "¿Ya tienes una cuenta?",
+    "termsAgreement": "Al continuar, aceptas nuestros Términos de Servicio y Política de Privacidad"
+  },
+  "errors": {
+    "generic": "Algo salió mal. Por favor intenta de nuevo.",
+    "network": "Error de red. Por favor verifica tu conexión.",
+    "auth": {
+      "invalidCredentials": "Correo o contraseña inválidos",
+      "userNotFound": "Usuario no encontrado",
+      "emailInUse": "El correo ya está en uso"
+    },
+    "workshop": {
+      "saveError": "Error al guardar el progreso",
+      "loadError": "Error al cargar los datos del taller"
+    }
+  },
+  "success": {
+    "saved": "Guardado exitosamente",
+    "updated": "Actualizado exitosamente",
+    "deleted": "Eliminado exitosamente",
+    "copied": "Copiado al portapapeles"
+  }
+}

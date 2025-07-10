@@ -8,11 +8,17 @@ module.exports = {
   jest: {
     configure: {
       transformIgnorePatterns: [
-        'node_modules/(?!(axios)/)'
+        'node_modules/(?!(axios|socket\\.io-client|engine\\.io-client|@supabase|uuid)/)'
       ],
+      moduleNameMapping: {
+        '^(\\.{1,2}/.*)\\.js$': '$1',
+      },
       moduleNameMapper: {
         '^axios$': require.resolve('axios'),
-      }
+        '^socket\\.io-client$': require.resolve('socket.io-client'),
+      },
+      testEnvironment: 'jsdom',
+      extensionsToTreatAsEsm: ['.ts', '.tsx']
     }
   },
   webpack: {

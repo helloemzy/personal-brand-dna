@@ -7,6 +7,12 @@ import SkipLinks from './accessibility/SkipLinks';
 import LiveRegion from './accessibility/LiveRegion';
 import { useFocusTrap, useEscapeKey, useAnnounce } from '../hooks/useAccessibility';
 import { focusVisible, KeyCodes } from '../utils/accessibility';
+import { FeedbackTrigger } from './feedback/FeedbackTrigger';
+import { LanguageSelector } from './LanguageSelector';
+import { useTranslation } from '../hooks/useTranslation';
+import NotificationCenter from './realtime/NotificationCenter';
+import ConnectionStatus from './realtime/ConnectionStatus';
+import { useWebSocket } from '../hooks/useWebSocket';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -21,6 +27,14 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const [pageAnnouncement, setPageAnnouncement] = useState('');
   const mobileMenuRef = useRef<HTMLDivElement>(null);
   const announce = useAnnounce();
+  const { t } = useTranslation();
+  
+  // Initialize WebSocket connection for real-time features
+  const { isConnected } = useWebSocket({
+    autoConnect: true,
+    onConnect: () => announce('Connected to real-time services'),
+    onDisconnect: () => announce('Disconnected from real-time services')
+  });
   
   // Trap focus in mobile menu when open
   useFocusTrap(mobileMenuRef, mobileMenuOpen);
@@ -44,8 +58,11 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const navigation: Array<{name: string; href: string; icon: string; subscription?: string}> = [
     { name: 'Dashboard', href: '/dashboard', icon: '📊' },
     { name: 'Brand House', href: '/brand-house', icon: '🏛️' },
+    { name: 'Workshop Sessions', href: '/workshop/sessions', icon: '💾' },
+    { name: 'Results History', href: '/results/history', icon: '📜' },
     { name: 'Content Calendar', href: '/content/calendar', icon: '📅' },
     { name: 'Content Queue', href: '/content-approval', icon: '📋' },
+    { name: 'Feedback Analytics', href: '/analytics/feedback', icon: '💬' },
     { name: 'News Sources', href: '/news-setup', icon: '📰' },
     { name: 'Analytics', href: '/analytics/dashboard', icon: '📈' },
     { name: 'Subscription', href: '/subscription', icon: '💳' },
@@ -256,6 +273,15 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 </h2>
               </div>
               <div className="flex items-center space-x-2 sm:space-x-4">
+                {/* Connection Status */}
+                <ConnectionStatus variant="compact" className="hidden sm:flex" />
+                
+                {/* Language Selector */}
+                <LanguageSelector variant="dropdown" />
+                
+                {/* Notification Center */}
+                <NotificationCenter position="top-right" />
+                
                 {/* Quick actions */}
                 <NavLink
                   to="/profile"
@@ -287,6 +313,16 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           </div>
         </main>
       </div>
+      
+      {/* Feedback Trigger - Floating Action Button */}
+      <FeedbackTrigger
+        triggerType="floating"
+        feedbackType="general"
+        context={{
+          page: location.pathname,
+          userTier: user?.subscriptionTier
+        }}
+      />
     </div>
   );
 };

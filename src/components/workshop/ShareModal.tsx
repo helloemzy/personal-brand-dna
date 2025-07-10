@@ -20,6 +20,7 @@ import {
   SocialShareTemplate,
   ShareData
 } from '../../services/sharingService';
+import { toast } from '../Toast';
 
 interface ShareModalProps {
   isOpen: boolean;
@@ -53,8 +54,14 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, shareData }) =
       setTimeout(() => {
         setCopiedStates({ ...copiedStates, [key]: false });
       }, 2000);
+      
+      // Show enhanced toast notification
+      const itemType = key === 'link' ? 'Share link' : 
+                      key === 'embed' ? 'Embed code' : 'Content';
+      toast.copy(itemType);
     } catch (error) {
       console.error('Failed to copy:', error);
+      toast.error('Copy failed', 'Please try selecting the text manually');
     }
   };
 
@@ -94,6 +101,8 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, shareData }) =
           <button
             onClick={onClose}
             className="text-gray-500 hover:text-gray-700 transition-colors"
+            aria-label="Close modal"
+            data-modal-close="true"
           >
             <X size={24} />
           </button>
@@ -140,6 +149,8 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, shareData }) =
                   <button
                     onClick={() => handleCopy(shareableLink.fullUrl, 'link')}
                     className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+                    aria-label="Copy share link"
+                    data-copy-button="share-link"
                   >
                     {copiedStates.link ? (
                       <>
@@ -223,6 +234,8 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, shareData }) =
                         `template-${selectedTemplate}`
                       )}
                       className="flex-1 px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors flex items-center justify-center gap-2"
+                      aria-label="Copy social media template"
+                      data-copy-button="social-template"
                     >
                       {copiedStates[`template-${selectedTemplate}`] ? (
                         <>
@@ -295,6 +308,8 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, shareData }) =
               <button
                 onClick={() => handleCopy(generateEmbedCode(shareableLink), 'embed')}
                 className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
+                aria-label="Copy embed code"
+                data-copy-button="embed-code"
               >
                 {copiedStates.embed ? (
                   <>

@@ -3,20 +3,28 @@ import { WorkshopState, WorkshopValue, TonePreferences, AudiencePersona, Writing
 /**
  * Deep clone an object to prevent circular references
  */
-function deepClone<T>(obj: T): T {
+function deepClone<T>(obj: T, visited = new WeakSet()): T {
   if (obj === null || typeof obj !== 'object') return obj;
   if (obj instanceof Date) return new Date(obj.getTime()) as T;
+  
+  // Handle circular references
+  if (visited.has(obj as any)) {
+    return {} as T; // Return empty object for circular references
+  }
+  visited.add(obj as any);
+  
   if (obj instanceof Array) {
     const clonedArr: any[] = [];
     for (const item of obj) {
-      clonedArr.push(deepClone(item));
+      clonedArr.push(deepClone(item, visited));
     }
     return clonedArr as T;
   }
+  
   const clonedObj: any = {};
   for (const key in obj) {
     if (obj.hasOwnProperty(key)) {
-      clonedObj[key] = deepClone(obj[key]);
+      clonedObj[key] = deepClone(obj[key], visited);
     }
   }
   return clonedObj;
@@ -236,6 +244,11 @@ export function sanitizeObjects(state: WorkshopState): WorkshopState {
  * Main sanitizer function to clean workshop state for safe persistence
  */
 export function sanitizeWorkshopState(state: any): WorkshopState {
+  // Handle primitive types and null/undefined
+  if (!state || typeof state !== 'object' || Array.isArray(state)) {
+    return getDefaultWorkshopState();
+  }
+  
   // Start with a deep clone to prevent mutations
   let sanitized = deepClone(state);
   
@@ -300,7 +313,27 @@ export function sanitizeWorkshopState(state: any): WorkshopState {
     sanitized.writingSample = null;
   }
   
-  return sanitized as WorkshopState;
+  // Create clean state with only known fields
+  const cleanState: WorkshopState = {
+    currentStep: sanitized.currentStep,
+    completedSteps: sanitized.completedSteps,
+    isCompleted: sanitized.isCompleted,
+    assessmentScore: sanitized.assessmentScore,
+    workshopPath: sanitized.workshopPath,
+    startedAt: sanitized.startedAt,
+    lastSavedAt: sanitized.lastSavedAt,
+    completedAt: sanitized.completedAt,
+    values: sanitized.values,
+    tonePreferences: sanitized.tonePreferences,
+    audiencePersonas: sanitized.audiencePersonas,
+    writingSample: sanitized.writingSample,
+    personalityQuiz: sanitized.personalityQuiz,
+    sessionId: sanitized.sessionId,
+    isSaving: sanitized.isSaving,
+    lastError: sanitized.lastError
+  };
+  
+  return cleanState;
 }
 
 /**

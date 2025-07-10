@@ -157,9 +157,9 @@ describe('linkedinHeadlineService', () => {
     test('should validate headline length', () => {
       const validHeadline = {
         id: 'test',
-        text: 'Innovation Strategist | Helping startups scale',
+        text: 'Innovation Strategist | Helping startups scale through data-driven growth strategies',
         type: 'authority' as const,
-        characterCount: 47,
+        characterCount: 84,
         keywords: ['innovation', 'strategist', 'startups'],
         archetype: 'innovativeLeader',
         confidence: 0.85,

@@ -7,6 +7,7 @@ import NewsMonitoringDashboard from '../components/NewsMonitoringDashboard';
 import { determineArchetype } from '../services/archetypeService';
 import { mapContentPillars } from '../services/contentPillarService';
 import { FeedItem } from '../services/rssFeedService';
+import { toast } from '../components/Toast';
 
 const NewsMonitoringPage: React.FC = () => {
   const navigate = useNavigate();
@@ -52,6 +53,7 @@ const NewsMonitoringPage: React.FC = () => {
         }
       } catch (error) {
         console.error('Error loading data:', error);
+        toast.error('Failed to load news monitoring data', 'Please refresh the page or try again later');
       } finally {
         setLoading(false);
       }

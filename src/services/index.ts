@@ -10,7 +10,9 @@ export { monitoringAPI, captureError } from './monitoringAPI';
 
 // Export persistence services
 export { workshopPersistence } from './workshopPersistenceService';
+export { workshopSessionService } from './workshopSessionService';
 export type { OfflineQueueItem, ConflictResolution } from './workshopPersistenceService';
+export type { WorkshopSession as WorkshopSessionData } from './workshopSessionService';
 
 // Re-export types
 export type {

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAppSelector, useAppDispatch } from '../hooks/redux';
 import { selectWorkshopState, loadWorkshopState } from '../store/slices/workshopSlice';
+import { selectUser } from '../store/slices/authSlice';
 import { workshopPersistence } from '../services/workshopPersistenceService';
 import SEO from '../components/SEO';
 import { seoService } from '../services/seoService';
@@ -22,6 +23,7 @@ import {
   BarChart3,
   Lightbulb
 } from 'lucide-react';
+import { AnalysisSpinner } from '../components/EnhancedLoadingSpinner';
 import { 
   determineArchetype, 
   generateMissionStatement,
@@ -43,7 +45,8 @@ import {
   generateUVPContentHooks,
   type UVPAnalysis 
 } from '../services/uvpConstructorService';
-import { generateBrandHousePDF, type BrandHouseReportData } from '../services/pdfExportService';
+import { type BrandHouseReportData } from '../services/pdfExportServiceLazy';
+import { toast } from '../components/Toast';
 import { 
   generateActionableContent, 
   type ActionableContentPackage,
@@ -52,6 +55,9 @@ import {
 } from '../services/linkedinHeadlineService';
 import ShareModal from '../components/workshop/ShareModal';
 import { ShareData } from '../services/sharingService';
+import { resultsService, type WorkshopResults } from '../services/resultsService';
+import { FiRefreshCw, FiExternalLink, FiDownload as FiDownloadIcon, FiClock } from 'react-icons/fi';
+import { FeedbackTrigger } from '../components/feedback/FeedbackTrigger';
 
 interface ArchetypeResult {
   primary: ArchetypeScore;
@@ -68,6 +74,7 @@ const WorkshopResultsPage: React.FC = () => {
   const dispatch = useAppDispatch();
   const [searchParams] = useSearchParams();
   const workshopState = useAppSelector(selectWorkshopState);
+  const currentUser = useAppSelector(selectUser);
   const [copied, setCopied] = useState(false);
   const [loading, setLoading] = useState(true);
   const [dataLoading, setDataLoading] = useState(true);
@@ -85,6 +92,11 @@ const WorkshopResultsPage: React.FC = () => {
   const [selectedHeadlineIndex, setSelectedHeadlineIndex] = useState(0);
   const [selectedPitchType, setSelectedPitchType] = useState<'30-second' | '60-second' | 'networking-event'>('60-second');
   const [showShareModal, setShowShareModal] = useState(false);
+  const [cachedResults, setCachedResults] = useState<WorkshopResults | null>(null);
+  const [resultsId, setResultsId] = useState<string | null>(null);
+  const [shareableUrl, setShareableUrl] = useState<string>('');
+  const [isRegenerating, setIsRegenerating] = useState(false);
+  const [exportFormat, setExportFormat] = useState<'json' | 'pdf' | 'csv'>('pdf');
 
   // Load persisted data if needed
   useEffect(() => {
@@ -109,11 +121,47 @@ const WorkshopResultsPage: React.FC = () => {
           return;
         }
 
-        // Check URL params for session ID
+        // Check URL params for results ID or share code
+        const resultsIdParam = searchParams.get('id');
+        const shareCodeParam = searchParams.get('share');
+        
+        if (resultsIdParam) {
+          // Try to load cached results by ID
+          const cached = await resultsService.getResults(resultsIdParam);
+          if (cached) {
+            setCachedResults(cached);
+            setResultsId(resultsIdParam);
+            dispatch(loadWorkshopState(cached.workshopData));
+            
+            // Generate shareable URL
+            const shareUrl = `${window.location.origin}/workshop/results?id=${resultsIdParam}`;
+            setShareableUrl(shareUrl);
+            
+            setDataLoading(false);
+            return;
+          }
+        }
+        
+        if (shareCodeParam) {
+          // Try to load by share code
+          const shared = await resultsService.getResultsByShareCode(shareCodeParam);
+          if (shared) {
+            setCachedResults(shared);
+            setResultsId(shared.id);
+            dispatch(loadWorkshopState(shared.workshopData));
+            
+            // Generate shareable URL
+            const shareUrl = `${window.location.origin}/workshop/results?share=${shareCodeParam}`;
+            setShareableUrl(shareUrl);
+            
+            setDataLoading(false);
+            return;
+          }
+        }
+
+        // Check URL params for session ID (legacy)
         const sessionId = searchParams.get('session');
         if (sessionId) {
-          // Could attempt to load from API with session ID here
-          // For now, we'll just note it exists
           console.log('Session ID in URL:', sessionId);
         }
 
@@ -135,6 +183,20 @@ const WorkshopResultsPage: React.FC = () => {
     const analyzeArchetype = async () => {
       // Don't analyze if still loading data or if there's an error
       if (dataLoading || loadError || !workshopState.values.selected.length) {
+        setLoading(false);
+        return;
+      }
+
+      // If we already have cached results, use them
+      if (cachedResults) {
+        const analysis = cachedResults.analysis;
+        setArchetypeResult(analysis.archetype);
+        setMission(analysis.mission);
+        setAiMissions(analysis.aiMissions);
+        setContentPillars(analysis.contentPillars);
+        setStarterContent(analysis.starterContent);
+        setUvpAnalysis(analysis.uvpAnalysis);
+        setActionableContent(analysis.actionableContent);
         setLoading(false);
         return;
       }
@@ -198,6 +260,39 @@ const WorkshopResultsPage: React.FC = () => {
             setMission(enhancedMissions[0]);
           }
         }
+        
+        // Save results to cache and generate shareable URL
+        if (!resultsId) {
+          const savedResults = await resultsService.saveResults(
+            workshopState,
+            {
+              archetype: result,
+              mission: aiMissions.length > 0 ? aiMissions[0] : mission,
+              aiMissions,
+              contentPillars: pillarAnalysis,
+              starterContent: contentIdeas,
+              uvpAnalysis: uvp,
+              actionableContent: actionable
+            },
+            {
+              completionTime: Date.now() - new Date(workshopState.startedAt!).getTime(),
+              version: '1.0'
+            },
+            {
+              shareable: true,
+              ttl: 7 * 24 * 60 * 60 * 1000, // 7 days
+              userId: currentUser?.id
+            }
+          );
+          
+          setResultsId(savedResults.id);
+          setCachedResults(savedResults);
+          
+          // Update URL with results ID
+          const newUrl = `${window.location.origin}/workshop/results?id=${savedResults.id}`;
+          window.history.replaceState({}, '', newUrl);
+          setShareableUrl(newUrl);
+        }
       } catch (error) {
         console.error('Archetype analysis error:', error);
       } finally {
@@ -206,10 +301,10 @@ const WorkshopResultsPage: React.FC = () => {
     };
 
     analyzeArchetype();
-  }, [workshopState, dataLoading, loadError]);
+  }, [workshopState, dataLoading, loadError, cachedResults, resultsId]);
 
   const handleCopyLink = () => {
-    const url = window.location.href;
+    const url = shareableUrl || window.location.href;
     navigator.clipboard.writeText(url);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
@@ -217,6 +312,63 @@ const WorkshopResultsPage: React.FC = () => {
 
   const handleShare = () => {
     setShowShareModal(true);
+  };
+
+  const handleRegenerate = async () => {
+    if (!workshopState.values.selected.length || isRegenerating) return;
+    
+    setIsRegenerating(true);
+    try {
+      const newResults = await resultsService.regenerateResults(workshopState, {
+        includeAI: true,
+        persist: true
+      });
+      
+      // Update all state with new results
+      const analysis = newResults.analysis;
+      setArchetypeResult(analysis.archetype);
+      setMission(analysis.mission);
+      setAiMissions(analysis.aiMissions);
+      setContentPillars(analysis.contentPillars);
+      setStarterContent(analysis.starterContent);
+      setUvpAnalysis(analysis.uvpAnalysis);
+      setActionableContent(analysis.actionableContent);
+      
+      // Update cached results
+      setCachedResults(newResults);
+      setResultsId(newResults.id);
+      
+      // Update URL
+      const newUrl = `${window.location.origin}/workshop/results?id=${newResults.id}`;
+      window.history.replaceState({}, '', newUrl);
+      setShareableUrl(newUrl);
+    } catch (error) {
+      console.error('Failed to regenerate results:', error);
+    } finally {
+      setIsRegenerating(false);
+    }
+  };
+
+  const handleExport = async (format: 'json' | 'pdf' | 'csv') => {
+    if (!cachedResults) return;
+    
+    try {
+      const blob = await resultsService.exportResults(cachedResults, format);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      
+      const timestamp = new Date().toISOString().split('T')[0];
+      const archetype = archetypeResult?.primary.archetype.name.toLowerCase().replace(/\s+/g, '-');
+      a.download = `brand-house-${archetype}-${timestamp}.${format}`;
+      
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Export failed:', error);
+    }
   };
 
   const handleDownloadPDF = async () => {
@@ -229,14 +381,31 @@ const WorkshopResultsPage: React.FC = () => {
       mission: aiMissions.length > 0 ? aiMissions[selectedMissionIndex] : mission,
       contentPillars,
       uvpAnalysis,
-      starterContent
+      actionableContent: actionableContent ? {
+        headlines: actionableContent.headlines.map(h => ({
+          style: h.style,
+          headline: h.headline,
+          keywords: h.keywords,
+          characterCount: h.characterCount
+        })),
+        pitches: actionableContent.pitches.map(p => ({
+          type: p.type,
+          pitch: p.pitch,
+          wordCount: p.wordCount,
+          keyPoints: p.keyPoints
+        })),
+        contentIdeas: starterContent
+      } : undefined
     };
 
     try {
+      // Dynamically import the PDF service only when needed
+      const { generateBrandHousePDF } = await import('../services/pdfExportServiceLazy');
       await generateBrandHousePDF(reportData);
+      toast.download('Brand House report');
     } catch (error) {
       console.error('Error generating PDF:', error);
-      // You could show an error toast here
+      toast.error('Download failed', 'Please try again or contact support');
     } finally {
       setDownloadingPDF(false);
     }
@@ -266,17 +435,9 @@ const WorkshopResultsPage: React.FC = () => {
   if (dataLoading || loading) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white flex items-center justify-center">
-        <div className="text-center">
-          <Brain className="animate-pulse text-blue-600 mb-4 mx-auto" size={48} />
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">
-            {dataLoading ? 'Loading Your Workshop Data...' : 'Analyzing Your Brand DNA...'}
-          </h2>
-          <p className="text-gray-600">
-            {dataLoading 
-              ? 'Retrieving your saved progress' 
-              : 'Using AI to determine your unique brand archetype'}
-          </p>
-        </div>
+        <AnalysisSpinner 
+          message={dataLoading ? 'Loading Your Workshop Data...' : 'Analyzing Your Brand DNA...'}
+        />
       </div>
     );
   }
@@ -359,6 +520,28 @@ const WorkshopResultsPage: React.FC = () => {
             AI-powered analysis of your unique professional brand
           </p>
         </div>
+
+        {/* Results Status */}
+        {resultsId && (
+          <div className="flex items-center justify-center gap-4 mb-8 text-sm text-gray-600">
+            <div className="flex items-center gap-2">
+              <Check className="w-4 h-4 text-green-600" />
+              <span>Results saved</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <FiExternalLink className="w-4 h-4" />
+              <span>Shareable link generated</span>
+            </div>
+            {cachedResults?.expiresAt && (
+              <div className="flex items-center gap-2">
+                <FiClock className="w-4 h-4" />
+                <span>
+                  Expires {new Date(cachedResults.expiresAt).toLocaleDateString()}
+                </span>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Archetype Card */}
         <div className={`rounded-xl border-2 p-8 mb-8 ${colorClasses[primaryColor as keyof typeof colorClasses]}`}>
@@ -857,6 +1040,8 @@ const WorkshopResultsPage: React.FC = () => {
             onClick={handleDownloadPDF}
             disabled={downloadingPDF}
             className="flex-1 flex items-center justify-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            aria-label="Download Brand House report"
+            data-save-trigger="pdf-download"
           >
             {downloadingPDF ? (
               <>
@@ -893,6 +1078,47 @@ const WorkshopResultsPage: React.FC = () => {
               </>
             )}
           </button>
+        </div>
+
+        {/* Additional Actions */}
+        <div className="flex flex-col sm:flex-row gap-4 mb-8">
+          <button
+            onClick={handleRegenerate}
+            disabled={isRegenerating}
+            className="flex-1 flex items-center justify-center gap-2 border-2 border-blue-600 text-blue-600 px-6 py-3 rounded-lg font-medium hover:bg-blue-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <FiRefreshCw className={`w-5 h-5 ${isRegenerating ? 'animate-spin' : ''}`} />
+            {isRegenerating ? 'Regenerating...' : 'Regenerate Analysis'}
+          </button>
+          
+          <div className="flex-1 flex items-center gap-2">
+            <select
+              value={exportFormat}
+              onChange={(e) => setExportFormat(e.target.value as 'json' | 'pdf' | 'csv')}
+              className="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="pdf">PDF Report</option>
+              <option value="json">JSON Data</option>
+              <option value="csv">CSV Summary</option>
+            </select>
+            <button
+              onClick={() => handleExport(exportFormat)}
+              className="flex-1 flex items-center justify-center gap-2 border-2 border-gray-300 text-gray-700 px-6 py-3 rounded-lg font-medium hover:bg-gray-50 transition-colors"
+            >
+              <FiDownloadIcon className="w-5 h-5" />
+              Export
+            </button>
+          </div>
+          
+          {shareableUrl && (
+            <button
+              onClick={() => window.open(shareableUrl, '_blank')}
+              className="flex items-center justify-center gap-2 border-2 border-gray-300 text-gray-700 px-6 py-3 rounded-lg font-medium hover:bg-gray-50 transition-colors"
+            >
+              <FiExternalLink className="w-5 h-5" />
+              Open in New Tab
+            </button>
+          )}
         </div>
 
         {/* Next Steps */}
@@ -941,6 +1167,20 @@ const WorkshopResultsPage: React.FC = () => {
           } as ShareData}
         />
       )}
+      
+      {/* Feedback Trigger */}
+      <FeedbackTrigger
+        triggerType="banner"
+        feedbackType="satisfaction"
+        context={{
+          page: 'workshop_results',
+          archetype: archetypeResult?.primary.archetype,
+          completionTime: new Date().toISOString()
+        }}
+        promptAfterEvent="workshop_complete"
+        delayMs={5000} // Show after 5 seconds
+        className="mt-8"
+      />
     </div>
   );
 };

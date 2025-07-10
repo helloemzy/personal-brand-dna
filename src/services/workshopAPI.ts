@@ -78,7 +78,27 @@ export const workshopAPI = {
 
   // Delete a workshop session
   deleteSession: async (sessionId: string): Promise<AxiosResponse<{ message: string }>> => {
-    return apiClient.delete(`/workshop?action=delete&id=${sessionId}`);
+    return apiClient.delete(`/workshop/session/${sessionId}`);
+  },
+
+  // Import a workshop session
+  importSession: async (sessionData: any): Promise<AxiosResponse<{ sessionId: string; message: string }>> => {
+    return apiClient.post('/workshop/sessions/import', { session: sessionData });
+  },
+
+  // Save workshop results
+  saveResults: async (results: any): Promise<AxiosResponse<{ success: boolean; message: string }>> => {
+    return apiClient.post('/workshop/results', results);
+  },
+
+  // Get workshop results by ID
+  getResults: async (id: string): Promise<AxiosResponse<any>> => {
+    return apiClient.get(`/workshop/results/${id}`);
+  },
+
+  // Get workshop results by share code
+  getResultsByShareCode: async (shareCode: string): Promise<AxiosResponse<any>> => {
+    return apiClient.get(`/workshop/results/share/${shareCode}`);
   },
 };
 

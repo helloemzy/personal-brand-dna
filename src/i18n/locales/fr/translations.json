@@ -1,0 +1,147 @@
+{
+  "common": {
+    "brandName": "BrandPillar AI",
+    "loading": "Chargement...",
+    "error": "Erreur",
+    "success": "Succès",
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "delete": "Supprimer",
+    "edit": "Modifier",
+    "next": "Suivant",
+    "back": "Retour",
+    "finish": "Terminer",
+    "continue": "Continuer",
+    "close": "Fermer",
+    "confirm": "Confirmer",
+    "yes": "Oui",
+    "no": "Non"
+  },
+  "navigation": {
+    "home": "Accueil",
+    "brandHouse": "Maison de Marque",
+    "dashboard": "Tableau de bord",
+    "analytics": "Analytiques",
+    "content": "Contenu",
+    "settings": "Paramètres",
+    "profile": "Profil",
+    "logout": "Déconnexion",
+    "login": "Connexion",
+    "signUp": "S'inscrire"
+  },
+  "landing": {
+    "hero": {
+      "title": "Développez votre Influence LinkedIn en Pilote Automatique",
+      "subtitle": "L'IA découvre votre voix authentique, crée du contenu parfait et publie automatiquement pendant que vous dormez",
+      "cta": "Commencez votre Parcours de Marque",
+      "learnMore": "En Savoir Plus"
+    },
+    "features": {
+      "title": "Tout ce dont Vous Avez Besoin pour Construire votre Marque Personnelle",
+      "voiceDiscovery": {
+        "title": "Découverte de Voix en 10 Minutes",
+        "description": "Notre IA mène une conversation naturelle pour capturer votre style de communication authentique"
+      },
+      "contentGeneration": {
+        "title": "Génération de Contenu Parfaite",
+        "description": "Crée des publications qui sonnent exactement comme vous, pas comme l'IA"
+      },
+      "autopilot": {
+        "title": "Pilote Automatique Configurer et Oublier",
+        "description": "Surveille les actualités, trouve des opportunités et publie automatiquement"
+      }
+    }
+  },
+  "workshop": {
+    "title": "Atelier Maison de Marque",
+    "progress": "Étape {{current}} sur {{total}}",
+    "steps": {
+      "values": {
+        "title": "Audit des Valeurs",
+        "subtitle": "Découvrez ce qui vous motive",
+        "instructions": "Sélectionnez 5-7 valeurs qui résonnent le plus avec vous"
+      },
+      "tone": {
+        "title": "Préférences de Ton",
+        "subtitle": "Définissez votre style de communication",
+        "instructions": "Comment voulez-vous sonner auprès de votre audience ?"
+      },
+      "audience": {
+        "title": "Constructeur d'Audience",
+        "subtitle": "À qui parlez-vous ?",
+        "instructions": "Définissez vos personas d'audience idéales"
+      },
+      "writing": {
+        "title": "Échantillon d'Écriture",
+        "subtitle": "Montrez-nous votre voix",
+        "instructions": "Écrivez un court échantillon dans votre style naturel"
+      },
+      "personality": {
+        "title": "Quiz de Personnalité",
+        "subtitle": "Complétez votre profil de marque",
+        "instructions": "Répondez aux questions pour finaliser votre archétype de marque"
+      }
+    },
+    "validation": {
+      "required": "Ce champ est requis",
+      "minLength": "Minimum {{min}} caractères requis",
+      "maxLength": "Maximum {{max}} caractères autorisés",
+      "selectValues": "Veuillez sélectionner au moins {{min}} valeurs"
+    }
+  },
+  "results": {
+    "title": "Résultats de votre Maison de Marque",
+    "archetype": {
+      "title": "Votre Archétype de Marque",
+      "confidence": "Score de Confiance : {{score}}%"
+    },
+    "mission": {
+      "title": "Votre Déclaration de Mission"
+    },
+    "values": {
+      "title": "Valeurs Fondamentales"
+    },
+    "contentPillars": {
+      "title": "Piliers de Contenu",
+      "expertise": "Expertise",
+      "experience": "Expérience", 
+      "evolution": "Évolution"
+    },
+    "actions": {
+      "downloadPDF": "Télécharger le Rapport",
+      "shareResults": "Partager les Résultats",
+      "setupNews": "Configurer les Sources d'Actualités",
+      "startContent": "Commencer à Créer du Contenu"
+    }
+  },
+  "auth": {
+    "welcome": "Bienvenue sur BrandPillar AI",
+    "signInWith": "Se connecter avec {{provider}}",
+    "orContinueWith": "Ou continuer avec",
+    "emailPlaceholder": "Entrez votre email",
+    "passwordPlaceholder": "Entrez votre mot de passe",
+    "forgotPassword": "Mot de passe oublié ?",
+    "noAccount": "Vous n'avez pas de compte ?",
+    "haveAccount": "Vous avez déjà un compte ?",
+    "termsAgreement": "En continuant, vous acceptez nos Conditions d'Utilisation et notre Politique de Confidentialité"
+  },
+  "errors": {
+    "generic": "Quelque chose s'est mal passé. Veuillez réessayer.",
+    "network": "Erreur réseau. Veuillez vérifier votre connexion.",
+    "auth": {
+      "invalidCredentials": "Email ou mot de passe invalide",
+      "userNotFound": "Utilisateur non trouvé",
+      "emailInUse": "Email déjà utilisé"
+    },
+    "workshop": {
+      "saveError": "Échec de l'enregistrement de la progression",
+      "loadError": "Échec du chargement des données de l'atelier"
+    }
+  },
+  "success": {
+    "saved": "Enregistré avec succès",
+    "updated": "Mis à jour avec succès",
+    "deleted": "Supprimé avec succès",
+    "copied": "Copié dans le presse-papiers"
+  }
+}

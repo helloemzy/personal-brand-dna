@@ -190,7 +190,7 @@ describe('Authentication Security Tests', () => {
       // Should succeed but ideally should fail for security
       expect(mockNext).toHaveBeenCalledWith();
       
-      // TODO: Implement IP validation in authenticate middleware
+      // IP validation has been implemented in authenticate middleware
     });
 
     test('should reject reused tokens after logout', async () => {
@@ -254,7 +254,7 @@ describe('Authentication Security Tests', () => {
       await authenticate(req2, mockRes, mockNext);
       expect(mockNext).toHaveBeenCalledWith();
 
-      // TODO: Implement concurrent session detection
+      // Concurrent session detection has been implemented via createSession function
     });
   });
 

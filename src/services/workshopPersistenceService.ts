@@ -69,6 +69,21 @@ class WorkshopPersistenceService {
   }
 
   /**
+   * Reset singleton instance (for testing)
+   */
+  public static resetInstance(): void {
+    if (WorkshopPersistenceService.instance) {
+      // Clear any active timers before resetting
+      const instance = WorkshopPersistenceService.instance;
+      if (instance.saveDebounceTimer) {
+        clearTimeout(instance.saveDebounceTimer);
+        instance.saveDebounceTimer = null;
+      }
+    }
+    WorkshopPersistenceService.instance = undefined as any;
+  }
+
+  /**
    * Redux persistence layer
    */
   private createReduxLayer(): PersistenceLayer {
@@ -399,18 +414,22 @@ class WorkshopPersistenceService {
     // Save to Redux immediately
     await this.reduxLayer.save(data);
 
-    // Debounce other saves
+    // Debounce other saves - fetch latest data when timer executes
     this.saveDebounceTimer = setTimeout(async () => {
       try {
+        // Get the latest data from Redux instead of using captured data
+        const latestData = await this.reduxLayer.load();
+        if (!latestData) return;
+
         // Save to localStorage
-        await this.localStorageLayer.save(data);
+        await this.localStorageLayer.save(latestData);
 
         // Save to database if online
-        if (this.isOnline && data.sessionId) {
-          await this.databaseLayer.save(data);
-        } else if (data.sessionId) {
+        if (this.isOnline && latestData.sessionId) {
+          await this.databaseLayer.save(latestData);
+        } else if (latestData.sessionId) {
           // Add to offline queue
-          this.addToOfflineQueue(data);
+          this.addToOfflineQueue(latestData);
         }
       } catch (error) {
         console.error('Save failed:', error);
@@ -537,6 +556,9 @@ class WorkshopPersistenceService {
 
 // Export singleton instance
 export const workshopPersistence = WorkshopPersistenceService.getInstance();
+
+// Export the class for testing
+export { WorkshopPersistenceService };
 
 // Export types
 export type { OfflineQueueItem, ConflictResolution };

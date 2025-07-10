@@ -1,273 +1,191 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
+import { LazyImage } from './LazyImage';
+import { 
+  generateSrcSet, 
+  generatePictureSources, 
+  getOptimalImageFormat,
+  createPlaceholder,
+  supportsWebP
+} from '../utils/imageOptimization';
+import { performanceMonitor } from '../utils/performanceMonitor';
 
 interface OptimizedImageProps {
   src: string;
   alt: string;
-  className?: string;
   width?: number;
   height?: number;
-  loading?: 'lazy' | 'eager';
-  priority?: boolean;
-  placeholder?: 'blur' | 'empty';
-  blurDataURL?: string;
   sizes?: string;
-  srcSet?: string;
+  priority?: boolean;
+  quality?: number;
+  className?: string;
   onLoad?: () => void;
   onError?: () => void;
+  objectFit?: 'cover' | 'contain' | 'fill' | 'none' | 'scale-down';
+  formats?: string[];
+  breakpoints?: number[];
 }
 
-const OptimizedImage: React.FC<OptimizedImageProps> = ({
+export const OptimizedImage: React.FC<OptimizedImageProps> = ({
   src,
   alt,
-  className = '',
   width,
   height,
-  loading = 'lazy',
+  sizes = '100vw',
   priority = false,
-  placeholder = 'blur',
-  blurDataURL,
-  sizes,
-  srcSet,
+  quality = 80,
+  className = '',
   onLoad,
-  onError
+  onError,
+  objectFit = 'cover',
+  formats = ['webp', 'jpeg'],
+  breakpoints = [320, 640, 768, 1024, 1280, 1920]
 }) => {
-  const [isLoaded, setIsLoaded] = useState(false);
-  const [hasError, setHasError] = useState(false);
-  const [isInView, setIsInView] = useState(false);
-  const imgRef = useRef<HTMLImageElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  // Use Intersection Observer for truly lazy loading
+  const [optimalFormat, setOptimalFormat] = useState<'webp' | 'jpeg'>('jpeg');
+  const [isWebPSupported, setIsWebPSupported] = useState(false);
+  
   useEffect(() => {
-    if (priority || loading === 'eager' || typeof IntersectionObserver === 'undefined') {
-      setIsInView(true);
-      return;
-    }
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            setIsInView(true);
-            observer.disconnect();
-          }
-        });
-      },
-      {
-        rootMargin: '50px' // Start loading 50px before the image enters viewport
+    // Check WebP support
+    supportsWebP().then(supported => {
+      setIsWebPSupported(supported);
+      if (supported) {
+        setOptimalFormat('webp');
       }
-    );
+    });
+    
+    // Get optimal format based on browser
+    getOptimalImageFormat().then(format => {
+      setOptimalFormat(format);
+    });
+  }, []);
 
-    if (containerRef.current) {
-      observer.observe(containerRef.current);
-    }
+  // Generate placeholder
+  const placeholder = width && height 
+    ? createPlaceholder(width, height)
+    : undefined;
 
-    return () => observer.disconnect();
-  }, [priority, loading]);
-
-  // Preload priority images
-  useEffect(() => {
-    if (priority && typeof window !== 'undefined') {
-      const link = document.createElement('link');
-      link.rel = 'preload';
-      link.as = 'image';
-      link.href = src;
-      if (srcSet) {
-        link.setAttribute('imagesrcset', srcSet);
-      }
-      if (sizes) {
-        link.setAttribute('imagesizes', sizes);
-      }
-      document.head.appendChild(link);
-    }
-  }, [priority, src, srcSet, sizes]);
-
+  // Handle image load with performance tracking
   const handleLoad = () => {
-    setIsLoaded(true);
-    setHasError(false);
+    performanceMonitor.mark(`image-loaded-${src}`);
     onLoad?.();
   };
 
-  const handleError = () => {
-    setHasError(true);
-    setIsLoaded(true);
-    onError?.();
-  };
-
-  // Generate srcSet for responsive images if not provided
-  const generateSrcSet = () => {
-    if (srcSet) return srcSet;
-    
-    // If src contains optimization parameters, generate srcSet
-    if (src.includes('w=') || src.includes('q=')) {
-      const widths = [640, 750, 828, 1080, 1200, 1920, 2048, 3840];
-      return widths
-        .map((w) => {
-          const url = new URL(src, window.location.origin);
-          url.searchParams.set('w', w.toString());
-          return `${url.toString()} ${w}w`;
-        })
-        .join(', ');
-    }
-    
-    return undefined;
-  };
-
-  // Generate sizes attribute if not provided
-  const generateSizes = () => {
-    if (sizes) return sizes;
-    
-    return '(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw';
-  };
-
-  // Default blur placeholder
-  const defaultBlurDataURL = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"%3E%3Cfilter id="b"%3E%3CfeGaussianBlur stdDeviation="3"/%3E%3C/filter%3E%3Crect width="100" height="100" fill="%23f3f4f6" filter="url(%23b)"/%3E%3C/svg%3E';
-
-  return (
-    <div
-      ref={containerRef}
-      className={`relative overflow-hidden ${className}`}
-      style={{
-        width: width ? `${width}px` : undefined,
-        height: height ? `${height}px` : undefined,
-        backgroundColor: hasError ? '#ef4444' : undefined
-      }}
-    >
-      {/* Placeholder */}
-      {!isLoaded && placeholder === 'blur' && (
-        <div
-          className="absolute inset-0 z-10"
-          style={{
-            backgroundImage: `url(${blurDataURL || defaultBlurDataURL})`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            filter: 'blur(20px)',
-            transform: 'scale(1.1)'
-          }}
+  // Priority images should not be lazy loaded
+  if (priority) {
+    return (
+      <picture>
+        {isWebPSupported && (
+          <source
+            type="image/webp"
+            srcSet={generateSrcSet(`${src}?format=webp&q=${quality}`, breakpoints)}
+            sizes={sizes}
+          />
+        )}
+        <source
+          type="image/jpeg"
+          srcSet={generateSrcSet(`${src}?format=jpeg&q=${quality}`, breakpoints)}
+          sizes={sizes}
         />
-      )}
-
-      {/* Error state */}
-      {hasError && (
-        <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
-          <div className="text-center p-4">
-            <svg
-              className="w-12 h-12 text-gray-400 mx-auto mb-2"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-              />
-            </svg>
-            <p className="text-sm text-gray-500">Failed to load image</p>
-          </div>
-        </div>
-      )}
-
-      {/* Actual image */}
-      {isInView && !hasError && (
         <img
-          ref={imgRef}
-          src={src}
+          src={`${src}?format=${optimalFormat}&q=${quality}&w=${width || 1920}`}
           alt={alt}
           width={width}
           height={height}
-          loading={loading}
-          srcSet={generateSrcSet()}
-          sizes={generateSizes()}
+          className={className}
           onLoad={handleLoad}
-          onError={handleError}
-          className={`
-            ${!isLoaded ? 'opacity-0' : 'opacity-100'}
-            transition-opacity duration-300 ease-in-out
-            ${className}
-          `}
-          style={{
-            width: width ? `${width}px` : '100%',
-            height: height ? `${height}px` : 'auto',
-            objectFit: 'cover'
-          }}
+          onError={onError}
+          style={{ objectFit }}
+          loading="eager"
+          fetchPriority="high"
+          decoding="async"
         />
-      )}
+      </picture>
+    );
+  }
 
-      {/* Loading skeleton */}
-      {!isLoaded && !hasError && placeholder === 'empty' && (
-        <div className="absolute inset-0 bg-gray-200 animate-pulse" />
-      )}
-    </div>
+  // Non-priority images use lazy loading
+  return (
+    <picture>
+      {formats.map(format => (
+        <source
+          key={format}
+          type={`image/${format}`}
+          srcSet={generateSrcSet(`${src}?format=${format}&q=${quality}`, breakpoints)}
+          sizes={sizes}
+        />
+      ))}
+      <LazyImage
+        src={`${src}?format=${optimalFormat}&q=${quality}&w=${width || 1920}`}
+        alt={alt}
+        className={className}
+        placeholder={placeholder}
+        aspectRatio={width && height ? width / height : undefined}
+        objectFit={objectFit}
+        onLoad={handleLoad}
+        onError={onError}
+      />
+    </picture>
   );
 };
 
-// Hook for preloading images
-export function useImagePreloader(imageSrcs: string[]) {
+// Hero image component with critical loading
+export const HeroImage: React.FC<OptimizedImageProps> = (props) => {
   useEffect(() => {
-    const preloadImage = (src: string) => {
-      return new Promise((resolve, reject) => {
-        const img = new Image();
-        img.onload = resolve;
-        img.onerror = reject;
-        img.src = src;
-      });
+    // Preload hero image
+    const link = document.createElement('link');
+    link.rel = 'preload';
+    link.as = 'image';
+    link.href = `${props.src}?format=webp&q=${props.quality || 90}&w=1920`;
+    link.type = 'image/webp';
+    document.head.appendChild(link);
+    
+    return () => {
+      document.head.removeChild(link);
     };
+  }, [props.src, props.quality]);
 
-    // Preload images in the background
-    imageSrcs.forEach((src) => {
-      if ('requestIdleCallback' in window) {
-        window.requestIdleCallback(() => {
-          preloadImage(src).catch(console.error);
-        });
-      } else {
-        setTimeout(() => {
-          preloadImage(src).catch(console.error);
-        }, 1);
-      }
-    });
-  }, [imageSrcs]);
+  return <OptimizedImage {...props} priority={true} quality={90} />;
+};
+
+// Thumbnail component with lower quality
+export const ThumbnailImage: React.FC<OptimizedImageProps> = (props) => {
+  return (
+    <OptimizedImage 
+      {...props} 
+      quality={60}
+      breakpoints={[160, 320, 480]}
+      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+    />
+  );
+};
+
+// Avatar component with circular crop
+interface AvatarImageProps extends Omit<OptimizedImageProps, 'width' | 'height'> {
+  size?: 'sm' | 'md' | 'lg' | 'xl';
 }
 
-// Progressive image component
-export const ProgressiveImage: React.FC<{
-  src: string;
-  alt: string;
-  className?: string;
-  thumbnailSrc?: string;
-}> = ({ src, alt, className, thumbnailSrc }) => {
-  const [currentSrc, setCurrentSrc] = useState(thumbnailSrc || src);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    if (!thumbnailSrc) return;
-
-    // Load full resolution image
-    const img = new Image();
-    img.src = src;
-    img.onload = () => {
-      setCurrentSrc(src);
-      setIsLoading(false);
-    };
-  }, [src, thumbnailSrc]);
-
+export const AvatarImage: React.FC<AvatarImageProps> = ({
+  size = 'md',
+  className = '',
+  ...props
+}) => {
+  const sizeMap = {
+    sm: 32,
+    md: 48,
+    lg: 64,
+    xl: 96
+  };
+  
+  const dimension = sizeMap[size];
+  
   return (
-    <div className={`relative ${className}`}>
-      <img
-        src={currentSrc}
-        alt={alt}
-        className={`
-          w-full h-full object-cover
-          ${isLoading && thumbnailSrc ? 'filter blur-sm scale-105' : ''}
-          transition-all duration-300
-        `}
-      />
-      {isLoading && (
-        <div className="absolute inset-0 bg-gray-200 animate-pulse opacity-50" />
-      )}
-    </div>
+    <OptimizedImage
+      {...props}
+      width={dimension}
+      height={dimension}
+      className={`rounded-full ${className}`}
+      objectFit="cover"
+      breakpoints={[dimension, dimension * 2]}
+      sizes={`${dimension}px`}
+    />
   );
 };
-
-export default OptimizedImage;

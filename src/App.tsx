@@ -16,6 +16,9 @@ import LazyLoadingFallback, {
   AnalyticsLoadingFallback 
 } from './components/LazyLoadingFallback';
 
+// Initialize i18n
+import './i18n/config';
+
 // Initialize Sentry as early as possible
 initSentry();
 
@@ -56,12 +59,15 @@ const LinkedInCallbackPage = lazyWithRetry(() => import('./pages/LinkedInCallbac
 const AnalyticsDashboardPage = lazyWithRetry(() => import('./pages/AnalyticsDashboardPage'));
 const UserAnalyticsDashboard = lazyWithRetry(() => import('./pages/UserAnalyticsDashboard'));
 const AnalyticsSettingsPage = lazyWithRetry(() => import('./pages/AnalyticsSettingsPage'));
+const FeedbackAnalyticsPage = lazyWithRetry(() => import('./pages/FeedbackAnalyticsPage'));
 
 // Workshop components with special handling
 const WorkshopContainer = lazyWithPreload(() => import('./components/workshop/WorkshopContainer'));
 const PreWorkshopAssessment = lazyWithPreload(() => import('./components/workshop/PreWorkshopAssessment'));
+const WorkshopSessionsPage = lazyWithPreload(() => import('./pages/WorkshopSessionsPage'));
 const WorkshopResultsPage = lazyWithPreload(() => import('./pages/WorkshopResultsPage'));
 const SharedResultsPage = lazyWithPreload(() => import('./pages/SharedResultsPage'));
+const ResultsHistoryPage = lazyWithPreload(() => import('./pages/ResultsHistoryPage'));
 
 // Development only components
 const DebugWorkshopPage = process.env.NODE_ENV === 'development' 
@@ -72,6 +78,8 @@ const DebugWorkshopPage = process.env.NODE_ENV === 'development'
 const PrivacyConsentBanner = lazyWithRetry(() => import('./components/PrivacyConsentBanner'));
 const AccessibilityAudit = lazyWithRetry(() => import('./components/accessibility/AccessibilityAudit'));
 const KeyboardShortcuts = lazyWithRetry(() => import('./components/accessibility/KeyboardShortcuts'));
+const DiagnosticTools = lazyWithRetry(() => import('./components/DiagnosticTools'));
+const LiveNotificationSystem = lazyWithRetry(() => import('./components/notifications/LiveNotificationSystem'));
 
 // Create Sentry-enhanced router for performance monitoring
 const SentryRoutes = Sentry.withSentryRouting(Routes);
@@ -258,6 +266,13 @@ function App() {
           <KeyboardShortcuts />
         </Suspense>
         
+        {/* Live Notification System */}
+        {isAuthenticated && (
+          <Suspense fallback={null}>
+            <LiveNotificationSystem position="top-right" enableSound={true} enableBrowserNotifications={true} />
+          </Suspense>
+        )}
+        
         <SentryRoutes>
           {/* Public Routes */}
           <Route path="/" element={
@@ -382,6 +397,26 @@ function App() {
               <Layout>
                 <Suspense fallback={<WorkshopLoadingFallback />}>
                   <WorkshopResultsPage />
+                </Suspense>
+              </Layout>
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/workshop/sessions" element={
+            <ProtectedRoute>
+              <Layout>
+                <Suspense fallback={<WorkshopLoadingFallback />}>
+                  <WorkshopSessionsPage />
+                </Suspense>
+              </Layout>
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/results/history" element={
+            <ProtectedRoute>
+              <Layout>
+                <Suspense fallback={<WorkshopLoadingFallback />}>
+                  <ResultsHistoryPage />
                 </Suspense>
               </Layout>
             </ProtectedRoute>
@@ -517,6 +552,16 @@ function App() {
             </ProtectedRoute>
           } />
 
+          <Route path="/analytics/feedback" element={
+            <ProtectedRoute>
+              <Layout>
+                <Suspense fallback={<AnalyticsLoadingFallback />}>
+                  <FeedbackAnalyticsPage />
+                </Suspense>
+              </Layout>
+            </ProtectedRoute>
+          } />
+
           <Route path="/profile" element={
             <ProtectedRoute>
               <Layout>
@@ -565,6 +610,13 @@ function App() {
         <Suspense fallback={null}>
           <PrivacyConsentBanner />
         </Suspense>
+
+        {/* Diagnostic Tools - Only in development */}
+        {process.env.NODE_ENV === 'development' && (
+          <Suspense fallback={null}>
+            <DiagnosticTools />
+          </Suspense>
+        )}
       </div>
     </ErrorBoundary>
     </HelmetProvider>

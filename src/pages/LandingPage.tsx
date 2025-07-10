@@ -5,11 +5,14 @@ import { setCredentials } from '../store/slices/authSlice';
 import { authAPI } from '../services/authAPI';
 import { toast } from '../components/Toast';
 import SEO from '../components/SEO';
+import { useTranslation } from '../hooks/useTranslation';
+import { LanguageSelector } from '../components/LanguageSelector';
 
 const LandingPage: React.FC = () => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const [isLoading, setIsLoading] = useState(false);
+  const { t } = useTranslation();
 
   const handleDemoLogin = async () => {
     setIsLoading(true);
@@ -31,15 +34,18 @@ const LandingPage: React.FC = () => {
       <SEO />
       {/* Hero Section */}
       <div className="relative bg-gradient-to-r from-blue-600 to-blue-800 overflow-hidden">
+        {/* Language Selector in top right */}
+        <div className="absolute top-4 right-4 z-10">
+          <LanguageSelector variant="dropdown" />
+        </div>
+        
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
           <div className="text-center">
             <h1 className="text-4xl md:text-6xl font-bold text-white mb-6">
-              Build Your Personal Brand
-              <span className="block text-blue-200">On Autopilot</span>
+              {t('landing.hero.title')}
             </h1>
             <p className="text-xl text-blue-100 mb-8 max-w-3xl mx-auto">
-              The only platform that combines AI brand discovery, automated content creation, 
-              and intelligent news monitoring to grow your LinkedIn influence effortlessly.
+              {t('landing.hero.subtitle')}
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <button
@@ -47,13 +53,13 @@ const LandingPage: React.FC = () => {
                 disabled={isLoading}
                 className="bg-white text-blue-600 px-8 py-3 rounded-lg font-semibold hover:bg-blue-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isLoading ? 'Loading...' : 'Start 7-Day Free Trial'}
+                {isLoading ? t('common.loading') : t('landing.hero.cta')}
               </button>
               <Link
                 to="/login"
                 className="border-2 border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-blue-600 transition-colors"
               >
-                Sign In
+                {t('navigation.login')}
               </Link>
             </div>
           </div>
@@ -65,11 +71,8 @@ const LandingPage: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">
-              The Only Platform That Does It All
+              {t('landing.features.title')}
             </h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              AI brand discovery + automated content + news monitoring = Your personal brand on autopilot
-            </p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-8">
@@ -78,10 +81,10 @@ const LandingPage: React.FC = () => {
                 <span className="text-2xl">🏛️</span>
               </div>
               <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                15-Minute Brand House
+                {t('landing.features.voiceDiscovery.title')}
               </h3>
               <p className="text-gray-600">
-                Complete our AI-powered assessment to discover your brand pillars and unique value
+                {t('landing.features.voiceDiscovery.description')}
               </p>
             </div>
 
@@ -90,10 +93,10 @@ const LandingPage: React.FC = () => {
                 <span className="text-2xl">📰</span>
               </div>
               <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                Smart News Monitoring
+                {t('landing.features.contentGeneration.title')}
               </h3>
               <p className="text-gray-600">
-                AI monitors your industry news and creates timely content that positions you as a thought leader
+                {t('landing.features.contentGeneration.description')}
               </p>
             </div>
 
@@ -102,10 +105,10 @@ const LandingPage: React.FC = () => {
                 <span className="text-2xl">🚀</span>
               </div>
               <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                Automated Posting
+                {t('landing.features.autopilot.title')}
               </h3>
               <p className="text-gray-600">
-                Review and approve content with 1-hour notice, then watch your influence grow on autopilot
+                {t('landing.features.autopilot.description')}
               </p>
             </div>
           </div>

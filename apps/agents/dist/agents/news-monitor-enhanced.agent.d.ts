@@ -1,0 +1,38 @@
+import { BaseAgent } from '../framework/base-agent';
+import { Task } from '@brandpillar/shared';
+export declare class NewsMonitorEnhancedAgent extends BaseAgent {
+    private parser;
+    private databaseService;
+    private relevanceService;
+    private viralityService;
+    private competitiveService;
+    private workshopService;
+    private monitoringInterval;
+    private monitoringTimer?;
+    private batchSize;
+    constructor();
+    initialize(): Promise<void>;
+    processTask(task: Task): Promise<any>;
+    validateTask(task: Task): Promise<boolean>;
+    private loadActiveFeeds;
+    private startEnhancedMonitoring;
+    private runMonitoringCycle;
+    private processFeed;
+    private processNewArticles;
+    private createOpportunityForUser;
+    private monitorUserFeeds;
+    private analyzeArticle;
+    private findContentGaps;
+    private getTopOpportunities;
+    private updateFeedPreferences;
+    private triggerContentGeneration;
+    private notifyHighValueOpportunity;
+    private mapToContentPillars;
+    private generateHooks;
+    private extractTopic;
+    private extractImageUrl;
+    private getSubscriptionsForFeed;
+    private cleanupExpiredOpportunities;
+    private chunkArray;
+    stop(): Promise<void>;
+}

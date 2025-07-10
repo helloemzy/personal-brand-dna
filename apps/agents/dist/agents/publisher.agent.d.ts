@@ -1,0 +1,36 @@
+import { BaseAgent } from '../base/base-agent';
+import { AgentMessage } from '@brandpillar/shared';
+import { Logger } from 'pino';
+export declare class PublisherAgent extends BaseAgent {
+    private supabase;
+    private publishQueue;
+    private redis;
+    private timingOptimizer;
+    private readonly PLATFORM_LIMITS;
+    constructor(logger: Logger);
+    protected processTask(message: AgentMessage): Promise<void>;
+    private handlePublishContent;
+    private publishNow;
+    private formatForPlatform;
+    private truncateContent;
+    private publishToLinkedIn;
+    private callLinkedInAPI;
+    private publishToTwitter;
+    private schedulePost;
+    private setupQueueProcessor;
+    private findOptimalTime;
+    private gatherTimingFactors;
+    private getAudienceActivity;
+    private getDefaultTimeSlots;
+    private getHistoricalPerformance;
+    private getCompetitorActivity;
+    private getPlatformTrends;
+    private getDefaultPlatformTrends;
+    private getUserPreferences;
+    private checkRateLimit;
+    private trackPublishing;
+    private handleScheduleContent;
+    private handleOptimizeTiming;
+    private handleCancelScheduled;
+    private isRetryableError;
+}

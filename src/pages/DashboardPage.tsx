@@ -5,6 +5,7 @@ import { selectWorkshopState } from '../store/slices/workshopSlice';
 import TrialBanner from '../components/TrialBanner';
 import { useTracking } from '../hooks/useTracking';
 import SEO from '../components/SEO';
+import { FeedbackTrigger } from '../components/feedback/FeedbackTrigger';
 
 const DashboardPage: React.FC = () => {
   const { user } = useAppSelector((state) => state.auth);
@@ -218,6 +219,20 @@ const DashboardPage: React.FC = () => {
           <p className="text-sm mt-1">Start by completing your voice discovery</p>
         </div>
       </div>
+      
+      {/* Monthly NPS Survey */}
+      <FeedbackTrigger
+        triggerType="banner"
+        feedbackType="nps"
+        context={{
+          page: 'dashboard',
+          hasCompletedAssessment,
+          userSince: user?.createdAt
+        }}
+        promptAfterEvent="monthly_checkin"
+        delayMs={10000} // Show after 10 seconds
+        className="mt-6"
+      />
     </div>
   );
 };

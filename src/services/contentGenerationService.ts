@@ -184,6 +184,66 @@ Remember to:
     };
   }
 
+  // Generate content prompt for specific request
+  static generateContentPrompt(
+    request: ContentGenerationRequest,
+    workshopData: WorkshopData
+  ): string {
+    const systemPrompt = this.generateSystemPrompt(workshopData);
+    const archetype = workshopData.archetypeResult?.primary || 'Strategic Visionary';
+    
+    let prompt = systemPrompt + '\n\n';
+    
+    // Content type specific instructions
+    const contentTypeInstructions = {
+      'post': 'LinkedIn post',
+      'article': 'LinkedIn article',
+      'story': 'personal story',
+      'poll': 'LinkedIn poll',
+      'carousel': 'carousel post'
+    };
+    
+    prompt += `Create a ${contentTypeInstructions[request.contentType]} about "${request.topic}".`;
+    
+    // Add tone instructions
+    if (request.tone) {
+      const toneMap = {
+        'professional': 'professional and authoritative',
+        'casual': 'casual and approachable',
+        'thought-leader': 'thought leader perspective',
+        'conversational': 'conversational and engaging'
+      };
+      prompt += ` Use a ${toneMap[request.tone]} tone.`;
+    }
+    
+    // Add length requirements
+    if (request.length) {
+      const lengthMap = {
+        'short': '150-300 words',
+        'medium': '300-600 words',
+        'long': '600-1000 words'
+      };
+      prompt += ` Target length: ${lengthMap[request.length]}.`;
+    }
+    
+    // Add news context if provided
+    if (request.source === 'news' && request.newsContext) {
+      prompt += `\n\nNews context:`;
+      prompt += `\nArticle: "${request.newsContext.articleTitle}"`;
+      if (request.newsContext.articleSummary) {
+        prompt += `\nSummary: ${request.newsContext.articleSummary}`;
+      }
+      prompt += `\nProvide your unique perspective on this news.`;
+    }
+    
+    // Add idea context if provided
+    if (request.source === 'idea' && request.ideaContext) {
+      prompt += `\n\nThis content should align with your ${request.ideaContext.contentPillar} content pillar.`;
+    }
+    
+    return prompt;
+  }
+
   // Create content variations
   static async generateVariations(
     baseContent: string,

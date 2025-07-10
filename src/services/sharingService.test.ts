@@ -94,8 +94,9 @@ describe('sharingService', () => {
       
       expect(storedData).not.toBeNull();
       const parsed = JSON.parse(storedData!);
-      expect(parsed).toHaveProperty('shareData');
-      expect(parsed.shareData.mission).toBe(mockShareData.mission);
+      expect(parsed).toHaveProperty('mission');
+      expect(parsed.mission).toBe(mockShareData.mission);
+      expect(parsed).toHaveProperty('created');
     });
   });
 

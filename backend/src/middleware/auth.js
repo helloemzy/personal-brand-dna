@@ -80,6 +80,42 @@ const authenticate = async (req, res, next) => {
       return next(new AppError('Session expired or invalid', 401));
     }
 
+    const session = sessionResult.rows[0];
+
+    // IP validation - check if request IP matches session IP
+    const currentIP = req.ip || req.socket.remoteAddress;
+    const sessionIP = session.ip_address;
+    
+    // Check if IP validation is enabled (can be disabled for development)
+    const enableIPValidation = process.env.ENABLE_IP_VALIDATION !== 'false';
+    
+    if (enableIPValidation && sessionIP && currentIP !== sessionIP) {
+      // Check if the IP change is from the same network (first 3 octets)
+      const currentIPParts = currentIP.split('.');
+      const sessionIPParts = sessionIP.split('.');
+      
+      const sameNetwork = currentIPParts.slice(0, 3).join('.') === sessionIPParts.slice(0, 3).join('.');
+      
+      if (!sameNetwork) {
+        // Log security event
+        logger.logSecurityEvent('session_ip_mismatch', {
+          userId: decoded.userId,
+          sessionId: session.id,
+          originalIP: sessionIP,
+          currentIP: currentIP,
+          userAgent: req.get('User-Agent')
+        }, req);
+        
+        // Invalidate the session for security
+        await query(
+          'UPDATE user_sessions SET is_active = false WHERE id = $1',
+          [session.id]
+        );
+        
+        return next(new AppError('Session security violation - IP address changed', 401));
+      }
+    }
+
     // Get user details
     const userResult = await query(
       'SELECT id, email, first_name, last_name, industry, role, subscription_tier, subscription_status, is_verified FROM users WHERE id = $1',
@@ -100,7 +136,7 @@ const authenticate = async (req, res, next) => {
     // Attach user to request
     req.user = user;
     req.token = token;
-    req.sessionId = sessionResult.rows[0].id;
+    req.sessionId = session.id;
 
     // Log successful authentication for audit
     logger.debug(`User authenticated: ${user.email}`, {
@@ -229,6 +265,47 @@ const createSession = async (userId, token, req) => {
   const tokenHash = require('crypto').createHash('sha256').update(token).digest('hex');
   const expiresAt = new Date(Date.now() + (7 * 24 * 60 * 60 * 1000)); // 7 days
 
+  // Check for concurrent session prevention setting
+  const preventConcurrentSessions = process.env.PREVENT_CONCURRENT_SESSIONS === 'true';
+  const maxConcurrentSessions = parseInt(process.env.MAX_CONCURRENT_SESSIONS || '1');
+
+  if (preventConcurrentSessions) {
+    // Get current active sessions for the user
+    const activeSessions = await query(
+      'SELECT id, ip_address, user_agent, created_at FROM user_sessions WHERE user_id = $1 AND is_active = true AND expires_at > NOW() ORDER BY created_at DESC',
+      [userId]
+    );
+
+    if (activeSessions.rows.length >= maxConcurrentSessions) {
+      // Log security event
+      logger.logSecurityEvent('concurrent_session_limit_reached', {
+        userId: userId,
+        currentSessions: activeSessions.rows.length,
+        maxAllowed: maxConcurrentSessions,
+        newIP: req.ip,
+        newUserAgent: req.get('User-Agent')
+      }, req);
+
+      if (maxConcurrentSessions === 1) {
+        // Single session mode - invalidate all other sessions
+        await query(
+          'UPDATE user_sessions SET is_active = false WHERE user_id = $1 AND is_active = true',
+          [userId]
+        );
+      } else {
+        // Multiple sessions allowed - invalidate oldest sessions
+        const sessionsToKeep = activeSessions.rows.slice(0, maxConcurrentSessions - 1);
+        const sessionIdsToKeep = sessionsToKeep.map(s => s.id);
+        
+        await query(
+          'UPDATE user_sessions SET is_active = false WHERE user_id = $1 AND is_active = true AND id != ALL($2::uuid[])',
+          [userId, sessionIdsToKeep]
+        );
+      }
+    }
+  }
+
+  // Create new session
   await query(
     'INSERT INTO user_sessions (user_id, token_hash, expires_at, ip_address, user_agent) VALUES ($1, $2, $3, $4, $5)',
     [userId, tokenHash, expiresAt, req.ip, req.get('User-Agent')]

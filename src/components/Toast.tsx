@@ -26,6 +26,42 @@ export const toast = {
   info: (title: string, message?: string, duration?: number) => {
     addToast({ type: 'info', title, message, duration });
   },
+  // Enhanced copy helper
+  copy: (item: string = 'Text') => {
+    addToast({ 
+      type: 'success', 
+      title: `${item} copied!`, 
+      message: 'Ready to paste anywhere',
+      duration: 2000 
+    });
+  },
+  // Share helper
+  share: (item: string = 'Content') => {
+    addToast({ 
+      type: 'success', 
+      title: `${item} shared!`, 
+      message: 'Link copied to clipboard',
+      duration: 2500 
+    });
+  },
+  // Download helper  
+  download: (item: string = 'File') => {
+    addToast({ 
+      type: 'success', 
+      title: `${item} downloaded!`, 
+      message: 'Check your downloads folder',
+      duration: 2500 
+    });
+  },
+  // Save helper
+  save: (item: string = 'Changes') => {
+    addToast({ 
+      type: 'success', 
+      title: `${item} saved!`, 
+      message: 'Your progress is secure',
+      duration: 2000 
+    });
+  },
 };
 
 const addToast = (toast: Omit<ToastMessage, 'id'>) => {

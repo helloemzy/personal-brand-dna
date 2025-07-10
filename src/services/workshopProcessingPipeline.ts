@@ -1,8 +1,7 @@
 import { 
   WorkshopData, 
   ProcessedResults,
-  ProcessingStatus,
-  ProcessingError 
+  ProcessingStatus
 } from '../types/workshop';
 import { determineArchetype } from './archetypeService';
 import { generateAIMission } from './aiAnalysisService';
@@ -289,42 +288,77 @@ export function getProcessingStatus(sessionId: string): ProcessingStatus | null 
   return processingStatus.get(sessionId) || null;
 }
 
+// Enhanced type definitions for better type safety
+interface ArchetypeResult {
+  id: string;
+  name: string;
+  description: string;
+  mission: string;
+  confidenceScore: number;
+  breakdown: Record<string, number>;
+}
+
+interface UVPResult {
+  uvp: string;
+  differentiators: string[];
+  marketPosition: string;
+  uniqueFactors: string[];
+  variations: Array<{
+    type: string;
+    content: string;
+  }>;
+}
+
+interface ElevatorPitch {
+  duration: '30-second' | '60-second' | 'networking-event';
+  type: 'Problem-Solution' | 'Value-Proposition' | 'Story-Based' | 'Achievement-Based';
+  pitch: string;
+  wordCount: number;
+  keyPoints: string[];
+  targetAudience: string;
+}
+
 /**
  * Generate elevator pitches based on workshop data
  */
 function generateElevatorPitches(
   workshopData: WorkshopData,
-  archetype: any,
-  uvp: any
-): any[] {
+  archetype: ArchetypeResult,
+  uvp: UVPResult
+): ElevatorPitch[] {
   // This is a simplified version - in production, this would use AI
   const { professionalRole, yearsExperience } = workshopData.personalInfo;
   const primaryValue = workshopData.values.primaryValues?.[0] || workshopData.values.selected[0];
   const transformation = workshopData.audience.personas[0]?.transformation || '';
 
-  return [
+  const pitches: ElevatorPitch[] = [
     {
       duration: '30-second',
       type: 'Problem-Solution',
-      pitch: `As a ${professionalRole} with ${yearsExperience} years of experience, I help ${workshopData.audience.personas[0].description} ${transformation}. What makes me different is ${uvp.differentiators[0]}. I believe in ${primaryValue} and use my expertise to ${archetype.mission}.`,
+      pitch: `As a ${professionalRole} with ${yearsExperience} years of experience, I help ${workshopData.audience.personas[0]?.description || 'professionals'} ${transformation}. What makes me different is ${uvp.differentiators[0] || 'my unique approach'}. I believe in ${primaryValue} and use my expertise to ${archetype.mission}.`,
       wordCount: 65,
-      keyPoints: ['Problem identification', 'Clear solution', 'Unique value']
+      keyPoints: ['Problem identification', 'Clear solution', 'Unique value'],
+      targetAudience: workshopData.audience.personas[0]?.description || 'General professionals'
     },
     {
       duration: '60-second',
       type: 'Story-Based',
-      pitch: `I've spent ${yearsExperience} years as a ${professionalRole}, and I've noticed that ${workshopData.audience.personas[0].painPoints?.[0] || 'many professionals struggle'}. This frustrates me because ${workshopData.values.stories?.[primaryValue] || 'I believe everyone deserves better'}. That's why I ${archetype.mission}. My approach is unique because ${uvp.differentiators.join(' and ')}. I've helped dozens of ${workshopData.audience.personas[0].description} ${transformation}, and I'd love to help you too.`,
+      pitch: `I've spent ${yearsExperience} years as a ${professionalRole}, and I've noticed that ${workshopData.audience.personas[0]?.painPoints?.[0] || 'many professionals struggle'}. This frustrates me because ${workshopData.values.stories?.[primaryValue] || 'I believe everyone deserves better'}. That's why I ${archetype.mission}. My approach is unique because ${uvp.differentiators.slice(0, 2).join(' and ')}. I've helped dozens of ${workshopData.audience.personas[0]?.description || 'professionals'} ${transformation}, and I'd love to help you too.`,
       wordCount: 120,
-      keyPoints: ['Personal story', 'Empathy', 'Clear outcome', 'Call to action']
+      keyPoints: ['Personal story', 'Empathy', 'Clear outcome', 'Call to action'],
+      targetAudience: workshopData.audience.personas[0]?.description || 'General professionals'
     },
     {
-      duration: 'Networking Event',
-      type: 'Conversational',
-      pitch: `I'm a ${professionalRole} who ${archetype.tagline}. Basically, I help ${workshopData.audience.personas[0].description} ${transformation}. What I love most is ${workshopData.values.stories?.[primaryValue] || 'seeing the transformation'}. How about you - what brings you here?`,
+      duration: 'networking-event',
+      type: 'Value-Proposition',
+      pitch: `I'm a ${professionalRole} who helps ${workshopData.audience.personas[0]?.description || 'professionals'} ${transformation}. What I love most is ${workshopData.values.stories?.[primaryValue] || 'seeing the transformation'}. How about you - what brings you here?`,
       wordCount: 45,
-      keyPoints: ['Casual intro', 'Clear value', 'Conversation starter']
+      keyPoints: ['Casual intro', 'Clear value', 'Conversation starter'],
+      targetAudience: 'Networking events'
     }
   ];
+
+  return pitches;
 }
 
 /**

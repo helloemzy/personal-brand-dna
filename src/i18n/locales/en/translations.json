@@ -1,0 +1,147 @@
+{
+  "common": {
+    "brandName": "BrandPillar AI",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "next": "Next",
+    "back": "Back",
+    "finish": "Finish",
+    "continue": "Continue",
+    "close": "Close",
+    "confirm": "Confirm",
+    "yes": "Yes",
+    "no": "No"
+  },
+  "navigation": {
+    "home": "Home",
+    "brandHouse": "Brand House",
+    "dashboard": "Dashboard",
+    "analytics": "Analytics",
+    "content": "Content",
+    "settings": "Settings",
+    "profile": "Profile",
+    "logout": "Logout",
+    "login": "Login",
+    "signUp": "Sign Up"
+  },
+  "landing": {
+    "hero": {
+      "title": "Build Your LinkedIn Influence on Autopilot",
+      "subtitle": "AI discovers your authentic voice, creates perfect content, and posts automatically while you sleep",
+      "cta": "Start Your Brand Journey",
+      "learnMore": "Learn More"
+    },
+    "features": {
+      "title": "Everything You Need to Build Your Personal Brand",
+      "voiceDiscovery": {
+        "title": "10-Minute Voice Discovery",
+        "description": "Our AI conducts a natural conversation to capture your authentic communication style"
+      },
+      "contentGeneration": {
+        "title": "Perfect Content Generation",
+        "description": "Creates posts that sound exactly like you, not like AI"
+      },
+      "autopilot": {
+        "title": "Set & Forget Autopilot",
+        "description": "Monitors news, finds opportunities, and posts automatically"
+      }
+    }
+  },
+  "workshop": {
+    "title": "Brand House Workshop",
+    "progress": "Step {{current}} of {{total}}",
+    "steps": {
+      "values": {
+        "title": "Values Audit",
+        "subtitle": "Discover what drives you",
+        "instructions": "Select 5-7 values that resonate most with you"
+      },
+      "tone": {
+        "title": "Tone Preferences",
+        "subtitle": "Define your communication style",
+        "instructions": "How do you want to sound to your audience?"
+      },
+      "audience": {
+        "title": "Audience Builder",
+        "subtitle": "Who are you speaking to?",
+        "instructions": "Define your ideal audience personas"
+      },
+      "writing": {
+        "title": "Writing Sample",
+        "subtitle": "Show us your voice",
+        "instructions": "Write a short sample in your natural style"
+      },
+      "personality": {
+        "title": "Personality Quiz",
+        "subtitle": "Complete your brand profile",
+        "instructions": "Answer questions to finalize your brand archetype"
+      }
+    },
+    "validation": {
+      "required": "This field is required",
+      "minLength": "Minimum {{min}} characters required",
+      "maxLength": "Maximum {{max}} characters allowed",
+      "selectValues": "Please select at least {{min}} values"
+    }
+  },
+  "results": {
+    "title": "Your Brand House Results",
+    "archetype": {
+      "title": "Your Brand Archetype",
+      "confidence": "Confidence Score: {{score}}%"
+    },
+    "mission": {
+      "title": "Your Mission Statement"
+    },
+    "values": {
+      "title": "Core Values"
+    },
+    "contentPillars": {
+      "title": "Content Pillars",
+      "expertise": "Expertise",
+      "experience": "Experience", 
+      "evolution": "Evolution"
+    },
+    "actions": {
+      "downloadPDF": "Download Report",
+      "shareResults": "Share Results",
+      "setupNews": "Set Up News Sources",
+      "startContent": "Start Creating Content"
+    }
+  },
+  "auth": {
+    "welcome": "Welcome to BrandPillar AI",
+    "signInWith": "Sign in with {{provider}}",
+    "orContinueWith": "Or continue with",
+    "emailPlaceholder": "Enter your email",
+    "passwordPlaceholder": "Enter your password",
+    "forgotPassword": "Forgot password?",
+    "noAccount": "Don't have an account?",
+    "haveAccount": "Already have an account?",
+    "termsAgreement": "By continuing, you agree to our Terms of Service and Privacy Policy"
+  },
+  "errors": {
+    "generic": "Something went wrong. Please try again.",
+    "network": "Network error. Please check your connection.",
+    "auth": {
+      "invalidCredentials": "Invalid email or password",
+      "userNotFound": "User not found",
+      "emailInUse": "Email already in use"
+    },
+    "workshop": {
+      "saveError": "Failed to save progress",
+      "loadError": "Failed to load workshop data"
+    }
+  },
+  "success": {
+    "saved": "Successfully saved",
+    "updated": "Successfully updated",
+    "deleted": "Successfully deleted",
+    "copied": "Copied to clipboard"
+  }
+}

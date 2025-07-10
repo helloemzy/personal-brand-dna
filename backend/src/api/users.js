@@ -1,10 +1,12 @@
 const express = require('express');
 const Joi = require('joi');
 const bcrypt = require('bcryptjs');
+const crypto = require('crypto');
 const { query, withTransaction } = require('../config/database');
 const { AppError, asyncHandler } = require('../middleware/errorHandler');
 const { authenticate, requireVerifiedEmail, invalidateAllSessions } = require('../middleware/auth');
 const logger = require('../utils/logger');
+const { sendEmailVerification } = require('../../../api/_lib/emailService');
 
 const router = express.Router();
 
@@ -264,14 +266,33 @@ router.put('/email', asyncHandler(async (req, res) => {
     });
   }
 
-  // Update email and set as unverified
+  // Generate verification token
+  const verificationToken = crypto.randomBytes(32).toString('hex');
+  const verificationExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+
+  // Update email and set as unverified with new verification token
   await query(
-    'UPDATE users SET email = $1, is_verified = false, updated_at = NOW() WHERE id = $2',
-    [newEmail, req.user.id]
+    `UPDATE users 
+     SET email = $1, 
+         is_verified = false, 
+         verification_token = $2,
+         verification_token_expires = $3,
+         updated_at = NOW() 
+     WHERE id = $4`,
+    [newEmail, verificationToken, verificationExpiry, req.user.id]
   );
 
-  // TODO: Send verification email to new address
-  // await sendVerificationEmail(newEmail, verificationToken);
+  // Send verification email to new address
+  try {
+    await sendEmailVerification({ 
+      email: newEmail, 
+      first_name: req.user.first_name || 'User',
+      id: req.user.id 
+    }, verificationToken);
+  } catch (emailError) {
+    logger.error('Failed to send verification email:', emailError);
+    // Don't fail the whole operation if email fails, just log it
+  }
 
   logger.logSecurityEvent('email_changed', {
     userId: req.user.id,
@@ -441,8 +462,46 @@ router.delete('/account', asyncHandler(async (req, res) => {
       [req.user.id]
     );
 
-    // TODO: Cancel Stripe subscription if exists
-    // TODO: Anonymize or delete user data based on retention policy
+    // Cancel Stripe subscription if exists
+    if (req.user.stripe_customer_id) {
+      try {
+        const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+        
+        // Get all active subscriptions for the customer
+        const subscriptions = await stripe.subscriptions.list({
+          customer: req.user.stripe_customer_id,
+          status: 'active'
+        });
+        
+        // Cancel each active subscription immediately
+        for (const subscription of subscriptions.data) {
+          await stripe.subscriptions.cancel(subscription.id);
+          
+          logger.logBusinessEvent('subscription_cancelled_account_deletion', req.user.id, {
+            subscriptionId: subscription.id,
+            customerId: req.user.stripe_customer_id,
+            reason: 'account_deletion'
+          });
+        }
+      } catch (stripeError) {
+        logger.error('Failed to cancel Stripe subscription during account deletion:', stripeError);
+        // Don't fail the account deletion if Stripe cancellation fails
+      }
+    }
+    
+    // Anonymize user data based on retention policy
+    // Keep minimal data for audit/legal purposes
+    await client.query(
+      `INSERT INTO deleted_users_audit (
+        user_id, 
+        deleted_at, 
+        stripe_customer_id,
+        subscription_tier,
+        reason
+      ) VALUES ($1, NOW(), $2, $3, 'user_requested')
+      ON CONFLICT (user_id) DO NOTHING`,
+      [req.user.id, req.user.stripe_customer_id, req.user.subscription_tier]
+    );
   });
 
   logger.logBusinessEvent('account_deleted', req.user.id, {

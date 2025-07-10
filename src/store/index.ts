@@ -16,6 +16,7 @@ import subscriptionSlice from './slices/subscriptionSlice';
 import uiSlice from './slices/uiSlice';
 import workshopSlice from './slices/workshopSlice';
 import newsSlice from './slices/newsSlice';
+import realtimeSlice from './slices/realtimeSlice';
 
 // Root reducer
 const rootReducer = combineReducers({
@@ -27,6 +28,7 @@ const rootReducer = combineReducers({
   ui: uiSlice,
   workshop: workshopSlice, // Fixed: Remove double persistence
   news: newsSlice,
+  realtime: realtimeSlice,
 });
 
 // Persisted reducer

@@ -92,7 +92,7 @@ router.post('/conversation/start', voiceRateLimit, asyncHandler(async (req, res)
     [req.user.id]
   );
 
-  // TODO: Check subscription limits
+  // Check subscription limits based on user tier
   const subscriptionLimits = {
     free: 1,
     professional: 3,

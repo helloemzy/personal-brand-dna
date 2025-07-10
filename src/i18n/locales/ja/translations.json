@@ -1,0 +1,147 @@
+{
+  "common": {
+    "brandName": "BrandPillar AI",
+    "loading": "読み込み中...",
+    "error": "エラー",
+    "success": "成功",
+    "save": "保存",
+    "cancel": "キャンセル",
+    "delete": "削除",
+    "edit": "編集",
+    "next": "次へ",
+    "back": "戻る",
+    "finish": "完了",
+    "continue": "続ける",
+    "close": "閉じる",
+    "confirm": "確認",
+    "yes": "はい",
+    "no": "いいえ"
+  },
+  "navigation": {
+    "home": "ホーム",
+    "brandHouse": "ブランドハウス",
+    "dashboard": "ダッシュボード",
+    "analytics": "分析",
+    "content": "コンテンツ",
+    "settings": "設定",
+    "profile": "プロフィール",
+    "logout": "ログアウト",
+    "login": "ログイン",
+    "signUp": "新規登録"
+  },
+  "landing": {
+    "hero": {
+      "title": "LinkedInの影響力を自動的に構築",
+      "subtitle": "AIがあなたの本物の声を発見し、完璧なコンテンツを作成し、寝ている間に自動的に投稿します",
+      "cta": "ブランドジャーニーを始める",
+      "learnMore": "詳しく見る"
+    },
+    "features": {
+      "title": "パーソナルブランド構築に必要なすべて",
+      "voiceDiscovery": {
+        "title": "10分間の音声発見",
+        "description": "私たちのAIは自然な会話を通じて、あなたの本物のコミュニケーションスタイルをキャプチャします"
+      },
+      "contentGeneration": {
+        "title": "完璧なコンテンツ生成",
+        "description": "AIではなく、あなたらしい投稿を作成します"
+      },
+      "autopilot": {
+        "title": "設定して忘れるオートパイロット",
+        "description": "ニュースを監視し、機会を見つけ、自動的に投稿します"
+      }
+    }
+  },
+  "workshop": {
+    "title": "ブランドハウスワークショップ",
+    "progress": "ステップ {{current}} / {{total}}",
+    "steps": {
+      "values": {
+        "title": "価値観の監査",
+        "subtitle": "あなたを動かすものを発見",
+        "instructions": "最も共感する5-7つの価値観を選択してください"
+      },
+      "tone": {
+        "title": "トーンの好み",
+        "subtitle": "コミュニケーションスタイルを定義",
+        "instructions": "聴衆にどのように聞こえたいですか？"
+      },
+      "audience": {
+        "title": "オーディエンスビルダー",
+        "subtitle": "誰に話しかけていますか？",
+        "instructions": "理想的なオーディエンスペルソナを定義"
+      },
+      "writing": {
+        "title": "ライティングサンプル",
+        "subtitle": "あなたの声を見せてください",
+        "instructions": "自然なスタイルで短いサンプルを書いてください"
+      },
+      "personality": {
+        "title": "性格クイズ",
+        "subtitle": "ブランドプロフィールを完成",
+        "instructions": "質問に答えてブランドアーキタイプを確定"
+      }
+    },
+    "validation": {
+      "required": "このフィールドは必須です",
+      "minLength": "最低{{min}}文字必要です",
+      "maxLength": "最大{{max}}文字まで",
+      "selectValues": "少なくとも{{min}}個の値を選択してください"
+    }
+  },
+  "results": {
+    "title": "ブランドハウスの結果",
+    "archetype": {
+      "title": "あなたのブランドアーキタイプ",
+      "confidence": "信頼スコア: {{score}}%"
+    },
+    "mission": {
+      "title": "ミッションステートメント"
+    },
+    "values": {
+      "title": "コアバリュー"
+    },
+    "contentPillars": {
+      "title": "コンテンツの柱",
+      "expertise": "専門知識",
+      "experience": "経験", 
+      "evolution": "進化"
+    },
+    "actions": {
+      "downloadPDF": "レポートをダウンロード",
+      "shareResults": "結果を共有",
+      "setupNews": "ニュースソースを設定",
+      "startContent": "コンテンツ作成を開始"
+    }
+  },
+  "auth": {
+    "welcome": "BrandPillar AIへようこそ",
+    "signInWith": "{{provider}}でサインイン",
+    "orContinueWith": "または続ける",
+    "emailPlaceholder": "メールアドレスを入力",
+    "passwordPlaceholder": "パスワードを入力",
+    "forgotPassword": "パスワードを忘れましたか？",
+    "noAccount": "アカウントをお持ちでない方",
+    "haveAccount": "すでにアカウントをお持ちの方",
+    "termsAgreement": "続行することで、利用規約とプライバシーポリシーに同意したことになります"
+  },
+  "errors": {
+    "generic": "問題が発生しました。もう一度お試しください。",
+    "network": "ネットワークエラー。接続を確認してください。",
+    "auth": {
+      "invalidCredentials": "メールアドレスまたはパスワードが無効です",
+      "userNotFound": "ユーザーが見つかりません",
+      "emailInUse": "メールアドレスは既に使用されています"
+    },
+    "workshop": {
+      "saveError": "進行状況の保存に失敗しました",
+      "loadError": "ワークショップデータの読み込みに失敗しました"
+    }
+  },
+  "success": {
+    "saved": "保存しました",
+    "updated": "更新しました",
+    "deleted": "削除しました",
+    "copied": "クリップボードにコピーしました"
+  }
+}

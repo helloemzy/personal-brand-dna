@@ -1,0 +1,147 @@
+{
+  "common": {
+    "brandName": "BrandPillar AI",
+    "loading": "加载中...",
+    "error": "错误",
+    "success": "成功",
+    "save": "保存",
+    "cancel": "取消",
+    "delete": "删除",
+    "edit": "编辑",
+    "next": "下一步",
+    "back": "返回",
+    "finish": "完成",
+    "continue": "继续",
+    "close": "关闭",
+    "confirm": "确认",
+    "yes": "是",
+    "no": "否"
+  },
+  "navigation": {
+    "home": "首页",
+    "brandHouse": "品牌屋",
+    "dashboard": "仪表盘",
+    "analytics": "分析",
+    "content": "内容",
+    "settings": "设置",
+    "profile": "个人资料",
+    "logout": "退出",
+    "login": "登录",
+    "signUp": "注册"
+  },
+  "landing": {
+    "hero": {
+      "title": "自动构建您的LinkedIn影响力",
+      "subtitle": "AI发现您的真实声音，创建完美内容，并在您睡眠时自动发布",
+      "cta": "开始您的品牌之旅",
+      "learnMore": "了解更多"
+    },
+    "features": {
+      "title": "构建个人品牌所需的一切",
+      "voiceDiscovery": {
+        "title": "10分钟语音发现",
+        "description": "我们的AI通过自然对话捕捉您的真实沟通风格"
+      },
+      "contentGeneration": {
+        "title": "完美内容生成",
+        "description": "创建听起来像您而非AI的帖子"
+      },
+      "autopilot": {
+        "title": "设置即忘自动驾驶",
+        "description": "监控新闻，发现机会并自动发布"
+      }
+    }
+  },
+  "workshop": {
+    "title": "品牌屋工作坊",
+    "progress": "第 {{current}} 步，共 {{total}} 步",
+    "steps": {
+      "values": {
+        "title": "价值观审计",
+        "subtitle": "发现驱动您的力量",
+        "instructions": "选择5-7个最能与您产生共鸣的价值观"
+      },
+      "tone": {
+        "title": "语调偏好",
+        "subtitle": "定义您的沟通风格",
+        "instructions": "您想对受众呈现什么样的声音？"
+      },
+      "audience": {
+        "title": "受众构建器",
+        "subtitle": "您在与谁对话？",
+        "instructions": "定义您的理想受众画像"
+      },
+      "writing": {
+        "title": "写作样本",
+        "subtitle": "展示您的声音",
+        "instructions": "用您自然的风格写一个简短的样本"
+      },
+      "personality": {
+        "title": "性格测验",
+        "subtitle": "完善您的品牌档案",
+        "instructions": "回答问题以确定您的品牌原型"
+      }
+    },
+    "validation": {
+      "required": "此字段为必填项",
+      "minLength": "至少需要 {{min}} 个字符",
+      "maxLength": "最多允许 {{max}} 个字符",
+      "selectValues": "请至少选择 {{min}} 个值"
+    }
+  },
+  "results": {
+    "title": "您的品牌屋结果",
+    "archetype": {
+      "title": "您的品牌原型",
+      "confidence": "置信度：{{score}}%"
+    },
+    "mission": {
+      "title": "您的使命宣言"
+    },
+    "values": {
+      "title": "核心价值观"
+    },
+    "contentPillars": {
+      "title": "内容支柱",
+      "expertise": "专业知识",
+      "experience": "经验", 
+      "evolution": "成长"
+    },
+    "actions": {
+      "downloadPDF": "下载报告",
+      "shareResults": "分享结果",
+      "setupNews": "设置新闻源",
+      "startContent": "开始创建内容"
+    }
+  },
+  "auth": {
+    "welcome": "欢迎来到 BrandPillar AI",
+    "signInWith": "使用 {{provider}} 登录",
+    "orContinueWith": "或继续使用",
+    "emailPlaceholder": "输入您的邮箱",
+    "passwordPlaceholder": "输入您的密码",
+    "forgotPassword": "忘记密码？",
+    "noAccount": "没有账户？",
+    "haveAccount": "已有账户？",
+    "termsAgreement": "继续即表示您同意我们的服务条款和隐私政策"
+  },
+  "errors": {
+    "generic": "出现问题，请重试。",
+    "network": "网络错误，请检查您的连接。",
+    "auth": {
+      "invalidCredentials": "邮箱或密码无效",
+      "userNotFound": "用户未找到",
+      "emailInUse": "邮箱已被使用"
+    },
+    "workshop": {
+      "saveError": "保存进度失败",
+      "loadError": "加载工作坊数据失败"
+    }
+  },
+  "success": {
+    "saved": "保存成功",
+    "updated": "更新成功",
+    "deleted": "删除成功",
+    "copied": "已复制到剪贴板"
+  }
+}

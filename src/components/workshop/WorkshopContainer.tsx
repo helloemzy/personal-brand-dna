@@ -4,6 +4,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, Check } from 'lucide-react';
 import WorkshopErrorBoundary from './WorkshopErrorBoundary';
 import { useAnnounce, useKeyboardNavigation } from '../../hooks/useAccessibility';
+import { useIntelligentPreloading } from '../../hooks/useIntelligentPreloading';
 import { focusVisible, KeyCodes } from '../../utils/accessibility';
 import LiveRegion from '../accessibility/LiveRegion';
 import { 
@@ -26,6 +27,7 @@ import { lazyWithPreload, preloadOnIdle } from '../../utils/lazyWithPreload';
 import { WorkshopLoadingFallback } from '../LazyLoadingFallback';
 import { useWorkshopAutoSave } from '../../hooks/useWorkshopAutoSave';
 import { Save, CheckCircle, AlertCircle } from 'lucide-react';
+import { WorkshopSessionRecovery } from './WorkshopSessionRecovery';
 
 // Lazy load workshop steps with preloading capability
 // Use accessible version where available
@@ -232,16 +234,8 @@ const WorkshopContainer: React.FC = () => {
     },
   });
 
-  // Preload next step when current step is loaded
-  useEffect(() => {
-    if (currentStep < 5) {
-      const nextStepComponent = stepComponents[(currentStep + 1) as keyof typeof stepComponents];
-      if (nextStepComponent) {
-        // Preload next step while user is working on current step
-        preloadOnIdle(nextStepComponent);
-      }
-    }
-  }, [currentStep]);
+  // Intelligent preloading based on user behavior
+  const { trackNavigation, isPreloaded, behaviorMetrics } = useIntelligentPreloading(currentStep);
 
   // Initialize workshop state only once on mount
   useEffect(() => {
@@ -303,6 +297,8 @@ const WorkshopContainer: React.FC = () => {
     
     // Move to next step or complete workshop
     if (currentStep < 5) {
+      // Track navigation for intelligent preloading
+      trackNavigation(currentStep, currentStep + 1);
       dispatch(goToStep((currentStep + 1) as 1 | 2 | 3 | 4 | 5));
     } else {
       // Workshop completed
@@ -310,13 +306,15 @@ const WorkshopContainer: React.FC = () => {
       announce('Congratulations! Workshop completed. Navigating to results.');
       navigate('/workshop/results');
     }
-  }, [currentStep, dispatch, navigate, trackStepComplete, trackWorkshopComplete, announce]);
+  }, [currentStep, dispatch, navigate, trackStepComplete, trackWorkshopComplete, announce, trackNavigation]);
 
   const handleBack = useCallback(() => {
     if (currentStep > 1) {
+      // Track navigation for intelligent preloading
+      trackNavigation(currentStep, currentStep - 1);
       dispatch(goToStep((currentStep - 1) as 1 | 2 | 3 | 4 | 5));
     }
-  }, [currentStep, dispatch]);
+  }, [currentStep, dispatch, trackNavigation]);
 
   // Render current step component with lazy loading
   const renderStep = useMemo(() => {
@@ -384,6 +382,20 @@ const WorkshopContainer: React.FC = () => {
     <div className="min-h-screen bg-gray-50 py-4 sm:py-8">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <LiveRegion message={stepAnnouncement} priority="polite" />
+        
+        {/* Session Recovery Modal */}
+        <WorkshopSessionRecovery
+          autoShow={!workshopState.startedAt}
+          onRecover={(session) => {
+            announce('Workshop session recovered successfully');
+          }}
+          onStartNew={() => {
+            dispatch(resetWorkshop());
+            dispatch(startWorkshop());
+            trackWorkshopStart();
+          }}
+        />
+        
         {/* Welcome Message */}
         {showWelcome && welcomeMessage && (
           <div className="mb-6 sm:mb-8 bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl p-4 sm:p-6 border border-purple-200">

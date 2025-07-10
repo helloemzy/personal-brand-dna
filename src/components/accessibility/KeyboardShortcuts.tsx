@@ -79,6 +79,91 @@ const KeyboardShortcuts: React.FC = () => {
       action: () => {
         announce('Command palette not yet implemented');
       }
+    },
+    {
+      key: 'r',
+      description: 'Go to results',
+      modifiers: { ctrl: true },
+      action: () => {
+        navigate('/workshop/results');
+        announce('Navigating to workshop results');
+      }
+    },
+    {
+      key: 's',
+      description: 'Save current progress',
+      modifiers: { ctrl: true },
+      action: () => {
+        // Trigger auto-save if available
+        const saveButton = document.querySelector('[data-save-trigger]');
+        if (saveButton instanceof HTMLElement) {
+          saveButton.click();
+        }
+        announce('Saving progress');
+      }
+    },
+    {
+      key: 'c',
+      description: 'Copy to clipboard',
+      modifiers: { ctrl: true },
+      action: () => {
+        // Find the most recent copy button that was focused
+        const copyButtons = document.querySelectorAll('[data-copy-button]');
+        const lastFocused = Array.from(copyButtons).find(btn => 
+          btn === document.activeElement || btn.contains(document.activeElement)
+        );
+        if (lastFocused instanceof HTMLElement) {
+          lastFocused.click();
+        }
+        announce('Content copied to clipboard');
+      }
+    },
+    {
+      key: 'escape',
+      description: 'Close modal or cancel action',
+      action: () => {
+        // Find and close any open modals
+        const closeButtons = document.querySelectorAll('[data-modal-close], [aria-label*="Close"], [aria-label*="close"]');
+        const modal = document.querySelector('[role="dialog"]');
+        if (modal && closeButtons.length > 0) {
+          (closeButtons[0] as HTMLElement).click();
+          announce('Modal closed');
+        }
+      }
+    },
+    {
+      key: 'j',
+      description: 'Next item',
+      action: () => {
+        // Navigate to next focusable item
+        const focusable = document.querySelectorAll(
+          'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+        );
+        const current = document.activeElement;
+        const currentIndex = Array.from(focusable).indexOf(current as Element);
+        const next = focusable[currentIndex + 1] || focusable[0];
+        if (next instanceof HTMLElement) {
+          next.focus();
+          announce('Next item focused');
+        }
+      }
+    },
+    {
+      key: 'k',
+      description: 'Previous item',
+      action: () => {
+        // Navigate to previous focusable item
+        const focusable = document.querySelectorAll(
+          'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+        );
+        const current = document.activeElement;
+        const currentIndex = Array.from(focusable).indexOf(current as Element);
+        const prev = focusable[currentIndex - 1] || focusable[focusable.length - 1];
+        if (prev instanceof HTMLElement) {
+          prev.focus();
+          announce('Previous item focused');
+        }
+      }
     }
   ];
   

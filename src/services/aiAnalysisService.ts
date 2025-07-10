@@ -1,7 +1,8 @@
 import { WorkshopState } from '../store/slices/workshopSlice';
 import { Archetype } from './archetypeService';
 
-const OPENAI_API_KEY = process.env.REACT_APP_OPENAI_API_KEY;
+// Defer API key lookup to runtime for better testability
+const getOpenAIKey = () => process.env.REACT_APP_OPENAI_API_KEY;
 
 interface WritingAnalysis {
   communicationStyle: {
@@ -29,6 +30,7 @@ export async function analyzeWritingWithAI(
   writingSample: string,
   archetypes: Archetype[]
 ): Promise<WritingAnalysis> {
+  const OPENAI_API_KEY = getOpenAIKey();
   if (!OPENAI_API_KEY || !writingSample) {
     // Return default analysis if no API key or sample
     return {
@@ -192,6 +194,7 @@ export async function analyzePersonalityWithAI(
   responses: any[],
   archetypes: Archetype[]
 ): Promise<PersonalityAnalysis> {
+  const OPENAI_API_KEY = getOpenAIKey();
   if (!OPENAI_API_KEY || responses.length === 0) {
     return {
       coreTraits: [],
@@ -319,6 +322,7 @@ export async function generateEnhancedMission(
   writingAnalysis: WritingAnalysis,
   personalityAnalysis: PersonalityAnalysis
 ): Promise<string[]> {
+  const OPENAI_API_KEY = getOpenAIKey();
   if (!OPENAI_API_KEY) {
     // Return simple mission if no API key
     return [generateBasicMission(archetype, workshopData)];
