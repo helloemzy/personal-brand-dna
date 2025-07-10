@@ -14,6 +14,7 @@ import {
   selectWorkshopProgress,
   goToStep,
   completeStep,
+  completeWorkshop,
   startWorkshop,
   setSaving,
   setError,
@@ -288,7 +289,7 @@ const WorkshopContainer: React.FC = () => {
   // The saveWorkshopProgress function has been replaced by useWorkshopAutoSave
   // which provides automatic saving with debouncing and error handling
 
-  const handleNext = useCallback(() => {
+  const handleNext = useCallback(async () => {
     // Track step completion
     trackStepComplete(`Step ${currentStep}`);
     
@@ -303,10 +304,17 @@ const WorkshopContainer: React.FC = () => {
     } else {
       // Workshop completed
       trackWorkshopComplete();
+      
+      // Ensure any pending saves are completed before navigation
+      await triggerAutoSave();
+      
+      // Mark workshop as completed in state
+      dispatch(completeWorkshop());
+      
       announce('Congratulations! Workshop completed. Navigating to results.');
       navigate('/workshop/results');
     }
-  }, [currentStep, dispatch, navigate, trackStepComplete, trackWorkshopComplete, announce, trackNavigation]);
+  }, [currentStep, dispatch, navigate, trackStepComplete, trackWorkshopComplete, announce, trackNavigation, triggerAutoSave]);
 
   const handleBack = useCallback(() => {
     if (currentStep > 1) {
