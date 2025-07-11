@@ -1,6 +1,7 @@
 import { store } from '../store';
 import { workshopAPI } from './workshopAPI';
 import type { WorkshopState } from '../store/slices/workshopSlice';
+import { logger } from '../utils/logger';
 
 // Persistence layer types
 interface PersistenceLayer {
@@ -119,7 +120,7 @@ class WorkshopPersistenceService {
           });
           localStorage.setItem(LOCALSTORAGE_KEY, serialized);
         } catch (error) {
-          console.error('LocalStorage save failed:', error);
+          logger.error('LocalStorage save failed:', error);
           throw error;
         }
       },
@@ -134,7 +135,7 @@ class WorkshopPersistenceService {
           
           return isExpired ? null : parsed.data;
         } catch (error) {
-          console.error('LocalStorage load failed:', error);
+          logger.error('LocalStorage load failed:', error);
           return null;
         }
       },
@@ -170,7 +171,7 @@ class WorkshopPersistenceService {
             stepData: stepData,
           });
         } catch (error) {
-          console.error('Database save failed:', error);
+          logger.error('Database save failed:', error);
           // Add to offline queue if save fails
           this.addToOfflineQueue(data);
           throw error;
@@ -246,7 +247,7 @@ class WorkshopPersistenceService {
             lastError: null,
           };
         } catch (error) {
-          console.error('Database load failed:', error);
+          logger.error('Database load failed:', error);
           return null;
         }
       },
@@ -290,7 +291,7 @@ class WorkshopPersistenceService {
         }
       }
     } catch (error) {
-      console.error('Failed to load offline queue:', error);
+      logger.error('Failed to load offline queue:', error);
       this.offlineQueue = [];
     }
   }
@@ -302,7 +303,7 @@ class WorkshopPersistenceService {
     try {
       localStorage.setItem(OFFLINE_QUEUE_KEY, JSON.stringify(this.offlineQueue));
     } catch (error) {
-      console.error('Failed to save offline queue:', error);
+      logger.error('Failed to save offline queue:', error);
     }
   }
 
@@ -348,7 +349,7 @@ class WorkshopPersistenceService {
             this.processOfflineQueue();
           }, RETRY_DELAY * item.retryCount);
         } else {
-          console.error('Failed to process offline queue item after max retries:', item.id);
+          logger.error('Failed to process offline queue item after max retries:', item.id);
         }
       }
     }
@@ -432,7 +433,7 @@ class WorkshopPersistenceService {
           this.addToOfflineQueue(latestData);
         }
       } catch (error) {
-        console.error('Save failed:', error);
+        logger.error('Save failed:', error);
       }
     }, DEBOUNCE_DELAY);
   }
@@ -458,7 +459,7 @@ class WorkshopPersistenceService {
         this.addToOfflineQueue(data);
       }
     } catch (error) {
-      console.error('Immediate save failed:', error);
+      logger.error('Immediate save failed:', error);
     }
   }
 
@@ -478,7 +479,7 @@ class WorkshopPersistenceService {
       try {
         remoteData = await this.databaseLayer.load();
       } catch (error) {
-        console.error('Failed to load from database:', error);
+        logger.error('Failed to load from database:', error);
       }
     }
 
@@ -487,7 +488,7 @@ class WorkshopPersistenceService {
     try {
       localData = await this.localStorageLayer.load();
     } catch (error) {
-      console.error('Failed to load from localStorage:', error);
+      logger.error('Failed to load from localStorage:', error);
     }
 
     // Resolve conflicts if both exist

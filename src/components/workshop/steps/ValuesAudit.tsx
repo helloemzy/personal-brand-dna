@@ -12,6 +12,7 @@ import {
   selectWorkshopState,
   WorkshopValue
 } from '../../../store/slices/workshopSlice';
+import { logger } from '../../../utils/logger';
 
 // Professional values organized by category
 const VALUE_CATEGORIES = {
@@ -66,8 +67,8 @@ const ValuesAudit: React.FC = () => {
   const workshopState = useAppSelector(selectWorkshopState);
   
   // Debug log the workshop state
-  console.log('ValuesAudit - workshopState:', workshopState);
-  console.log('ValuesAudit - workshopState.values:', workshopState?.values);
+  logger.debug('ValuesAudit - workshopState:', workshopState);
+  logger.debug('ValuesAudit - workshopState.values:', workshopState?.values);
   
   // Safe access with proper defaults
   const selectedValues = workshopState?.values?.selected || [];
@@ -78,8 +79,8 @@ const ValuesAudit: React.FC = () => {
   const valueStories = workshopState?.values?.stories || {};
   
   // Additional debug logging
-  console.log('ValuesAudit - selectedValues:', selectedValues);
-  console.log('ValuesAudit - type of selectedValues:', typeof selectedValues, Array.isArray(selectedValues));
+  logger.debug('ValuesAudit - selectedValues:', selectedValues);
+  logger.debug('ValuesAudit - type of selectedValues:', typeof selectedValues, Array.isArray(selectedValues));
   
   const [showCustomForm, setShowCustomForm] = useState(false);
   const [customValueName, setCustomValueName] = useState('');
@@ -90,29 +91,29 @@ const ValuesAudit: React.FC = () => {
   const handleValueToggle = useCallback((valueId: string) => {
     try {
       if (!valueId) {
-        console.error('handleValueToggle: valueId is undefined');
+        logger.error('handleValueToggle: valueId is undefined');
         return;
       }
       
       // Log state before action for debugging
-      console.log('Before toggle - selectedValues:', selectedValues);
-      console.log('Toggling value:', valueId);
+      logger.debug('Before toggle - selectedValues:', selectedValues);
+      logger.debug('Toggling value:', valueId);
       
       // Ensure arrays are valid before checking
       const values = Array.isArray(selectedValues) ? selectedValues : [];
       
       if (values.includes(valueId)) {
-        console.log('Deselecting value:', valueId);
+        logger.debug('Deselecting value:', valueId);
         dispatch(deselectValue(valueId));
       } else if (values.length < 10) {
-        console.log('Selecting value:', valueId);
+        logger.debug('Selecting value:', valueId);
         dispatch(selectValue(valueId));
       } else {
-        console.log('Cannot select more than 10 values');
+        logger.debug('Cannot select more than 10 values');
       }
     } catch (error) {
-      console.error('Error in handleValueToggle:', error);
-      console.error('Stack trace:', error instanceof Error ? error.stack : 'No stack trace');
+      logger.error('Error in handleValueToggle:', error);
+      logger.error('Stack trace:', error instanceof Error ? error.stack : 'No stack trace');
       // Don't re-throw - let the UI continue functioning
     }
   }, [selectedValues, dispatch]);
@@ -136,12 +137,12 @@ const ValuesAudit: React.FC = () => {
   const handleRankValue = useCallback((valueId: string, rank: number) => {
     try {
       if (!valueId || isNaN(rank) || rank < 1 || rank > 5) {
-        console.error('Invalid rank value:', { valueId, rank });
+        logger.error('Invalid rank value:', { valueId, rank });
         return;
       }
       dispatch(rankValue({ valueId, rank }));
     } catch (error) {
-      console.error('Error ranking value:', error);
+      logger.error('Error ranking value:', error);
     }
   }, [dispatch]);
 

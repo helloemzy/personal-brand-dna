@@ -7,6 +7,7 @@ import { useAnnounce, useKeyboardNavigation } from '../../hooks/useAccessibility
 import { useIntelligentPreloading } from '../../hooks/useIntelligentPreloading';
 import { focusVisible, KeyCodes } from '../../utils/accessibility';
 import LiveRegion from '../accessibility/LiveRegion';
+import { logger } from '../../utils/logger';
 import { 
   selectWorkshopState, 
   selectCurrentStep, 
@@ -250,7 +251,7 @@ const WorkshopContainer: React.FC = () => {
     
     // Only initialize if workshop hasn't started yet
     if (!workshopState.startedAt && !workshopState.sessionId) {
-      console.log('Initializing new workshop session');
+      logger.debug('Initializing new workshop session');
       dispatch(startWorkshop());
       trackWorkshopStart();
     }
