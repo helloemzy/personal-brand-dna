@@ -4,6 +4,7 @@ import TypingIndicator from '../realtime/TypingIndicator';
 import ActiveUsersDisplay from '../realtime/ActiveUsersDisplay';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../store';
+import DOMPurify from 'dompurify';
 
 interface CollaborativeRichEditorProps {
   value: string;
@@ -137,8 +138,14 @@ const CollaborativeRichEditor: React.FC<CollaborativeRichEditorProps> = ({
       if (data.userId === user?.id) return; // Don't apply our own changes
       
       if (editorRef.current) {
-        editorRef.current.innerHTML = data.content;
-        setLocalValue(data.content);
+        // Sanitize HTML to prevent XSS attacks from other users
+        const sanitizedHTML = DOMPurify.sanitize(data.content, {
+          ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 'h1', 'h2', 'h3', 'ul', 'ol', 'li', 'blockquote', 'code', 'pre', 'a'],
+          ALLOWED_ATTR: ['href', 'target', 'rel'],
+          ALLOW_DATA_ATTR: false
+        });
+        editorRef.current.innerHTML = sanitizedHTML;
+        setLocalValue(sanitizedHTML);
       }
     };
 
@@ -201,7 +208,13 @@ const CollaborativeRichEditor: React.FC<CollaborativeRichEditorProps> = ({
     if (value !== localValue && !isEditing) {
       setLocalValue(value);
       if (editorRef.current) {
-        editorRef.current.innerHTML = value;
+        // Sanitize HTML to prevent XSS attacks
+        const sanitizedHTML = DOMPurify.sanitize(value, {
+          ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 'h1', 'h2', 'h3', 'ul', 'ol', 'li', 'blockquote', 'code', 'pre', 'a'],
+          ALLOWED_ATTR: ['href', 'target', 'rel'],
+          ALLOW_DATA_ATTR: false
+        });
+        editorRef.current.innerHTML = sanitizedHTML;
       }
     }
   }, [value, localValue, isEditing]);
