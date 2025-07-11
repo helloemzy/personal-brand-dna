@@ -40,6 +40,13 @@
   - Addresses Supabase integration with token exchange
   - Feature flag approach for safe migration
 
+- ✅ **Development URLs Removed**
+  - Fixed hardcoded localhost references in websocketService
+  - Created environment validation utility
+  - Required environment variables validated on startup
+  - User-friendly error shown if configuration missing
+  - URL format validation for known patterns
+
 ### Critical Issues Remaining (December 18, 2024)
 - ✅ ~~**CRITICAL: XSS Vulnerability**~~ - FIXED
   - ~~File: `src/components/editor/CollaborativeRichEditor.tsx` (Line 204)~~

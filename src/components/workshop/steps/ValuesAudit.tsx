@@ -13,6 +13,7 @@ import {
   WorkshopValue
 } from '../../../store/slices/workshopSlice';
 import { logger } from '../../../utils/logger';
+import { validateCustomValue, VALIDATION_RULES, getTextMetrics } from '../../../utils/formValidation';
 
 // Professional values organized by category
 const VALUE_CATEGORIES = {
@@ -84,6 +85,7 @@ const ValuesAudit: React.FC = () => {
   
   const [showCustomForm, setShowCustomForm] = useState(false);
   const [customValueName, setCustomValueName] = useState('');
+  const [customValueError, setCustomValueError] = useState<string | null>(null);
   const [showHierarchy, setShowHierarchy] = useState(false);
   const [storyValueId, setStoryValueId] = useState<string | null>(null);
   const [storyText, setStoryText] = useState('');
@@ -120,18 +122,32 @@ const ValuesAudit: React.FC = () => {
 
   const handleAddCustomValue = useCallback(() => {
     const values = Array.isArray(selectedValues) ? selectedValues : [];
-    if (customValueName.trim() && values.length < 10) {
-      const customValue: WorkshopValue = {
-        id: `custom_${Date.now()}`,
-        name: customValueName.trim(),
-        category: 'Custom',
-        description: 'Your personal value',
-        isCustom: true
-      };
-      dispatch(addCustomValue(customValue));
-      setCustomValueName('');
-      setShowCustomForm(false);
+    
+    // Validate custom value
+    const validation = validateCustomValue(customValueName);
+    if (!validation.isValid) {
+      setCustomValueError(validation.error || 'Invalid value');
+      return;
     }
+    
+    // Check if we've reached the limit
+    if (values.length >= VALIDATION_RULES.MAX_VALUES_SELECTED) {
+      setCustomValueError(`You can only select up to ${VALIDATION_RULES.MAX_VALUES_SELECTED} values`);
+      return;
+    }
+    
+    const customValue: WorkshopValue = {
+      id: `custom_${Date.now()}`,
+      name: customValueName.trim(),
+      category: 'Custom',
+      description: 'Your personal value',
+      isCustom: true
+    };
+    
+    dispatch(addCustomValue(customValue));
+    setCustomValueName('');
+    setCustomValueError(null);
+    setShowCustomForm(false);
   }, [customValueName, selectedValues, dispatch]);
 
   const handleRankValue = useCallback((valueId: string, rank: number) => {
@@ -562,19 +578,37 @@ const ValuesAudit: React.FC = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 max-w-md w-full">
             <h3 className="text-lg font-semibold mb-4">Add Your Own Value</h3>
-            <input
-              type="text"
-              value={customValueName}
-              onChange={(e) => setCustomValueName(e.target.value)}
-              placeholder="Enter your custom value"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              maxLength={30}
-            />
+            <div>
+              <input
+                type="text"
+                value={customValueName}
+                onChange={(e) => {
+                  setCustomValueName(e.target.value);
+                  setCustomValueError(null); // Clear error on change
+                }}
+                placeholder="Enter your custom value"
+                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 ${
+                  customValueError ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'
+                }`}
+                maxLength={VALIDATION_RULES.CUSTOM_VALUE_MAX_LENGTH}
+              />
+              <div className="mt-1 flex justify-between items-center">
+                <div>
+                  {customValueError && (
+                    <p className="text-sm text-red-600">{customValueError}</p>
+                  )}
+                </div>
+                <p className="text-xs text-gray-500">
+                  {customValueName.length}/{VALIDATION_RULES.CUSTOM_VALUE_MAX_LENGTH}
+                </p>
+              </div>
+            </div>
             <div className="flex justify-end space-x-3 mt-4">
               <button
                 onClick={() => {
                   setShowCustomForm(false);
                   setCustomValueName('');
+                  setCustomValueError(null);
                 }}
                 className="px-4 py-2 text-gray-600 hover:text-gray-800"
               >

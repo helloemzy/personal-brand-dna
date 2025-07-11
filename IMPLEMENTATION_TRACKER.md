@@ -108,12 +108,16 @@
   - [ ] Migration with feature flag
   - [ ] Gradual rollout
 
-#### 5. Remove Development URLs
-- [ ] **Clean up hardcoded localhost references**
-  - [ ] Update websocketService.ts to remove localhost:3001
-  - [ ] Add environment validation on startup
-  - [ ] Throw errors if required env vars missing
-  - [ ] Document all required environment variables
+#### 5. Remove Development URLs ✅ COMPLETE
+- [x] **Clean up hardcoded localhost references** (December 18, 2024)
+  - [x] Update websocketService.ts to remove localhost:3001
+  - [x] Add environment validation on startup
+  - [x] Throw errors if required env vars missing
+  - [x] Document all required environment variables
+  - [x] Created envValidation.ts utility
+  - [x] Only allow localhost in development mode
+  - [x] Validate URL formats and patterns
+  - [x] Show user-friendly error in production
 
 ### 🟢 PRIORITY 3: Medium Priority Issues (Fix Next Sprint)
 
