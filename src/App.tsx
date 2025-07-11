@@ -28,6 +28,7 @@ import PublicLayout from './components/PublicLayout';
 import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/auth/LoginPage';
 import ErrorBoundary from './components/ErrorBoundary';
+import { RouteErrorBoundary } from './components/RouteErrorBoundary';
 import Toast from './components/Toast';
 import LoadingSpinner from './components/LoadingSpinner';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -405,9 +406,11 @@ function App() {
           <Route path="/workshop/sessions" element={
             <ProtectedRoute>
               <Layout>
-                <Suspense fallback={<WorkshopLoadingFallback />}>
-                  <WorkshopSessionsPage />
-                </Suspense>
+                <RouteErrorBoundary routeName="Workshop Sessions">
+                  <Suspense fallback={<WorkshopLoadingFallback />}>
+                    <WorkshopSessionsPage />
+                  </Suspense>
+                </RouteErrorBoundary>
               </Layout>
             </ProtectedRoute>
           } />
@@ -415,9 +418,11 @@ function App() {
           <Route path="/results/history" element={
             <ProtectedRoute>
               <Layout>
-                <Suspense fallback={<WorkshopLoadingFallback />}>
-                  <ResultsHistoryPage />
-                </Suspense>
+                <RouteErrorBoundary routeName="Results History">
+                  <Suspense fallback={<WorkshopLoadingFallback />}>
+                    <ResultsHistoryPage />
+                  </Suspense>
+                </RouteErrorBoundary>
               </Layout>
             </ProtectedRoute>
           } />
@@ -465,9 +470,11 @@ function App() {
           <Route path="/news-monitoring" element={
             <ProtectedRoute>
               <Layout>
-                <Suspense fallback={<ContentLoadingFallback />}>
-                  <NewsMonitoringPage />
-                </Suspense>
+                <RouteErrorBoundary routeName="News Monitoring">
+                  <Suspense fallback={<ContentLoadingFallback />}>
+                    <NewsMonitoringPage />
+                  </Suspense>
+                </RouteErrorBoundary>
               </Layout>
             </ProtectedRoute>
           } />
@@ -485,9 +492,11 @@ function App() {
           <Route path="/content" element={
             <ProtectedRoute>
               <Layout>
-                <Suspense fallback={<ContentLoadingFallback />}>
-                  <ContentGenerationPage />
-                </Suspense>
+                <RouteErrorBoundary routeName="Content Generation">
+                  <Suspense fallback={<ContentLoadingFallback />}>
+                    <ContentGenerationPage />
+                  </Suspense>
+                </RouteErrorBoundary>
               </Layout>
             </ProtectedRoute>
           } />
@@ -515,9 +524,11 @@ function App() {
           <Route path="/analytics" element={
             <ProtectedRoute requiresSubscription="professional">
               <Layout>
-                <Suspense fallback={<AnalyticsLoadingFallback />}>
-                  <AnalyticsPage />
-                </Suspense>
+                <RouteErrorBoundary routeName="Analytics">
+                  <Suspense fallback={<AnalyticsLoadingFallback />}>
+                    <AnalyticsPage />
+                  </Suspense>
+                </RouteErrorBoundary>
               </Layout>
             </ProtectedRoute>
           } />
@@ -525,9 +536,11 @@ function App() {
           <Route path="/analytics/dashboard" element={
             <ProtectedRoute>
               <Layout>
-                <Suspense fallback={<AnalyticsLoadingFallback />}>
-                  <AnalyticsDashboardPage />
-                </Suspense>
+                <RouteErrorBoundary routeName="Analytics Dashboard">
+                  <Suspense fallback={<AnalyticsLoadingFallback />}>
+                    <AnalyticsDashboardPage />
+                  </Suspense>
+                </RouteErrorBoundary>
               </Layout>
             </ProtectedRoute>
           } />
@@ -535,9 +548,11 @@ function App() {
           <Route path="/analytics/users" element={
             <ProtectedRoute>
               <Layout>
-                <Suspense fallback={<AnalyticsLoadingFallback />}>
-                  <UserAnalyticsDashboard />
-                </Suspense>
+                <RouteErrorBoundary routeName="User Analytics">
+                  <Suspense fallback={<AnalyticsLoadingFallback />}>
+                    <UserAnalyticsDashboard />
+                  </Suspense>
+                </RouteErrorBoundary>
               </Layout>
             </ProtectedRoute>
           } />
@@ -555,9 +570,11 @@ function App() {
           <Route path="/analytics/feedback" element={
             <ProtectedRoute>
               <Layout>
-                <Suspense fallback={<AnalyticsLoadingFallback />}>
-                  <FeedbackAnalyticsPage />
-                </Suspense>
+                <RouteErrorBoundary routeName="Feedback Analytics">
+                  <Suspense fallback={<AnalyticsLoadingFallback />}>
+                    <FeedbackAnalyticsPage />
+                  </Suspense>
+                </RouteErrorBoundary>
               </Layout>
             </ProtectedRoute>
           } />
