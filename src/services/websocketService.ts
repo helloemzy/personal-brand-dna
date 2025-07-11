@@ -43,8 +43,15 @@ class WebSocketService {
   private eventHandlers: Map<string, Function[]> = new Map();
 
   constructor() {
+    // Require WebSocket URL to be explicitly set in production
+    const wsUrl = process.env.REACT_APP_WEBSOCKET_URL;
+    
+    if (!wsUrl && process.env.NODE_ENV === 'production') {
+      throw new Error('REACT_APP_WEBSOCKET_URL environment variable is required in production');
+    }
+    
     this.config = {
-      url: process.env.REACT_APP_WEBSOCKET_URL || 'http://localhost:3001',
+      url: wsUrl || (process.env.NODE_ENV === 'development' ? 'http://localhost:3001' : ''),
       reconnection: true,
       reconnectionAttempts: 5,
       reconnectionDelay: 1000
