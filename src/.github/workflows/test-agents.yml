@@ -1,0 +1,53 @@
+name: Test AI Agents Setup
+
+on:
+  workflow_dispatch: # Manual trigger only for testing
+
+jobs:
+  test-setup:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Check Secrets
+      run: |
+        echo "🔍 Checking if secrets are configured..."
+        
+        if [ -z "${{ secrets.SUPABASE_URL }}" ]; then
+          echo "❌ SUPABASE_URL is not set"
+        else
+          echo "✅ SUPABASE_URL is configured"
+        fi
+        
+        if [ -z "${{ secrets.OPENAI_API_KEY }}" ]; then
+          echo "❌ OPENAI_API_KEY is not set"
+        else
+          echo "✅ OPENAI_API_KEY is configured"
+        fi
+        
+        if [ -z "${{ secrets.REDIS_URL }}" ]; then
+          echo "❌ REDIS_URL is not set"
+        else
+          echo "✅ REDIS_URL is configured"
+        fi
+        
+        echo ""
+        echo "📋 Summary: Make sure all secrets show ✅ before running agents!"
+    
+    - name: Test Node Setup
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+    
+    - name: Check Project Structure
+      run: |
+        echo "📁 Checking project structure..."
+        ls -la
+        echo ""
+        echo "📦 Checking if agents directory exists..."
+        if [ -d "apps/agents" ]; then
+          echo "✅ Agents directory found"
+        else
+          echo "❌ Agents directory not found at apps/agents"
+        fi
