@@ -1,0 +1,120 @@
+name: AI Agents Periodic Run
+
+on:
+  schedule:
+    # Run every hour
+    - cron: '0 * * * *'
+  workflow_dispatch: # Allow manual trigger
+
+env:
+  NODE_ENV: production
+
+jobs:
+  news-monitor:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: |
+        npm ci
+        npm run build:shared
+        npm run build:queue
+        cd apps/agents && npm ci
+    
+    - name: Run News Monitor Agent
+      env:
+        SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+        SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        REDIS_URL: ${{ secrets.REDIS_URL }}
+        CLOUDAMQP_URL: ${{ secrets.CLOUDAMQP_URL }}
+      run: |
+        cd apps/agents
+        npm run agent:news-monitor:once
+    
+  content-generator:
+    runs-on: ubuntu-latest
+    needs: news-monitor
+    timeout-minutes: 10
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: |
+        npm ci
+        npm run build:shared
+        npm run build:queue
+        cd apps/agents && npm ci
+    
+    - name: Run Content Generator Agent
+      env:
+        SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+        SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        REDIS_URL: ${{ secrets.REDIS_URL }}
+        CLOUDAMQP_URL: ${{ secrets.CLOUDAMQP_URL }}
+      run: |
+        cd apps/agents
+        npm run agent:content-generator:once
+    
+  quality-publisher:
+    runs-on: ubuntu-latest
+    needs: content-generator
+    timeout-minutes: 5
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        cache: 'npm'
+    
+    - name: Install dependencies  
+      run: |
+        npm ci
+        npm run build:shared
+        npm run build:queue
+        cd apps/agents && npm ci
+    
+    - name: Run Quality Control & Publisher Agents
+      env:
+        SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+        SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        REDIS_URL: ${{ secrets.REDIS_URL }}
+        CLOUDAMQP_URL: ${{ secrets.CLOUDAMQP_URL }}
+      run: |
+        cd apps/agents
+        npm run agent:quality-control:once
+        npm run agent:publisher:once
+
+  notify-completion:
+    runs-on: ubuntu-latest
+    needs: [news-monitor, content-generator, quality-publisher]
+    if: always()
+    
+    steps:
+    - name: Send notification
+      run: |
+        echo "AI Agents run completed at $(date)"
+        echo "News Monitor: ${{ needs.news-monitor.result }}"
+        echo "Content Generator: ${{ needs.content-generator.result }}"
+        echo "Quality & Publisher: ${{ needs.quality-publisher.result }}"
